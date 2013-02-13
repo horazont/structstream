@@ -218,7 +218,7 @@ public:
         }
         _len = 0;
     }
-private:
+protected:
     void *_buf;
     intptr_t _len;
 protected:
@@ -275,6 +275,20 @@ public:
 public:
     virtual NodeHandle copy() const {
         return NodeHandleFactory<UTF8Record>::copy(*this);
+    };
+
+    virtual void read(IOIntf *stream) {
+        // \0 is implied!
+	VarInt length = Utils::read_varint(stream) + 1;
+	if (length < 0) {
+	    throw std::exception();
+	}
+	if (length != _len) {
+	    _len = length;
+	    _buf = realloc(_buf, size());
+	}
+	sread(stream, _buf, size()-1);
+        ((char*)_buf)[length-1] = 0;
     };
 
     virtual RecordType record_type() const {

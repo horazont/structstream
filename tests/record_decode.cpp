@@ -78,6 +78,62 @@ TEST_CASE ("decode/records/int64", "Test decode of a int64 record")
     REQUIRE(rec->get() == (int64_t)0xFFDEBC9A78563412);
 }
 
+TEST_CASE ("decode/records/blob", "Test decode of a blob record")
+{
+    static const uint8_t data[] = {
+        (uint8_t)(RT_BLOB) | 0x80, uint8_t(0x01) | 0x80,
+        // length
+        uint8_t(0x0D) | 0x80,
+        0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x00
+    };
+    static const char reference[] = "Hello World!";
+
+    RegistryHandle registry = RegistryHandle(new Registry());
+    IOIntfHandle io = IOIntfHandle(new MemoryIO(data, sizeof(data)));
+    Reader reader(io, registry);
+
+    NodeHandle node = reader.read_next();
+    REQUIRE(node.get() != 0);
+
+    BlobRecord *rec = dynamic_cast<BlobRecord*>(node.get());
+    REQUIRE(rec != 0);
+
+    char* buf = (char*)malloc(rec->raw_size());
+    rec->raw_get(buf);
+
+    REQUIRE(strlen(reference) == rec->raw_size()-1);
+    REQUIRE(strcmp(buf, reference) == 0);
+}
+
+TEST_CASE ("decode/records/utf8", "Test decode of a utf8 record")
+{
+    // note the subtle difference that utf8 records don't require the
+    // trailing 0x00 byte.
+    static const uint8_t data[] = {
+        (uint8_t)(RT_UTF8STRING) | 0x80, uint8_t(0x01) | 0x80,
+        // length
+        uint8_t(0x0C) | 0x80,
+        0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21
+    };
+    static const char reference[] = "Hello World!";
+
+    RegistryHandle registry = RegistryHandle(new Registry());
+    IOIntfHandle io = IOIntfHandle(new MemoryIO(data, sizeof(data)));
+    Reader reader(io, registry);
+
+    NodeHandle node = reader.read_next();
+    REQUIRE(node.get() != 0);
+
+    UTF8Record *rec = dynamic_cast<UTF8Record*>(node.get());
+    REQUIRE(rec != 0);
+
+    char* buf = (char*)malloc(rec->raw_size());
+    rec->raw_get(buf);
+
+    REQUIRE(strlen(reference) == rec->raw_size()-1);
+    REQUIRE(strcmp(buf, reference) == 0);
+}
+
 TEST_CASE ("decode/container/empty", "Test decode of an empty container with explicit length")
 {
     static const uint8_t data[] = {
