@@ -25,6 +25,8 @@ named in the AUTHORS file.
 **********************************************************************/
 #include "include/strstr_nodes.hpp"
 
+#include <cassert>
+
 namespace StructStream {
 
 /* StructStream::Node */
@@ -45,8 +47,26 @@ Node::Node(const Node &ref):
 
 }
 
-void detach_from_parent() {
+Node::~Node()
+{
 
+}
+
+void Node::set_parent(ContainerHandle parent) {
+    assert(_parent.lock().get() == nullptr);
+    _parent = parent;
+}
+
+void Node::detach_from_parent() {
+    Container *parent = _parent.lock().get();
+    if (parent == nullptr) {
+        return;
+    }
+
+    NodeVector::iterator me = parent->child_find(_self.lock());
+    assert(me != parent->children_end());
+
+    parent->child_erase(me);
 }
 
 /* StructStream::Container */
@@ -84,6 +104,20 @@ void Container::child_add(NodeHandle child)
     _check_valid_child(child);
     _children.push_back(child);
     child->set_parent(std::static_pointer_cast<Container>(_self.lock()));
+}
+
+NodeVector::iterator Container::child_find(NodeHandle child)
+{
+    NodeVector::iterator it = _children.begin();
+    for (;
+         it != _children.end();
+         it++)
+    {
+        if (*it == child) {
+            break;
+        }
+    }
+    return it;
 }
 
 void Container::child_insert_before(NodeVector::iterator &ref, NodeHandle child)
@@ -153,9 +187,28 @@ intptr_t Container::read_header(IOIntf *stream)
 // 	sread(stream, &hash_length, sizeof(uint32_t));
 
 // 	HashType hash_type = static_cast<HashType>(hash_type_int);
-	
+
 // 	throw new std::exception();
 //     }
 // }
+
+/* StructStream::DataRecord */
+
+DataRecord::DataRecord(ID id):
+    Node::Node(id)
+{
+
+}
+
+DataRecord::DataRecord(const DataRecord &ref):
+    Node::Node(ref)
+{
+
+}
+
+DataRecord::~DataRecord()
+{
+
+}
 
 }

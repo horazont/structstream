@@ -26,6 +26,8 @@ named in the AUTHORS file.
 #ifndef _STRSTR_IO_H
 #define _STRSTR_IO_H
 
+#include <memory>
+
 #include <cstdint>
 
 namespace StructStream {
@@ -36,6 +38,8 @@ public:
     virtual intptr_t read(void *buf, const intptr_t len) = 0;
     virtual intptr_t write(const void *buf, const intptr_t len) = 0;
 };
+
+typedef std::shared_ptr<IOIntf> IOIntfHandle;
 
 struct MemoryIO: public IOIntf {
 public:

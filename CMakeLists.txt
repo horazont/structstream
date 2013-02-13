@@ -7,5 +7,15 @@ set(EBML_SOURCES
   "src/strstr_io.cpp"
   "src/strstr_registry.cpp"
   "src/strstr_reader.cpp"
+  "src/strstr_utils.cpp"
 )
 add_library(structstream++ SHARED ${EBML_SOURCES})
+
+set(CATCH_INCLUDE_DIRS "Catch/single_include")
+set(TEST_SOURCES
+  "tests/record_decode.cpp"
+)
+
+include_directories(${CATCH_INCLUDE_DIRS})
+add_executable(run_tests tests/main.cpp ${TEST_SOURCES} )
+target_link_libraries(run_tests structstream++)

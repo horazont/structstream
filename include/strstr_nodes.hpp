@@ -110,6 +110,7 @@ protected:
 public:
     void child_add(NodeHandle child);
     void child_erase(NodeVector::iterator &to_remove);
+    NodeVector::iterator child_find(NodeHandle child);
     void child_insert_before(NodeVector::iterator &ref, NodeHandle child);
 
     NodeVector::iterator children_begin();

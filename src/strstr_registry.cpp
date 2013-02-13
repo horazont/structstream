@@ -39,6 +39,11 @@ Registry::Registry(const Registry &ref):
 
 }
 
+Registry::~Registry()
+{
+
+}
+
 void Registry::register_defaults() {
     _record_types[RT_UINT32] = NodeHandleFactory<UInt32Record>::create;
     _record_types[RT_INT32] = NodeHandleFactory<Int32Record>::create;

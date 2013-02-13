@@ -47,12 +47,13 @@ struct ParentInfo {
 
 class Reader {
 public:
-    Reader(IOIntf *source, const RegistryHandle node_types);
+    Reader(IOIntfHandle source, const RegistryHandle node_types);
     virtual ~Reader();
 private:
     IOIntf *_source;
+    IOIntfHandle _source_h;
     const Registry *_node_factory;
-    const RegistryHandle _node_factory_handle;
+    const RegistryHandle _node_factory_h;
 
     ReaderOnNode _on_node;
 

@@ -29,10 +29,11 @@ named in the AUTHORS file.
 
 namespace StructStream {
 
-Reader::Reader(IOIntf *source, const RegistryHandle node_types):
-    _source(source),
+Reader::Reader(IOIntfHandle source, const RegistryHandle node_types):
+    _source(source.get()),
+    _source_h(source),
     _node_factory(node_types.get()),
-    _node_factory_handle(node_types),
+    _node_factory_h(node_types),
     _on_node(),
     _parent_stack(),
     _root(std::static_pointer_cast<Container>(NodeHandleFactory<Container>::create(TreeRootID))),
@@ -42,7 +43,7 @@ Reader::Reader(IOIntf *source, const RegistryHandle node_types):
 }
 
 Reader::~Reader() {
-    delete _source;
+
 }
 
 bool Reader::_fire_on_node(NodeHandle node) {
@@ -84,17 +85,17 @@ NodeHandle Reader::read_next() {
     if (id == InvalidID) {
 	throw new std::exception();
     }
-    
+
 
     NodeHandle new_node = _node_factory->node_from_record_type(rt, id);
     if (!new_node.get()) {
 	throw new std::exception();
     }
 
-    if (rt == RT_CONTAINER) {
-	ContainerHandle new_parent = std::static_pointer_cast<Container>(new_node);
+    ContainerHandle new_parent = std::dynamic_pointer_cast<Container>(new_node);
+    if (new_parent.get() != nullptr) {
 	uintptr_t expected_children = new_parent->read_header(_source);
-	
+
 	_push_parent_info(new_parent, expected_children);
     } else {
 	new_node->read(_source);
@@ -103,8 +104,8 @@ NodeHandle Reader::read_next() {
 	    _curr_parent->parent_node->child_add(new_node);
 	}
 
-	if (_curr_parent->expected_children != 0 
-	    && _curr_parent->expected_children <= _curr_parent->read_child_count) 
+	if (_curr_parent->expected_children != 0
+	    && _curr_parent->expected_children <= _curr_parent->read_child_count)
 	{
 	    _pop_parent_info(true);
 	}
