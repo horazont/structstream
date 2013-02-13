@@ -8,6 +8,8 @@
 #include <cstring>
 
 #include "include/strstr_static.hpp"
+#include "include/strstr_io.hpp"
+#include "include/strstr_utils.hpp"
 
 namespace StructStream {
 
@@ -59,9 +61,10 @@ public:
         return _parent.lock();
     };
 
-    virtual NodeHandle copy() const = 0;
     void detach_from_parent();
+    virtual NodeHandle copy() const = 0;
     virtual RecordType record_type() const = 0;
+    virtual void read(IOIntf *stream) = 0;
 
     friend class NodeHandleFactory<Node>;
     friend class Container;
@@ -93,6 +96,8 @@ public:
     virtual RecordType record_type() const {
         return RT_CONTAINER;
     };
+    virtual void read(IOIntf *stream) {};
+    virtual intptr_t read_header(IOIntf *stream);
 
     friend class NodeHandleFactory<Container>;
 };
@@ -139,6 +144,10 @@ public:
         memcpy(&_data, from, sizeof(_T));
     };
 
+    virtual void read(IOIntf *stream) {
+	sread(stream, &_data, sizeof(_T));
+    };
+
     virtual RecordType record_type() const {
         return rt;
     };
@@ -154,8 +163,10 @@ public:
     friend class NodeHandleFactory< PrimitiveDataRecord<_T, rt> >;
 };
 
-typedef PrimitiveDataRecord<uint64_t, RT_UINT> UIntRecord;
-typedef PrimitiveDataRecord<int64_t, RT_INT> IntRecord;
+typedef PrimitiveDataRecord<int32_t, RT_INT32> Int32Record;
+typedef PrimitiveDataRecord<uint32_t, RT_UINT32> UInt32Record;
+typedef PrimitiveDataRecord<int64_t, RT_INT64> Int64Record;
+typedef PrimitiveDataRecord<uint64_t, RT_UINT64> UInt64Record;
 typedef PrimitiveDataRecord<float, RT_FLOAT32> Float32Record;
 typedef PrimitiveDataRecord<double, RT_FLOAT64> Float64Record;
 
@@ -199,6 +210,18 @@ public:
 
     virtual void raw_set(const void *from) {
         memcpy(_buf, from, size());
+    };
+
+    virtual void read(IOIntf *stream) {
+	VarInt length = Utils::read_varint(stream);
+	if (length < 0) {
+	    throw std::exception();
+	}
+	if (length != _len) {
+	    _len = length;
+	    _buf = realloc(_buf, size());
+	}
+	sread(stream, _buf, size());
     };
 public:
     void set(const _IntfT *from, const intptr_t len) {

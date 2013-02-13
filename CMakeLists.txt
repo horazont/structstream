@@ -6,5 +6,6 @@ set(EBML_SOURCES
   "src/strstr_nodes.cpp"
   "src/strstr_io.cpp"
   "src/strstr_registry.cpp"
+  "src/strstr_reader.cpp"
 )
 add_library(structstream++ SHARED ${EBML_SOURCES})

@@ -6,6 +6,8 @@
 namespace StructStream {
 
 struct IOIntf {
+public:
+    virtual ~IOIntf() {};
     virtual intptr_t read(void *buf, const intptr_t len) = 0;
     virtual intptr_t write(const void *buf, const intptr_t len) = 0;
 };

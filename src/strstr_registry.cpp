@@ -15,8 +15,10 @@ Registry::Registry(const Registry &ref):
 }
 
 void Registry::register_defaults() {
-    _record_types[RT_UINT] = NodeHandleFactory<UIntRecord>::create;
-    _record_types[RT_INT] = NodeHandleFactory<IntRecord>::create;
+    _record_types[RT_UINT32] = NodeHandleFactory<UInt32Record>::create;
+    _record_types[RT_INT32] = NodeHandleFactory<Int32Record>::create;
+    _record_types[RT_UINT64] = NodeHandleFactory<UInt64Record>::create;
+    _record_types[RT_INT64] = NodeHandleFactory<Int64Record>::create;
     _record_types[RT_FLOAT32] = NodeHandleFactory<Float32Record>::create;
     _record_types[RT_FLOAT64] = NodeHandleFactory<Float64Record>::create;
     _record_types[RT_UTF8STRING] = NodeHandleFactory<UTF8Record>::create;

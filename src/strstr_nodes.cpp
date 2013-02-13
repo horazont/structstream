@@ -103,4 +103,34 @@ NodeHandle Container::copy() const
     return NodeHandleFactory<Container>::copy(*this);
 }
 
+intptr_t Container::read_header(IOIntf *stream)
+{
+    VarUInt flags_int = Utils::read_varuint(stream);
+    intptr_t expected_children = 0;
+    if ((flags_int & CF_WITH_SIZE) != 0) {
+	expected_children = Utils::read_varint(stream);
+    }
+    if ((flags_int & CF_SIGNED) != 0) {
+	throw new std::exception();
+    }
+    if ((flags_int & CF_ENCRYPTED) != 0) {
+	throw new std::exception();
+    }
+    return expected_children;
+}
+
+// void Container::read_footer(IOIntf *stream)
+// {
+//     if (_expect_signature) {
+// 	VarUInt hash_type_int = Utils::read_varuint(stream);
+// 	uint32_t hash_length = 0;
+// 	// FIXME: Endianess!
+// 	sread(stream, &hash_length, sizeof(uint32_t));
+
+// 	HashType hash_type = static_cast<HashType>(hash_type_int);
+	
+// 	throw new std::exception();
+//     }
+// }
+
 }
