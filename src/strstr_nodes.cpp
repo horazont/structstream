@@ -165,7 +165,7 @@ NodeHandle Container::copy() const
 intptr_t Container::read_header(IOIntf *stream)
 {
     VarUInt flags_int = Utils::read_varuint(stream);
-    intptr_t expected_children = 0;
+    intptr_t expected_children = -1;
     if ((flags_int & CF_WITH_SIZE) != 0) {
 	expected_children = Utils::read_varint(stream);
     }

@@ -48,7 +48,7 @@ Reader::~Reader() {
 
 bool Reader::_fire_on_node(NodeHandle node) {
     if (_on_node) {
-	return _on_node(this, _curr_parent->parent_node, node);
+	return _on_node(this, (_curr_parent ? _curr_parent->parent_node : ContainerHandle()), node);
     }
     return true;
 }
@@ -56,16 +56,33 @@ bool Reader::_fire_on_node(NodeHandle node) {
 void Reader::_pop_parent_info(bool notify) {
     ParentInfo old = ParentInfo(*_curr_parent);
     _parent_stack.pop_front();
-    _curr_parent = &_parent_stack.front();
+
+    if (_parent_stack.empty()) {
+        _curr_parent = nullptr;
+    } else {
+        _curr_parent = &_parent_stack.front();
+    }
 
     if (notify) {
-	_fire_on_node(old.parent_node);
+        if (_curr_parent) {
+            _curr_parent->read_child_count++;
+        }
+	if (_fire_on_node(old.parent_node)) {
+            if (_curr_parent) {
+                _curr_parent->parent_node->child_add(old.parent_node);
+            }
+        }
     }
+
+    // printf("pop %lx; new is %lx\n",
+    //        (uint64_t)old.parent_node.get(),
+    //        (_curr_parent != nullptr ? (uint64_t)_curr_parent->parent_node.get() : 0));
 }
 
 void Reader::_push_parent_info(ContainerHandle new_parent, intptr_t expected_children) {
     _parent_stack.push_front(ParentInfo{new_parent, 0, expected_children});
     _curr_parent = &_parent_stack.front();
+    // printf("push %lx\n", (uint64_t)_curr_parent->parent_node.get());
 }
 
 NodeHandle Reader::read_next() {
@@ -77,6 +94,13 @@ NodeHandle Reader::read_next() {
     if (rt == RT_RESERVED) {
 	throw new std::exception();
     } else if (rt == RT_END_OF_CHILDREN) {
+        // printf("end of children encountered\n");
+        if (_curr_parent) {
+            if (_curr_parent->expected_children != -1) {
+                // we MUST NOT end up here if the parent specified a size
+                throw new std::exception();
+            }
+        }
 	_pop_parent_info(true);
 	return read_next();
     }
@@ -86,6 +110,7 @@ NodeHandle Reader::read_next() {
 	throw new std::exception();
     }
 
+    // printf("found 0x%x with id 0x%lx\n", rt, id);
 
     NodeHandle new_node = _node_factory->node_from_record_type(rt, id);
     if (!new_node.get()) {
@@ -99,19 +124,31 @@ NodeHandle Reader::read_next() {
 	_push_parent_info(new_parent, expected_children);
     } else {
 	new_node->read(_source);
-	_curr_parent->read_child_count++;
-	if (_fire_on_node(new_node)) {
-	    _curr_parent->parent_node->child_add(new_node);
-	}
 
-	if (_curr_parent->expected_children != 0
-	    && _curr_parent->expected_children <= _curr_parent->read_child_count)
-	{
-	    _pop_parent_info(true);
-	}
+        _curr_parent->read_child_count++;
+        if (_fire_on_node(new_node)) {
+            _curr_parent->parent_node->child_add(new_node);
+        }
+    }
+
+    // printf("%ld out of %ld children found\n",
+    //        _curr_parent->read_child_count,
+    //        _curr_parent->expected_children);
+    if (_curr_parent->expected_children != -1
+        && _curr_parent->expected_children <= _curr_parent->read_child_count)
+    {
+        _pop_parent_info(true);
     }
 
     return new_node;
+}
+
+void Reader::read_all()
+{
+    NodeHandle node = read_next();
+    while (node.get() != nullptr) {
+        node = read_next();
+    }
 }
 
 }

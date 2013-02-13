@@ -67,6 +67,7 @@ protected:
 public:
     void read_all();
     NodeHandle read_next();
+    ContainerHandle root();
 };
 
 }
