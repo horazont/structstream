@@ -271,25 +271,10 @@ protected:
     UTF8Record(const UTF8Record &ref):
         BlobDataRecord<char>::BlobDataRecord(ref) {};
 public:
-    virtual ~UTF8Record() {};
+    virtual ~UTF8Record();
 public:
-    virtual NodeHandle copy() const {
-        return NodeHandleFactory<UTF8Record>::copy(*this);
-    };
-
-    virtual void read(IOIntf *stream) {
-        // \0 is implied!
-	VarInt length = Utils::read_varint(stream) + 1;
-	if (length < 0) {
-	    throw std::exception();
-	}
-	if (length != _len) {
-	    _len = length;
-	    _buf = realloc(_buf, size());
-	}
-	sread(stream, _buf, size()-1);
-        ((char*)_buf)[length-1] = 0;
-    };
+    virtual NodeHandle copy() const;
+    virtual void read(IOIntf *stream);
 
     virtual RecordType record_type() const {
         return RT_UTF8STRING;
@@ -305,12 +290,9 @@ protected:
     BlobRecord(const BlobRecord &ref):
         BlobDataRecord<char>::BlobDataRecord(ref) {};
 public:
-    virtual ~BlobRecord() {};
+    virtual ~BlobRecord();
 public:
-    virtual NodeHandle copy() const {
-        return NodeHandleFactory<BlobRecord>::copy(*this);
-    };
-
+    virtual NodeHandle copy() const;
     virtual RecordType record_type() const {
         return RT_BLOB;
     };
