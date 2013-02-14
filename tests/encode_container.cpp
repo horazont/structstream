@@ -1,5 +1,5 @@
 /**********************************************************************
-File name: encode_record.cpp
+File name: encode_container.cpp
 This file is part of: ebml++
 
 LICENSE
