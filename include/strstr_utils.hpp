@@ -36,6 +36,11 @@ StructStream::VarUInt read_varuint(StructStream::IOIntf *stream);
 StructStream::ID read_id(StructStream::IOIntf *stream);
 StructStream::RecordType read_record_type(StructStream::IOIntf *stream);
 
+void write_varint(StructStream::IOIntf *stream, StructStream::VarInt value);
+void write_varuint(StructStream::IOIntf *stream, StructStream::VarUInt value);
+void write_id(StructStream::IOIntf *stream, StructStream::ID value);
+void write_record_type(StructStream::IOIntf *stream, StructStream::RecordType value);
+
 }
 }
 

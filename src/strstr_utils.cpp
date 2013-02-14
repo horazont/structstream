@@ -91,5 +91,51 @@ RecordType read_record_type(IOIntf *stream)
     return (RecordType)read_varuint_ex(stream, 0);
 }
 
+void write_varint(IOIntf *stream, VarInt value)
+{
+    write_varuint(stream, *((VarUInt*)&value));
+}
+
+void write_varuint(IOIntf *stream, VarUInt value)
+{
+    const uint_fast8_t total_bit_count = (sizeof(value)*8);
+    const uint_fast8_t bitcount = total_bit_count-__builtin_clzl(value);
+    // this gives ceil((float)bitcount / 7)
+    const uint_fast8_t bytecount = (bitcount+6) / 7;
+
+    if (bytecount == 0) {
+        swritev<uint8_t>(stream, 0x00);
+        return;
+    }
+
+    uint8_t leading = ((uint8_t)0x80 >> (bytecount-1));
+    VarUInt leading_premask = 0xff << ((bytecount-2)*8);
+    VarUInt leading_mask = (leading_premask >> bytecount) & leading_premask;
+
+    assert((total_bit_count-__builtin_clzl(leading_mask)) == bytecount);
+
+    leading |= (value & leading_mask) >> ((bytecount-2)*8);
+
+    swritev<uint8_t>(stream, leading);
+
+    for (uint_fast8_t i = bytecount - 1;
+         i >= 0;
+         i++)
+    {
+        VarUInt mask = 0xff << (i*8);
+        swritev<uint8_t>(stream, (value & mask) >> (i*8));
+    }
+}
+
+void write_id(IOIntf *stream, ID value)
+{
+    write_varuint(stream, value);
+}
+
+void write_record_type(IOIntf *stream, RecordType value)
+{
+    write_varuint(stream, static_cast<RecordType>(value));
+}
+
 }
 }

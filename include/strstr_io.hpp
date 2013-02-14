@@ -91,6 +91,12 @@ public:
 void sread(IOIntf *io, void *buf, const intptr_t len);
 void swrite(IOIntf *io, const void *buf, const intptr_t len);
 
+template <class _T>
+inline void swritev(IOIntf *io, const _T value)
+{
+    swrite(io, &value, sizeof(_T));
+}
+
 }
 
 #endif

@@ -153,7 +153,7 @@ void sread(IOIntf *io, void *buf, const intptr_t len)
     }
 }
 
-void swrite(IOIntf *io, void *buf, const intptr_t len)
+void swrite(IOIntf *io, const void *buf, const intptr_t len)
 {
     intptr_t written_bytes = io->write(buf, len);
     if (written_bytes < len) {
