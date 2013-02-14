@@ -31,14 +31,50 @@ named in the AUTHORS file.
 
 namespace StructStream { namespace Utils {
 
+/**
+ * Read a signed EBML varint.
+ */
 StructStream::VarInt read_varint(StructStream::IOIntf *stream);
+
+/**
+ * Read an unsigned EBML varint.
+ */
 StructStream::VarUInt read_varuint(StructStream::IOIntf *stream);
+
+/**
+ * Read a structstream ID.
+ */
 StructStream::ID read_id(StructStream::IOIntf *stream);
+
+/**
+ * Read a structstream RecordType.
+ */
 StructStream::RecordType read_record_type(StructStream::IOIntf *stream);
 
+/**
+ * Write a signed EBML varint.
+ *
+ * No range-checking is done whether the value can actually be
+ * represented as a varint. Surplus bits will be cut off.
+ */
 void write_varint(StructStream::IOIntf *stream, StructStream::VarInt value);
+
+/**
+ * Write an unsigned EBML varint.
+ *
+ * No range-checking is done whether the value can actually be
+ * represented as a varint. Surplus bits will be cut off.
+ */
 void write_varuint(StructStream::IOIntf *stream, StructStream::VarUInt value);
+
+/**
+ * Write a structstream ID.
+ */
 void write_id(StructStream::IOIntf *stream, StructStream::ID value);
+
+/**
+ * Write a structstream RecordType.
+ */
 void write_record_type(StructStream::IOIntf *stream, StructStream::RecordType value);
 
 }

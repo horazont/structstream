@@ -33,6 +33,9 @@ named in the AUTHORS file.
 
 namespace StructStream {
 
+/**
+ * Implement writing of nodes to a stream.
+ */
 class Writer
 {
 public:
@@ -65,12 +68,57 @@ protected:
     virtual void write_container_footer(ContainerInfo *info);
     virtual void write_footer();
 public:
+    /**
+     * Close a currently open stream.
+     *
+     * You must call this (or delete the Writer instance) to
+     * completely finish writing.
+     */
     void close();
+
+    /**
+     * Return whether a stream is currently opened.
+     */
     inline bool is_open() const { return _dest != nullptr; };
+
+    /**
+     * Open a stream.
+     *
+     * It is an error to call this while is_open returns true.
+     */
     void open(IOIntfHandle stream);
+
+    /**
+     * Write a node to the stream.
+     *
+     * @param subtree A node to write. Does not need to be a
+     * container, but containers are supported.
+     */
     void write(const NodeHandle subtree);
 public:
+    /**
+     * Whether to use armoring for containers.
+     *
+     * See set_use_armor for details.
+     */
     inline bool get_use_armor() const { return _armor_containers; };
+
+    /**
+     * Control whether armoring is used for containers.
+     *
+     * If armoring is enabled, containers are written with the
+     * CF_ARMORED flag, regardless of the amount of children they have
+     * or whether this amount is known.
+     *
+     * This means that an END_OF_CHILDREN marker is written after the
+     * last child of each container, which gives the reader an
+     * additional check that the correct amount of children was read.
+     *
+     * It is safe to change this value in the middle of a writing
+     * operation. It's use inside of the class is atomic.
+     *
+     * @param value true to enable armoring, false to disable.
+     */
     inline void set_use_armor(bool value) { _armor_containers = value; };
 };
 

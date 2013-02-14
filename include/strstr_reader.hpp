@@ -47,6 +47,14 @@ struct ContainerInfo {
     HashType hash_function;
 };
 
+/**
+ * Read the contents of a stream and return the node tree which it
+ * represents.
+ *
+ * This is the class you want to use if you want to read data from a
+ * stream and interpret it as structstream data. Use the read methods
+ * to read chunks of data.
+ */
 class Reader {
 public:
     Reader(IOIntfHandle source, const RegistryHandle node_types);
@@ -74,11 +82,48 @@ protected:
     virtual void end_of_container_body(ContainerInfo *info);
     void end_of_container();
 public:
+    /**
+     * Close the reader.
+     *
+     * This releases all resources acquired since the start of
+     * reading, including all allocated nodes (if the handles are not
+     * referenced elsewhere).
+     */
     void close();
+
+    /**
+     * Open a stream as structstream.
+     *
+     * It is invalid to call this method if the stream is already
+     * open. No reading takes place until read methods are called.
+     */
     void open(IOIntfHandle stream);
 public:
+    /**
+     * Read all remaining nodes of the structstream.
+     *
+     * The whole tree is accessible using the root method.
+     */
     void read_all();
+
+    /**
+     * Read the next node in the structstream (not neccessarily a
+     * top-level node!).
+     *
+     * Returns an empty handle if no more nodes are in the
+     * stream. Won't read behind the end of stream, not even if called
+     * multiple times.
+     *
+     * @return Handle to the node just read.
+     */
     NodeHandle read_next();
+
+    /**
+     * Return the root node of the document.
+     *
+     * @return Handle to the root container or an empty handle if no
+     * stream is currently opened.
+     */
     ContainerHandle root();
 };
 

@@ -47,6 +47,13 @@ namespace StructStream {
 
 typedef std::function< NodeHandle(ID) > NodeConstructor;
 
+/**
+ * Manage association of RecordType:s with classes representing them.
+ *
+ * You need an instance of this class to drive a Reader class. A new
+ * instance of this class already has the default types registered, so
+ * you don't need to do anything if you don't implement custom types.
+ */
 class Registry {
 public:
     Registry();
@@ -57,6 +64,17 @@ private:
 private:
     void register_defaults();
 public:
+    /**
+     * Create a node for the given record type with the given id.
+     *
+     * Return the newly created node or an empty handle, if the given
+     * record type is not known to the registry.
+     *
+     * @param rt Record type for which a node is wanted.
+     * @param id ID of the node
+     *
+     * @result Newly created node or empty handle.
+     */
     NodeHandle node_from_record_type(RecordType rt, ID id) const;
 };
 
