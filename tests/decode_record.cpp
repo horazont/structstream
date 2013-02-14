@@ -1,5 +1,5 @@
 /**********************************************************************
-File name: record_decode.cpp
+File name: decode_record.cpp
 This file is part of: ebml++
 
 LICENSE
