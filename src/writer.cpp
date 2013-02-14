@@ -1,5 +1,5 @@
 /**********************************************************************
-File name: strstr_writer.cpp
+File name: writer.cpp
 This file is part of: ebml++
 
 LICENSE
@@ -31,6 +31,7 @@ named in the AUTHORS file.
 
 #include "structstream/static.hpp"
 #include "structstream/errors.hpp"
+#include "structstream/utils.hpp"
 
 namespace StructStream {
 

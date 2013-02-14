@@ -1,5 +1,5 @@
 /**********************************************************************
-File name: strstr_writer.hpp
+File name: writer.hpp
 This file is part of: ebml++
 
 LICENSE
@@ -29,7 +29,8 @@ named in the AUTHORS file.
 #include <unordered_map>
 
 #include "structstream/io.hpp"
-#include "structstream/nodes.hpp"
+#include "structstream/node_base.hpp"
+#include "structstream/node_container.hpp"
 
 namespace StructStream {
 

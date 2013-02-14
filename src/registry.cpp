@@ -1,5 +1,5 @@
 /**********************************************************************
-File name: strstr_registry.cpp
+File name: registry.cpp
 This file is part of: ebml++
 
 LICENSE
@@ -24,6 +24,10 @@ For feedback and questions about ebml++ please e-mail one of the authors
 named in the AUTHORS file.
 **********************************************************************/
 #include "structstream/registry.hpp"
+
+#include "structstream/node_container.hpp"
+#include "structstream/node_primitive.hpp"
+#include "structstream/node_blob.hpp"
 
 namespace StructStream {
 

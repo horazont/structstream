@@ -1,5 +1,5 @@
 /**********************************************************************
-File name: strstr_io.cpp
+File name: io.cpp
 This file is part of: ebml++
 
 LICENSE

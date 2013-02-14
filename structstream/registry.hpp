@@ -1,5 +1,5 @@
 /**********************************************************************
-File name: strstr_registry.hpp
+File name: registry.hpp
 This file is part of: ebml++
 
 LICENSE
@@ -29,7 +29,7 @@ named in the AUTHORS file.
 #include <unordered_map>
 #include <memory>
 
-#include "structstream/nodes.hpp"
+#include "structstream/node_base.hpp"
 
 namespace std {
 

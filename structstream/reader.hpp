@@ -1,5 +1,5 @@
 /**********************************************************************
-File name: strstr_reader.hpp
+File name: reader.hpp
 This file is part of: ebml++
 
 LICENSE
@@ -29,7 +29,8 @@ named in the AUTHORS file.
 #include <functional>
 #include <forward_list>
 
-#include "structstream/nodes.hpp"
+#include "structstream/node_base.hpp"
+#include "structstream/node_container.hpp"
 #include "structstream/registry.hpp"
 #include "structstream/io.hpp"
 

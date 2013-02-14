@@ -1,5 +1,5 @@
 /**********************************************************************
-File name: strstr_reader.cpp
+File name: reader.cpp
 This file is part of: ebml++
 
 LICENSE

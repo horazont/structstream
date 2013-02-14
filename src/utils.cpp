@@ -1,5 +1,5 @@
 /**********************************************************************
-File name: strstr_utils.cpp
+File name: utils.cpp
 This file is part of: ebml++
 
 LICENSE

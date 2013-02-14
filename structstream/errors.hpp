@@ -1,5 +1,5 @@
 /**********************************************************************
-File name: strstr_errors.hpp
+File name: errors.hpp
 This file is part of: ebml++
 
 LICENSE

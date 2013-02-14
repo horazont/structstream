@@ -1,5 +1,5 @@
 /**********************************************************************
-File name: errors.cpp
+File name: node_base.cpp
 This file is part of: ebml++
 
 LICENSE
@@ -23,8 +23,59 @@ FEEDBACK & QUESTIONS
 For feedback and questions about ebml++ please e-mail one of the authors
 named in the AUTHORS file.
 **********************************************************************/
-#include "structstream/errors.hpp"
+#include "structstream/node_base.hpp"
+
+#include <cassert>
+
+#include "structstream/node_container.hpp"
+#include "structstream/utils.hpp"
 
 namespace StructStream {
+
+/* StructStream::Node */
+
+Node::Node(ID id):
+    _self(),
+    _id(id),
+    _parent()
+{
+
+}
+
+Node::Node(const Node &ref):
+    _self(),
+    _id(ref._id),
+    _parent()
+{
+
+}
+
+Node::~Node()
+{
+
+}
+
+void Node::set_parent(ContainerHandle parent) {
+    assert(_parent.lock().get() == nullptr);
+    _parent = parent;
+}
+
+void Node::detach_from_parent() {
+    Container *parent = _parent.lock().get();
+    if (parent == nullptr) {
+        return;
+    }
+
+    NodeVector::iterator me = parent->child_find(_self.lock());
+    assert(me != parent->children_end());
+
+    parent->child_erase(me);
+}
+
+void Node::write_header(IOIntf *stream) const
+{
+    Utils::write_record_type(stream, record_type());
+    Utils::write_id(stream, _id);
+}
 
 }

@@ -25,6 +25,8 @@ named in the AUTHORS file.
 **********************************************************************/
 #include "catch.hpp"
 
+#include "structstream/node_primitive.hpp"
+#include "structstream/node_blob.hpp"
 #include "structstream/reader.hpp"
 
 using namespace StructStream;

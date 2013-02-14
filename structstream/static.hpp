@@ -1,5 +1,5 @@
 /**********************************************************************
-File name: strstr_static.hpp
+File name: static.hpp
 This file is part of: ebml++
 
 LICENSE

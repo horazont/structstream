@@ -1,5 +1,5 @@
 /**********************************************************************
-File name: errors.cpp
+File name: node_primitive.cpp
 This file is part of: ebml++
 
 LICENSE
@@ -23,8 +23,27 @@ FEEDBACK & QUESTIONS
 For feedback and questions about ebml++ please e-mail one of the authors
 named in the AUTHORS file.
 **********************************************************************/
-#include "structstream/errors.hpp"
+#include "structstream/node_primitive.hpp"
 
 namespace StructStream {
+
+/* StructStream::DataRecord */
+
+DataRecord::DataRecord(ID id):
+    Node::Node(id)
+{
+
+}
+
+DataRecord::DataRecord(const DataRecord &ref):
+    Node::Node(ref)
+{
+
+}
+
+DataRecord::~DataRecord()
+{
+
+}
 
 }

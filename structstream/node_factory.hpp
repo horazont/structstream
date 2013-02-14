@@ -1,5 +1,5 @@
 /**********************************************************************
-File name: errors.cpp
+File name: node_factory.hpp
 This file is part of: ebml++
 
 LICENSE
@@ -23,8 +23,40 @@ FEEDBACK & QUESTIONS
 For feedback and questions about ebml++ please e-mail one of the authors
 named in the AUTHORS file.
 **********************************************************************/
-#include "structstream/errors.hpp"
+#ifndef _STRUCTSTREAM_NODE_FACTORY_H
+#define _STRUCTSTREAM_NODE_FACTORY_H
+
+#include <memory>
+
+#include "structstream/static.hpp"
 
 namespace StructStream {
 
+class Node;
+typedef std::shared_ptr<Node> NodeHandle;
+typedef std::weak_ptr<Node> NodeWeakHandle;
+
+template <class NodeT>
+struct NodeHandleFactory {
+    inline static NodeHandle create(ID id) {
+        NodeT *node = new NodeT(id);
+        NodeHandle handle = NodeHandle(node);
+        node->_self = NodeWeakHandle(handle);
+        return handle;
+    };
+
+    inline static NodeHandle copy(const NodeT &ref) {
+        NodeT *node = new NodeT(ref);
+        NodeHandle handle = NodeHandle(node);
+        node->_self = NodeWeakHandle(handle);
+        return handle;
+    };
+private:
+    NodeHandleFactory();
+    NodeHandleFactory(const NodeHandleFactory &ref);
+};
+
+
 }
+
+#endif

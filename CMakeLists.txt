@@ -3,7 +3,10 @@ set(CMAKE_CXX_FLAGS "-g -Wall -std=c++11 -Werror")
 
 include_directories(".")
 set(STRUCTSTREAM_SOURCES
-  "src/nodes.cpp"
+  "src/node_base.cpp"
+  "src/node_container.cpp"
+  "src/node_primitive.cpp"
+  "src/node_blob.cpp"
   "src/io.cpp"
   "src/registry.cpp"
   "src/reader.cpp"
