@@ -123,7 +123,6 @@ public:
         return RT_CONTAINER;
     };
     virtual void read(IOIntf *stream) {};
-    virtual intptr_t read_header(IOIntf *stream);
 
     friend class NodeHandleFactory<Container>;
 };

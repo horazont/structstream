@@ -1,3 +1,28 @@
+/**********************************************************************
+File name: record_decode.cpp
+This file is part of: ebml++
+
+LICENSE
+
+The contents of this file are subject to the Mozilla Public License
+Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at
+http://www.mozilla.org/MPL/
+
+Software distributed under the License is distributed on an "AS IS"
+basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under
+the License.
+
+Alternatively, the contents of this file may be used under the terms of
+the GNU General Public license (the  "GPL License"), in which case  the
+provisions of GPL License are applicable instead of those above.
+
+FEEDBACK & QUESTIONS
+
+For feedback and questions about ebml++ please e-mail one of the authors
+named in the AUTHORS file.
+**********************************************************************/
 #include "catch.hpp"
 
 #include "include/strstr_reader.hpp"
@@ -159,7 +184,7 @@ TEST_CASE ("decode/container/empty_implicit", "Test decode of an empty container
 {
     static const uint8_t data[] = {
         (uint8_t)(RT_CONTAINER) | 0x80, uint8_t(0x01) | 0x80,
-        uint8_t(0x00) | 0x80,
+        uint8_t(CF_ARMORED) | 0x80,
         uint8_t(RT_END_OF_CHILDREN) | 0x80,
         uint8_t(RT_END_OF_CHILDREN) | 0x80
     };
@@ -211,7 +236,7 @@ TEST_CASE ("decode/container/complex", "Complex nesting structure")
     static const uint8_t data[] = {
         (uint8_t)(RT_CONTAINER) | 0x80,  // start container
         uint8_t(0x01) | 0x80,  // with id 0x01
-        uint8_t(0x00),  // and no other information (i.e. indefinite length)
+        uint8_t(CF_ARMORED) | 0x80,  // and no other information (i.e. indefinite length)
 
         // add a uint32 node with id 0x02 and value 0x11111111
         (uint8_t)(RT_UINT32) | 0x80, uint8_t(0x02) | 0x80, 0x11, 0x11, 0x11, 0x11,

@@ -39,10 +39,12 @@ class Reader;
 
 typedef std::function<bool (Reader *reader, ContainerHandle parent, NodeHandle node)> ReaderOnNode;
 
-struct ParentInfo {
+struct ContainerInfo {
     ContainerHandle parent_node;
     intptr_t read_child_count;
     intptr_t expected_children;
+    bool armored;
+    HashType hash_function;
 };
 
 class Reader {
@@ -57,13 +59,23 @@ private:
 
     ReaderOnNode _on_node;
 
-    std::forward_list<ParentInfo> _parent_stack;
+    std::forward_list<ContainerInfo*> _parent_stack;
     ContainerHandle _root;
-    ParentInfo *_curr_parent;
+    ContainerInfo *_curr_parent;
 protected:
-    bool _fire_on_node(NodeHandle node);
-    void _pop_parent_info(bool notify);
-    void _push_parent_info(ContainerHandle new_parent, intptr_t expected_children);
+    void check_end_of_container();
+    bool fire_on_node(NodeHandle node);
+    void require_open();
+protected:
+    virtual ContainerInfo* new_container_info() const;
+    void start_of_container(ContainerHandle cont_node);
+    virtual void proc_container_flags(VarUInt &flags_int, ContainerInfo *info);
+    virtual void end_of_container_header(ContainerInfo *info);
+    virtual void end_of_container_body(ContainerInfo *info);
+    void end_of_container();
+public:
+    void close();
+    void open(IOIntfHandle stream);
 public:
     void read_all();
     NodeHandle read_next();

@@ -1,5 +1,5 @@
 /**********************************************************************
-File name: main.cpp
+File name: strstr_errors.cpp
 This file is part of: ebml++
 
 LICENSE
@@ -23,5 +23,8 @@ FEEDBACK & QUESTIONS
 For feedback and questions about ebml++ please e-mail one of the authors
 named in the AUTHORS file.
 **********************************************************************/
-#define CATCH_CONFIG_MAIN
-#include <catch.hpp>
+#include "include/strstr_errors.hpp"
+
+namespace StructStream {
+
+}
