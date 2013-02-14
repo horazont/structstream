@@ -106,6 +106,11 @@ void Container::child_add(NodeHandle child)
     child->set_parent(std::static_pointer_cast<Container>(_self.lock()));
 }
 
+intptr_t Container::child_count() const
+{
+    return _children.size();
+}
+
 NodeVector::iterator Container::child_find(NodeHandle child)
 {
     NodeVector::iterator it = _children.begin();

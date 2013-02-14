@@ -109,6 +109,7 @@ protected:
     void _check_valid_child(NodeHandle child);
 public:
     void child_add(NodeHandle child);
+    intptr_t child_count() const;
     void child_erase(NodeVector::iterator &to_remove);
     NodeVector::iterator child_find(NodeHandle child);
     void child_insert_before(NodeVector::iterator &ref, NodeHandle child);
