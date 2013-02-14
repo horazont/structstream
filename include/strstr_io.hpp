@@ -41,17 +41,49 @@ public:
 
 typedef std::shared_ptr<IOIntf> IOIntfHandle;
 
-struct MemoryIO: public IOIntf {
+struct WritableMemory;
+
+struct ReadableMemory: public IOIntf {
 public:
-    MemoryIO(const void *srcbuf, const intptr_t len);
-    MemoryIO(const MemoryIO &ref);
-    virtual ~MemoryIO();
+    ReadableMemory(const void *srcbuf, const intptr_t len);
+    ReadableMemory(const ReadableMemory &ref);
+    ReadableMemory(const WritableMemory &ref);
+    virtual ~ReadableMemory();
 private:
     void* _buf;
     intptr_t _len;
     intptr_t _offs;
 public:
-    MemoryIO& operator=(const MemoryIO &ref);
+    ReadableMemory& operator=(const ReadableMemory &ref);
+
+    inline const void *buffer() const { return _buf; };
+    inline const intptr_t size() const { return _len; };
+
+    virtual intptr_t read(void *buf, const intptr_t len);
+    virtual intptr_t write(const void *buf, const intptr_t len);
+};
+
+struct WritableMemory: public IOIntf {
+public:
+    WritableMemory();
+    WritableMemory(const uint32_t blank_pattern);
+    WritableMemory(const ReadableMemory &ref);
+    WritableMemory(const WritableMemory &ref);
+    virtual ~WritableMemory();
+private:
+    void *_buf;
+    intptr_t _buf_size;
+    intptr_t _outward_size;
+    intptr_t _offs;
+    uint32_t _blank_pattern;
+private:
+    void grow();
+public:
+    WritableMemory& operator=(const WritableMemory &ref);
+
+    inline const void *buffer() const { return _buf; };
+    inline const intptr_t size() const { return _outward_size; };
+
     virtual intptr_t read(void *buf, const intptr_t len);
     virtual intptr_t write(const void *buf, const intptr_t len);
 };

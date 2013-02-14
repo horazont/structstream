@@ -31,7 +31,7 @@ named in the AUTHORS file.
 
 namespace StructStream {
 
-MemoryIO::MemoryIO(const void *srcbuf, const intptr_t len):
+ReadableMemory::ReadableMemory(const void *srcbuf, const intptr_t len):
     _buf(malloc(len)),
     _len(len),
     _offs(0)
@@ -39,7 +39,7 @@ MemoryIO::MemoryIO(const void *srcbuf, const intptr_t len):
     memcpy(_buf, srcbuf, len);
 }
 
-MemoryIO::MemoryIO(const MemoryIO &ref):
+ReadableMemory::ReadableMemory(const ReadableMemory &ref):
     _buf(malloc(ref._len)),
     _len(ref._len),
     _offs(0)
@@ -47,12 +47,12 @@ MemoryIO::MemoryIO(const MemoryIO &ref):
     memcpy(_buf, ref._buf, _len);
 }
 
-MemoryIO::~MemoryIO()
+ReadableMemory::~ReadableMemory()
 {
     free(_buf);
 }
 
-MemoryIO& MemoryIO::operator=(const MemoryIO &ref)
+ReadableMemory& ReadableMemory::operator=(const ReadableMemory &ref)
 {
     free(_buf);
     _buf = malloc(ref._len);
@@ -62,7 +62,7 @@ MemoryIO& MemoryIO::operator=(const MemoryIO &ref)
     return *this;
 }
 
-intptr_t MemoryIO::read(void *buf, const intptr_t len)
+intptr_t ReadableMemory::read(void *buf, const intptr_t len)
 {
     intptr_t to_read = len;
     if (_offs + len > _len) {
@@ -76,9 +76,72 @@ intptr_t MemoryIO::read(void *buf, const intptr_t len)
     return to_read;
 }
 
-intptr_t MemoryIO::write(const void *buf, const intptr_t len)
+intptr_t ReadableMemory::write(const void *buf, const intptr_t len)
 {
     return 0;
+}
+
+/* StructStream::WritableMemory */
+
+WritableMemory::WritableMemory():
+    _buf(),
+    _buf_size(0),
+    _outward_size(0),
+    _offs(0),
+    _blank_pattern(0xdeadbeef)
+{
+
+}
+
+WritableMemory::WritableMemory(const uint32_t blank_pattern):
+    _buf(),
+    _buf_size(0),
+    _outward_size(0),
+    _offs(0),
+    _blank_pattern(blank_pattern)
+{
+
+}
+
+WritableMemory::~WritableMemory()
+{
+    if (_buf) {
+        free(_buf);
+    }
+}
+
+void WritableMemory::grow()
+{
+    assert(_buf_size % sizeof(_blank_pattern) == 0);
+
+    const intptr_t new_size = _buf_size + 1024*sizeof(_blank_pattern);
+    _buf = realloc(_buf, new_size);
+
+    uint32_t *fillat = (uint32_t*)(&((uint8_t*)_buf)[_buf_size]);
+    const uint32_t *end = (uint32_t*)(&((uint8_t*)_buf)[new_size]);
+    while (fillat < end) {
+        *fillat = _blank_pattern;
+    }
+
+    _buf_size = new_size;
+}
+
+intptr_t WritableMemory::read(void*, const intptr_t)
+{
+    return 0;
+}
+
+intptr_t WritableMemory::write(const void *buf, const intptr_t len)
+{
+    while (len + _offs >= _buf_size)
+    {
+        grow();
+    }
+
+    memcpy((uint8_t*)_buf + _outward_size, buf, len);
+    _outward_size += len;
+    _offs += len;
+    return len;
 }
 
 void sread(IOIntf *io, void *buf, const intptr_t len)

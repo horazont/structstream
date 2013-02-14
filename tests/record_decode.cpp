@@ -36,7 +36,7 @@ TEST_CASE ("decode/records/uint32", "Test decode of a uint32 record")
     };
 
     RegistryHandle registry = RegistryHandle(new Registry());
-    IOIntfHandle io = IOIntfHandle(new MemoryIO(data, sizeof(data)));
+    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, sizeof(data)));
     Reader reader(io, registry);
 
     NodeHandle node = reader.read_next();
@@ -55,7 +55,7 @@ TEST_CASE ("decode/records/uint64", "Test decode of a uint64 record")
     };
 
     RegistryHandle registry = RegistryHandle(new Registry());
-    IOIntfHandle io = IOIntfHandle(new MemoryIO(data, sizeof(data)));
+    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, sizeof(data)));
     Reader reader(io, registry);
 
     NodeHandle node = reader.read_next();
@@ -73,7 +73,7 @@ TEST_CASE ("decode/records/int32", "Test decode of a int32 record")
     };
 
     RegistryHandle registry = RegistryHandle(new Registry());
-    IOIntfHandle io = IOIntfHandle(new MemoryIO(data, sizeof(data)));
+    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, sizeof(data)));
     Reader reader(io, registry);
 
     NodeHandle node = reader.read_next();
@@ -92,7 +92,7 @@ TEST_CASE ("decode/records/int64", "Test decode of a int64 record")
     };
 
     RegistryHandle registry = RegistryHandle(new Registry());
-    IOIntfHandle io = IOIntfHandle(new MemoryIO(data, sizeof(data)));
+    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, sizeof(data)));
     Reader reader(io, registry);
 
     NodeHandle node = reader.read_next();
@@ -114,7 +114,7 @@ TEST_CASE ("decode/records/blob", "Test decode of a blob record")
     static const char reference[] = "Hello World!";
 
     RegistryHandle registry = RegistryHandle(new Registry());
-    IOIntfHandle io = IOIntfHandle(new MemoryIO(data, sizeof(data)));
+    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, sizeof(data)));
     Reader reader(io, registry);
 
     NodeHandle node = reader.read_next();
@@ -143,7 +143,7 @@ TEST_CASE ("decode/records/utf8", "Test decode of a utf8 record")
     static const char reference[] = "Hello World!";
 
     RegistryHandle registry = RegistryHandle(new Registry());
-    IOIntfHandle io = IOIntfHandle(new MemoryIO(data, sizeof(data)));
+    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, sizeof(data)));
     Reader reader(io, registry);
 
     NodeHandle node = reader.read_next();
@@ -168,7 +168,7 @@ TEST_CASE ("decode/container/empty", "Test decode of an empty container with exp
     };
 
     RegistryHandle registry = RegistryHandle(new Registry());
-    IOIntfHandle io = IOIntfHandle(new MemoryIO(data, sizeof(data)));
+    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, sizeof(data)));
     Reader reader(io, registry);
 
     NodeHandle node = reader.read_next();
@@ -190,7 +190,7 @@ TEST_CASE ("decode/container/empty_implicit", "Test decode of an empty container
     };
 
     RegistryHandle registry = RegistryHandle(new Registry());
-    IOIntfHandle io = IOIntfHandle(new MemoryIO(data, sizeof(data)));
+    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, sizeof(data)));
     Reader reader(io, registry);
 
     NodeHandle node = reader.read_next();
@@ -213,7 +213,7 @@ TEST_CASE ("decode/container/with_child", "Test decode of an empty container")
     };
 
     RegistryHandle registry = RegistryHandle(new Registry());
-    IOIntfHandle io = IOIntfHandle(new MemoryIO(data, sizeof(data)));
+    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, sizeof(data)));
     Reader reader(io, registry);
 
     NodeHandle node = reader.read_next();
@@ -260,7 +260,7 @@ TEST_CASE ("decode/container/complex", "Complex nesting structure")
     };
 
     RegistryHandle registry = RegistryHandle(new Registry());
-    IOIntfHandle io = IOIntfHandle(new MemoryIO(data, sizeof(data)));
+    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, sizeof(data)));
     Reader reader(io, registry);
 
     NodeHandle node = reader.read_next();
