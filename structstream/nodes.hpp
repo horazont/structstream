@@ -167,7 +167,7 @@ public:
 protected:
     NodeVector _children;
 protected:
-    void _check_valid_child(NodeHandle child);
+    void check_valid_child(NodeHandle child) const;
 public:
     /**
      * Add a child to the container.

@@ -27,6 +27,8 @@ named in the AUTHORS file.
 
 #include <cassert>
 
+#include "structstream/errors.hpp"
+
 namespace StructStream {
 
 /* StructStream::Node */
@@ -98,16 +100,16 @@ Container::~Container()
 
 }
 
-void Container::_check_valid_child(NodeHandle child)
+void Container::check_valid_child(NodeHandle child) const
 {
     if (child->parent().get() != nullptr) {
-        throw new std::exception(); //("node cannot have multiple parents. un-parent first!");
+        throw ParentAlreadySet("Node cannot have multiple parents.");
     }
 }
 
 void Container::child_add(NodeHandle child)
 {
-    _check_valid_child(child);
+    check_valid_child(child);
     _children.push_back(child);
     child->set_parent(std::static_pointer_cast<Container>(_self.lock()));
 }
@@ -133,7 +135,7 @@ NodeVector::iterator Container::child_find(NodeHandle child)
 
 void Container::child_insert_before(NodeVector::iterator &ref, NodeHandle child)
 {
-    _check_valid_child(child);
+    check_valid_child(child);
     _children.insert(ref, child);
     child->set_parent(std::static_pointer_cast<Container>(_self.lock()));
 }
