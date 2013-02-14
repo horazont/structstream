@@ -53,6 +53,7 @@ TEST_CASE ("encode/record/uint32", "Encode a RT_UINT32 record")
     writer.write(tree);
     writer.close();
 
+    REQUIRE(static_cast<WritableMemory*>(io.get())->size() == sizeof(expected));
     REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
 }
 
@@ -77,6 +78,7 @@ TEST_CASE ("encode/record/uint64", "Encode a RT_UINT64 record")
     writer.write(tree);
     writer.close();
 
+    REQUIRE(static_cast<WritableMemory*>(io.get())->size() == sizeof(expected));
     REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
 }
 
@@ -100,6 +102,7 @@ TEST_CASE ("encode/record/int32", "Encode a RT_INT32 record")
     writer.write(tree);
     writer.close();
 
+    REQUIRE(static_cast<WritableMemory*>(io.get())->size() == sizeof(expected));
     REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
 }
 
@@ -124,6 +127,7 @@ TEST_CASE ("encode/record/int64", "Encode a RT_INT64 record")
     writer.write(tree);
     writer.close();
 
+    REQUIRE(static_cast<WritableMemory*>(io.get())->size() == sizeof(expected));
     REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
 }
 
@@ -151,8 +155,8 @@ TEST_CASE ("encode/record/blob", "Encode a blob")
     writer.write(tree);
     writer.close();
 
+    REQUIRE(static_cast<WritableMemory*>(io.get())->size() == sizeof(expected));
     REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
-
 }
 
 TEST_CASE ("encode/record/utf8", "Encode a utf8 string")
@@ -179,6 +183,6 @@ TEST_CASE ("encode/record/utf8", "Encode a utf8 string")
     writer.write(tree);
     writer.close();
 
+    REQUIRE(static_cast<WritableMemory*>(io.get())->size() == sizeof(expected));
     REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
-
 }

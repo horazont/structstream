@@ -69,6 +69,9 @@ public:
     inline bool is_open() const { return _dest != nullptr; };
     void open(IOIntfHandle stream);
     void write(const NodeHandle subtree);
+public:
+    inline bool get_use_armor() const { return _armor_containers; };
+    inline void set_use_armor(bool value) { _armor_containers = value; };
 };
 
 }

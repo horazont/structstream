@@ -69,7 +69,7 @@ void Node::detach_from_parent() {
     parent->child_erase(me);
 }
 
-void Node::write_header(IOIntf *stream)
+void Node::write_header(IOIntf *stream) const
 {
     Utils::write_record_type(stream, record_type());
     Utils::write_id(stream, _id);
@@ -219,7 +219,7 @@ void UTF8Record::read(IOIntf *stream)
     ((char*)_buf)[length-1] = 0;
 }
 
-void UTF8Record::write(IOIntf *stream)
+void UTF8Record::write(IOIntf *stream) const
 {
     write_header(stream);
     Utils::write_varint(stream, _len-1);
@@ -238,7 +238,7 @@ NodeHandle BlobRecord::copy() const
     return NodeHandleFactory<BlobRecord>::copy(*this);
 }
 
-void BlobRecord::write(IOIntf *stream)
+void BlobRecord::write(IOIntf *stream) const
 {
     write_header(stream);
     Utils::write_varint(stream, _len);

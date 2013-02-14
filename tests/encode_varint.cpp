@@ -32,6 +32,20 @@ named in the AUTHORS file.
 
 using namespace StructStream;
 
+TEST_CASE ("encode/varuint/0", "Encode a 1 byte long varuint (zero)")
+{
+    static const uint8_t expected[] = {
+        0x00
+    };
+    uint8_t output[sizeof(expected)];
+    IOIntfHandle io = IOIntfHandle(new WritableMemory(output, sizeof(expected)));
+
+    Utils::write_varuint(io.get(), 0x00);
+
+    REQUIRE(static_cast<WritableMemory*>(io.get())->size() == sizeof(expected));
+    REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
+}
+
 TEST_CASE ("encode/varuint/1", "Encode a 1 byte long varuint")
 {
     static const uint8_t expected[] = {
@@ -42,6 +56,7 @@ TEST_CASE ("encode/varuint/1", "Encode a 1 byte long varuint")
 
     Utils::write_varuint(io.get(), 0x7f);
 
+    REQUIRE(static_cast<WritableMemory*>(io.get())->size() == sizeof(expected));
     REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
 }
 
@@ -55,6 +70,7 @@ TEST_CASE ("encode/varuint/2", "Encode a 2 bytes long varuint")
 
     Utils::write_varuint(io.get(), 0x3fff);
 
+    REQUIRE(static_cast<WritableMemory*>(io.get())->size() == sizeof(expected));
     REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
 }
 
@@ -68,6 +84,7 @@ TEST_CASE ("encode/varuint/3", "Encode a 3 bytes long varuint")
 
     Utils::write_varuint(io.get(), 0x1fffff);
 
+    REQUIRE(static_cast<WritableMemory*>(io.get())->size() == sizeof(expected));
     REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
 }
 
@@ -81,6 +98,7 @@ TEST_CASE ("encode/varuint/4", "Encode a 4 bytes long varuint")
 
     Utils::write_varuint(io.get(), 0x0fffffff);
 
+    REQUIRE(static_cast<WritableMemory*>(io.get())->size() == sizeof(expected));
     REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
 }
 
@@ -94,6 +112,7 @@ TEST_CASE ("encode/varuint/5", "Encode a 5 bytes long varuint")
 
     Utils::write_varuint(io.get(), 0x07ffffffff);
 
+    REQUIRE(static_cast<WritableMemory*>(io.get())->size() == sizeof(expected));
     REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
 }
 
@@ -107,6 +126,7 @@ TEST_CASE ("encode/varuint/6", "Encode a 6 bytes long varuint")
 
     Utils::write_varuint(io.get(), 0x03ffffffffff);
 
+    REQUIRE(static_cast<WritableMemory*>(io.get())->size() == sizeof(expected));
     REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
 }
 
@@ -120,6 +140,7 @@ TEST_CASE ("encode/varuint/7", "Encode a 7 bytes long varuint")
 
     Utils::write_varuint(io.get(), 0x01ffffffffffff);
 
+    REQUIRE(static_cast<WritableMemory*>(io.get())->size() == sizeof(expected));
     REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
 }
 
@@ -133,5 +154,6 @@ TEST_CASE ("encode/varuint/8", "Encode a 8 bytes long varuint")
 
     Utils::write_varuint(io.get(), 0xffffffffffffff);
 
+    REQUIRE(static_cast<WritableMemory*>(io.get())->size() == sizeof(expected));
     REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
 }

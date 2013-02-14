@@ -104,12 +104,14 @@ void write_varuint(IOIntf *stream, VarUInt value)
     // this gives ceil((float)bitcount / 7)
     const uint_fast8_t bytecount = (bitcount+6) / 7;
 
-    // printf("serializing varint 0x%lx; maxbit = %d; bytes = %d\n", value, bitcount, bytecount);
-
-    if (bytecount == 0) {
+    if (value == 0) {
         swritev<uint8_t>(stream, 0x00);
         return;
     }
+
+    // printf("serializing varint 0x%lx; maxbit = %d; bytes = %d\n", value, bitcount, bytecount);
+
+    assert(bytecount > 0);
 
     uint8_t leading = ((uint8_t)0x80 >> (bytecount-1));
     const VarUInt leading_premask = (VarUInt)0xff << ((bytecount-1)*8);

@@ -87,6 +87,8 @@ void Writer::write_container(const Container *node)
     std::unique_ptr<ContainerInfo> info_h{info};
     info->node = node;
 
+    info->node->write_header(_dest);
+
     setup_container_header(info);
 
     write_container_header(info);
@@ -125,7 +127,7 @@ void Writer::write_container_header(Writer::ContainerInfo *info)
 
     Utils::write_varuint(_dest, flags);
     intptr_t actual_child_count = info->node->child_count();
-    assert(actual_child_count > 0);
+    assert(actual_child_count >= 0);
     Utils::write_varuint(_dest, static_cast<VarUInt>(actual_child_count));
     if (info->hashfunc != HT_INVALID) {
         Utils::write_varuint(_dest, static_cast<VarUInt>(info->hashfunc));
@@ -134,6 +136,9 @@ void Writer::write_container_header(Writer::ContainerInfo *info)
 
 void Writer::write_container_footer(Writer::ContainerInfo *info)
 {
+    if (info->armored) {
+        Utils::write_record_type(_dest, RT_END_OF_CHILDREN);
+    }
     // TODO: hash result
 }
 
