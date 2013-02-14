@@ -90,6 +90,8 @@ public:
     virtual NodeHandle copy() const = 0;
     virtual RecordType record_type() const = 0;
     virtual void read(IOIntf *stream) = 0;
+    virtual void write(IOIntf *stream) = 0;
+    void write_header(IOIntf *stream);
 
     friend class NodeHandleFactory<Node>;
     friend class Container;
@@ -124,6 +126,7 @@ public:
         return RT_CONTAINER;
     };
     virtual void read(IOIntf *stream) {};
+    virtual void write(IOIntf *stream) {};
 
     friend class NodeHandleFactory<Container>;
 };
@@ -172,6 +175,11 @@ public:
 
     virtual void read(IOIntf *stream) {
 	sread(stream, &_data, sizeof(_T));
+    };
+
+    virtual void write(IOIntf *stream) {
+        write_header(stream);
+        swrite(stream, &_data, sizeof(_T));
     };
 
     virtual RecordType record_type() const {
@@ -275,6 +283,7 @@ public:
 public:
     virtual NodeHandle copy() const;
     virtual void read(IOIntf *stream);
+    virtual void write(IOIntf *stream);
 
     virtual RecordType record_type() const {
         return RT_UTF8STRING;
@@ -296,6 +305,8 @@ public:
     virtual RecordType record_type() const {
         return RT_BLOB;
     };
+
+    virtual void write(IOIntf *stream);
 
     friend class NodeHandleFactory<BlobRecord>;
 };
