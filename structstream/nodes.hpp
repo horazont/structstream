@@ -29,6 +29,7 @@ named in the AUTHORS file.
 #include <memory>
 #include <vector>
 #include <iterator>
+#include <map>
 
 #include <cstring>
 
@@ -159,6 +160,10 @@ typedef std::vector<NodeHandle> NodeVector;
  * and Writers need information about containers.
  */
 class Container: public Node {
+public:
+    typedef std::multimap<ID, NodeHandle>::iterator NodeByIDIterator;
+    typedef std::multimap<ID, NodeHandle>::const_iterator NodeByIDConstIterator;
+    typedef std::pair<NodeByIDConstIterator, NodeByIDConstIterator> NodeRangeByID;
 protected:
     Container(ID id);
     Container(const Container &ref);
@@ -166,8 +171,11 @@ public:
     virtual ~Container();
 protected:
     NodeVector _children;
+    std::multimap<ID, NodeHandle> _id_lut;
 protected:
     void check_valid_child(NodeHandle child) const;
+    void checkin_child(NodeHandle child);
+    void checkout_child(NodeHandle child);
 public:
     /**
      * Add a child to the container.
@@ -235,6 +243,17 @@ public:
      * Return constant iterator pointing behind the last child.
      */
     NodeVector::const_iterator children_cend() const;
+
+    /**
+     * Return a pair of iterators to grant access to the range of
+     * children with equal id.
+     *
+     * The first iterator designates the start of the range and the
+     * last iterator designetes the end of the range. As with the
+     * usual iterator semantics, you should stop iteration when
+     * reaching the second iterator, without evaluating it.
+     */
+    NodeRangeByID children_by_id(const ID id) const;
 
     /**
      * Create and return a deep copy of the container.

@@ -81,14 +81,16 @@ void Node::write_header(IOIntf *stream) const
 
 Container::Container(ID id):
     Node::Node(id),
-    _children()
+    _children(),
+    _id_lut()
 {
 
 }
 
 Container::Container(const Container &ref):
     Node::Node(ref),
-    _children()
+    _children(),
+    _id_lut()
 {
     for (auto it = ref.children_cbegin(); it != ref.children_cend(); it++) {
         child_add((*it)->copy());
@@ -107,16 +109,52 @@ void Container::check_valid_child(NodeHandle child) const
     }
 }
 
+void Container::checkin_child(NodeHandle child)
+{
+    // _id_lut.emplace(
+    //     std::piecewise_construct,
+    //     std::forward_as_tuple(child->id()),
+    //     std::forward_as_tuple(child)
+    //     );
+    _id_lut.insert(std::make_pair(child->id(), child));
+}
+
+void Container::checkout_child(NodeHandle child)
+{
+    std::pair<NodeByIDIterator, NodeByIDIterator> range = _id_lut.equal_range(child->id());
+    for (NodeByIDIterator it = range.first;
+         it != range.second;
+         it++)
+    {
+        if ((*it).second == child) {
+            _id_lut.erase(it);
+            return;
+        }
+    }
+}
+
 void Container::child_add(NodeHandle child)
 {
     check_valid_child(child);
     _children.push_back(child);
     child->set_parent(std::static_pointer_cast<Container>(_self.lock()));
+    checkin_child(child);
 }
 
 intptr_t Container::child_count() const
 {
     return _children.size();
+}
+
+void Container::child_erase(NodeVector::iterator &to_remove)
+{
+    NodeHandle child = *to_remove;
+    if ((*to_remove)->parent().get() != this) {
+        throw std::exception();
+    }
+    _children.erase(to_remove);
+    child->set_parent(nullptr);
+    checkout_child(child);
 }
 
 NodeVector::iterator Container::child_find(NodeHandle child)
@@ -138,6 +176,7 @@ void Container::child_insert_before(NodeVector::iterator &ref, NodeHandle child)
     check_valid_child(child);
     _children.insert(ref, child);
     child->set_parent(std::static_pointer_cast<Container>(_self.lock()));
+    checkin_child(child);
 }
 
 NodeVector::iterator Container::children_begin()
@@ -160,14 +199,10 @@ NodeVector::const_iterator Container::children_cend() const
     return _children.cend();
 }
 
-void Container::child_erase(NodeVector::iterator &to_remove)
+Container::NodeRangeByID Container::children_by_id(const ID id) const
 {
-    NodeHandle child = *to_remove;
-    if ((*to_remove)->parent().get() != this) {
-        throw std::exception();
-    }
-    _children.erase(to_remove);
-    child->set_parent(nullptr);
+    NodeRangeByID range = _id_lut.equal_range(id);
+    return std::make_pair(range.first, range.second);
 }
 
 NodeHandle Container::copy() const
