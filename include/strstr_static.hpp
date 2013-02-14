@@ -55,11 +55,13 @@ enum RecordType {
     RT_UTF8STRING = 0x0A,
     RT_BLOB = 0x0B,
     RT_END_OF_CHILDREN = 0x0C,
-    RT_APP_MIN = 0x40,
-    RT_APP_MAX = 0x7F,
-    // up to here, record type doesn't require a second byte
 
-    RT_APPDEF_NOSIZE_MIN = 0x100,
+    RT_APPBLOB_MIN = 0x40,
+    RT_APPBLOB_MAX = 0x5f,
+    RT_APP_NOSIZE_MIN = 0x60,
+    RT_APP_NOSIZE_MAX = 0x7f
+
+    // up to here, record type doesn't require a second byte
 };
 
 enum ContainerFlags {
