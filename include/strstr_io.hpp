@@ -66,6 +66,7 @@ public:
 struct WritableMemory: public IOIntf {
 public:
     WritableMemory();
+    WritableMemory(void *buf, const intptr_t len);
     WritableMemory(const uint32_t blank_pattern);
     WritableMemory(const ReadableMemory &ref);
     WritableMemory(const WritableMemory &ref);
@@ -76,6 +77,7 @@ private:
     intptr_t _outward_size;
     intptr_t _offs;
     uint32_t _blank_pattern;
+    bool _may_grow;
 private:
     void grow();
 public:

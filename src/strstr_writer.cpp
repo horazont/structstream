@@ -70,7 +70,7 @@ void Writer::write_container(const Container *node)
          it != node->children_cend();
          it++)
     {
-        write_subtree(*it);
+        write(*it);
     }
 
     write_container_footer(info);
@@ -138,7 +138,7 @@ void Writer::open(IOIntfHandle stream)
     write_header();
 }
 
-void Writer::write_subtree(NodeHandle subtree)
+void Writer::write(NodeHandle subtree)
 {
     Container *cont = dynamic_cast<Container*>(subtree.get());
     if (cont != nullptr) {

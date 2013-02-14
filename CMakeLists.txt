@@ -14,7 +14,9 @@ add_library(structstream++ SHARED ${EBML_SOURCES})
 
 set(CATCH_INCLUDE_DIRS "Catch/single_include")
 set(TEST_SOURCES
+  "tests/encode_varint.cpp"
   "tests/record_decode.cpp"
+  "tests/record_encode.cpp"
 )
 
 include_directories(${CATCH_INCLUDE_DIRS})

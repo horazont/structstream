@@ -43,7 +43,7 @@ public:
     void close();
     inline bool is_open() const { return _dest != nullptr; };
     void open(IOIntfHandle stream);
-    void write_subtree(const NodeHandle subtree);
+    void write(const NodeHandle subtree);
 };
 
 }

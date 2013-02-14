@@ -34,9 +34,12 @@ typedef uint64_t VarUInt;
 typedef int64_t VarInt;
 typedef uint64_t ID;
 
+const VarUInt MaxVarUInt = 0xffffffffffffff;
+
 const ID TreeRootID = 0x00000000;
-const ID MaxID = 0xFFFFFFFFFFFFFFFF;
+const ID MaxID = MaxVarUInt;
 const ID InvalidID = MaxID;
+
 
 enum RecordType {
     RT_RESERVED = 0x00,  // may indicate a larger typefield

@@ -27,6 +27,7 @@ named in the AUTHORS file.
 
 #include <cassert>
 #include <cstdlib>
+#include <cstdio>
 
 #include "include/strstr_io.hpp"
 
@@ -103,27 +104,38 @@ void write_varuint(IOIntf *stream, VarUInt value)
     // this gives ceil((float)bitcount / 7)
     const uint_fast8_t bytecount = (bitcount+6) / 7;
 
+    // printf("serializing varint 0x%lx; maxbit = %d; bytes = %d\n", value, bitcount, bytecount);
+
     if (bytecount == 0) {
         swritev<uint8_t>(stream, 0x00);
         return;
     }
 
     uint8_t leading = ((uint8_t)0x80 >> (bytecount-1));
-    VarUInt leading_premask = 0xff << ((bytecount-2)*8);
-    VarUInt leading_mask = (leading_premask >> bytecount) & leading_premask;
+    const VarUInt leading_premask = (VarUInt)0xff << ((bytecount-1)*8);
+    const VarUInt leading_mask = (leading_premask >> bytecount) & leading_premask;
 
-    assert((total_bit_count-__builtin_clzl(leading_mask)) == bytecount);
+    // printf("  premask = %lx\n", leading_premask);
+    // printf("  mask = %lx\n", leading_mask);
 
-    leading |= (value & leading_mask) >> ((bytecount-2)*8);
+    //assert((total_bit_count-__builtin_clzl(leading_mask)) == bytecount);
+
+    leading |= (value & leading_mask) >> ((bytecount-1)*8);
+
+    // printf("  => leading = 0x%x\n", leading);
 
     swritev<uint8_t>(stream, leading);
 
-    for (uint_fast8_t i = bytecount - 1;
+    for (int_fast8_t i = bytecount - 2;
          i >= 0;
-         i++)
+         i--)
     {
-        VarUInt mask = 0xff << (i*8);
-        swritev<uint8_t>(stream, (value & mask) >> (i*8));
+        const VarUInt mask = (VarUInt)0xff << (i*8);
+        // printf("  i = %d\n", i);
+        // printf("    mask = %lx\n", mask);
+        const uint8_t masked = (value & mask) >> (i*8);
+        // printf("    masked = %x\n", masked);
+        swritev<uint8_t>(stream, masked);
     }
 }
 

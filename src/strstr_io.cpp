@@ -28,6 +28,7 @@ named in the AUTHORS file.
 #include <cstring>
 #include <cstdlib>
 #include <cassert>
+#include <cstdio>
 
 namespace StructStream {
 
@@ -88,7 +89,19 @@ WritableMemory::WritableMemory():
     _buf_size(0),
     _outward_size(0),
     _offs(0),
-    _blank_pattern(0xdeadbeef)
+    _blank_pattern(0xdeadbeef),
+    _may_grow(true)
+{
+
+}
+
+WritableMemory::WritableMemory(void *buf, const intptr_t len):
+    _buf(buf),
+    _buf_size(len),
+    _outward_size(0),
+    _offs(0),
+    _blank_pattern(0),
+    _may_grow(false)
 {
 
 }
@@ -98,20 +111,22 @@ WritableMemory::WritableMemory(const uint32_t blank_pattern):
     _buf_size(0),
     _outward_size(0),
     _offs(0),
-    _blank_pattern(blank_pattern)
+    _blank_pattern(blank_pattern),
+    _may_grow(true)
 {
 
 }
 
 WritableMemory::~WritableMemory()
 {
-    if (_buf) {
+    if (_buf && _may_grow) {
         free(_buf);
     }
 }
 
 void WritableMemory::grow()
 {
+    assert(_may_grow);
     assert(_buf_size % sizeof(_blank_pattern) == 0);
 
     const intptr_t new_size = _buf_size + 1024*sizeof(_blank_pattern);
@@ -133,15 +148,24 @@ intptr_t WritableMemory::read(void*, const intptr_t)
 
 intptr_t WritableMemory::write(const void *buf, const intptr_t len)
 {
-    while (len + _offs >= _buf_size)
+    intptr_t to_write = len;
+    while (to_write + _offs >= _buf_size)
     {
+        if (!_may_grow) {
+            to_write = _buf_size - _offs;
+            break;
+        }
         grow();
     }
 
-    memcpy((uint8_t*)_buf + _outward_size, buf, len);
-    _outward_size += len;
-    _offs += len;
-    return len;
+    if (to_write == 0) {
+        return to_write;
+    }
+
+    memcpy((uint8_t*)_buf + _outward_size, buf, to_write);
+    _outward_size += to_write;
+    _offs += to_write;
+    return to_write;
 }
 
 void sread(IOIntf *io, void *buf, const intptr_t len)
@@ -155,6 +179,14 @@ void sread(IOIntf *io, void *buf, const intptr_t len)
 
 void swrite(IOIntf *io, const void *buf, const intptr_t len)
 {
+    // printf("writing:");
+    // for (const uint8_t *item = (const uint8_t*)buf;
+    //      item < (const uint8_t*)buf + len;
+    //      item++)
+    // {
+    //     printf(" 0x%x", *item);
+    // }
+    // printf("\n");
     intptr_t written_bytes = io->write(buf, len);
     if (written_bytes < len) {
 	// FIXME: throw an error
