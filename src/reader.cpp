@@ -23,10 +23,10 @@ FEEDBACK & QUESTIONS
 For feedback and questions about ebml++ please e-mail one of the authors
 named in the AUTHORS file.
 **********************************************************************/
-#include "include/strstr_reader.hpp"
+#include "structstream/reader.hpp"
 
-#include "include/strstr_utils.hpp"
-#include "include/strstr_errors.hpp"
+#include "structstream/utils.hpp"
+#include "structstream/errors.hpp"
 
 namespace StructStream {
 

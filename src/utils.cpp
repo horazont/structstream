@@ -23,13 +23,13 @@ FEEDBACK & QUESTIONS
 For feedback and questions about ebml++ please e-mail one of the authors
 named in the AUTHORS file.
 **********************************************************************/
-#include "include/strstr_utils.hpp"
+#include "structstream/utils.hpp"
 
 #include <cassert>
 #include <cstdlib>
 #include <cstdio>
 
-#include "include/strstr_io.hpp"
+#include "structstream/io.hpp"
 
 namespace StructStream { namespace Utils {
 

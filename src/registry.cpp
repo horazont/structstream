@@ -23,7 +23,7 @@ FEEDBACK & QUESTIONS
 For feedback and questions about ebml++ please e-mail one of the authors
 named in the AUTHORS file.
 **********************************************************************/
-#include "include/strstr_registry.hpp"
+#include "structstream/registry.hpp"
 
 namespace StructStream {
 

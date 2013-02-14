@@ -23,8 +23,8 @@ FEEDBACK & QUESTIONS
 For feedback and questions about ebml++ please e-mail one of the authors
 named in the AUTHORS file.
 **********************************************************************/
-#ifndef _STRSTR_IO_H
-#define _STRSTR_IO_H
+#ifndef _STRUCTSTREAM_IO_H
+#define _STRUCTSTREAM_IO_H
 
 #include <memory>
 

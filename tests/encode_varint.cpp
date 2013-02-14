@@ -27,8 +27,8 @@ named in the AUTHORS file.
 
 #include <cstring>
 
-#include "include/strstr_io.hpp"
-#include "include/strstr_utils.hpp"
+#include "structstream/io.hpp"
+#include "structstream/utils.hpp"
 
 using namespace StructStream;
 

@@ -23,8 +23,8 @@ FEEDBACK & QUESTIONS
 For feedback and questions about ebml++ please e-mail one of the authors
 named in the AUTHORS file.
 **********************************************************************/
-#ifndef _STRSTR_NODES_H
-#define _STRSTR_NODES_H
+#ifndef _STRUCTSTREAM_NODES_H
+#define _STRUCTSTREAM_NODES_H
 
 #include <memory>
 #include <vector>
@@ -32,9 +32,9 @@ named in the AUTHORS file.
 
 #include <cstring>
 
-#include "include/strstr_static.hpp"
-#include "include/strstr_io.hpp"
-#include "include/strstr_utils.hpp"
+#include "structstream/static.hpp"
+#include "structstream/io.hpp"
+#include "structstream/utils.hpp"
 
 namespace StructStream {
 

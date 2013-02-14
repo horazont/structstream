@@ -23,7 +23,7 @@ FEEDBACK & QUESTIONS
 For feedback and questions about ebml++ please e-mail one of the authors
 named in the AUTHORS file.
 **********************************************************************/
-#include "include/strstr_io.hpp"
+#include "structstream/io.hpp"
 
 #include <cstring>
 #include <cstdlib>

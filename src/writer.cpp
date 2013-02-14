@@ -23,14 +23,14 @@ FEEDBACK & QUESTIONS
 For feedback and questions about ebml++ please e-mail one of the authors
 named in the AUTHORS file.
 **********************************************************************/
-#include "include/strstr_writer.hpp"
+#include "structstream/writer.hpp"
 
 #include <memory>
 
 #include <cassert>
 
-#include "include/strstr_static.hpp"
-#include "include/strstr_errors.hpp"
+#include "structstream/static.hpp"
+#include "structstream/errors.hpp"
 
 namespace StructStream {
 

@@ -23,13 +23,13 @@ FEEDBACK & QUESTIONS
 For feedback and questions about ebml++ please e-mail one of the authors
 named in the AUTHORS file.
 **********************************************************************/
-#ifndef _STRSTR_WRITER_H
-#define _STRSTR_WRITER_H
+#ifndef _STRUCTSTREAM_WRITER_H
+#define _STRUCTSTREAM_WRITER_H
 
 #include <unordered_map>
 
-#include "include/strstr_io.hpp"
-#include "include/strstr_nodes.hpp"
+#include "structstream/io.hpp"
+#include "structstream/nodes.hpp"
 
 namespace StructStream {
 

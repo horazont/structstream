@@ -23,11 +23,11 @@ FEEDBACK & QUESTIONS
 For feedback and questions about ebml++ please e-mail one of the authors
 named in the AUTHORS file.
 **********************************************************************/
-#ifndef _STRSTR_UTILS_H
-#define _STRSTR_UTILS_H
+#ifndef _STRUCTSTREAM_UTILS_H
+#define _STRUCTSTREAM_UTILS_H
 
-#include "include/strstr_static.hpp"
-#include "include/strstr_io.hpp"
+#include "structstream/static.hpp"
+#include "structstream/io.hpp"
 
 namespace StructStream { namespace Utils {
 

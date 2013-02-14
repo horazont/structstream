@@ -1,5 +1,5 @@
 /**********************************************************************
-File name: structstream.cpp
+File name: strstr_errors.cpp
 This file is part of: ebml++
 
 LICENSE
@@ -23,8 +23,8 @@ FEEDBACK & QUESTIONS
 For feedback and questions about ebml++ please e-mail one of the authors
 named in the AUTHORS file.
 **********************************************************************/
-#include "includes/structstream.hpp"
+#include "structstream/errors.hpp"
 
 namespace StructStream {
 
-};
+}

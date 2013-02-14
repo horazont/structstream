@@ -5,3 +5,5 @@ CMakeFiles
 *.so
 run_tests
 Makefile
+*.a
+.local

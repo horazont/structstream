@@ -25,7 +25,7 @@ named in the AUTHORS file.
 **********************************************************************/
 #include "catch.hpp"
 
-#include "include/strstr_reader.hpp"
+#include "structstream/reader.hpp"
 
 using namespace StructStream;
 

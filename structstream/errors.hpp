@@ -23,8 +23,8 @@ FEEDBACK & QUESTIONS
 For feedback and questions about ebml++ please e-mail one of the authors
 named in the AUTHORS file.
 **********************************************************************/
-#ifndef _STRSTR_ERRORS_H
-#define _STRSTR_ERRORS_H
+#ifndef _STRUCTSTREAM_ERRORS_H
+#define _STRUCTSTREAM_ERRORS_H
 
 #include <stdexcept>
 

@@ -25,8 +25,8 @@ named in the AUTHORS file.
 **********************************************************************/
 #include "catch.hpp"
 
-#include "include/strstr_nodes.hpp"
-#include "include/strstr_writer.hpp"
+#include "structstream/nodes.hpp"
+#include "structstream/writer.hpp"
 
 #define COMMON_HEADER
 #define COMMON_FOOTER (uint8_t)(RT_END_OF_CHILDREN) | 0x80

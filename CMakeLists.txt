@@ -2,15 +2,15 @@ cmake_minimum_required(VERSION 2.6)
 set(CMAKE_CXX_FLAGS "-g -Wall -std=c++11 -Werror")
 
 include_directories(".")
-set(EBML_SOURCES
-  "src/strstr_nodes.cpp"
-  "src/strstr_io.cpp"
-  "src/strstr_registry.cpp"
-  "src/strstr_reader.cpp"
-  "src/strstr_utils.cpp"
-  "src/strstr_writer.cpp"
+set(STRUCTSTREAM_SOURCES
+  "src/nodes.cpp"
+  "src/io.cpp"
+  "src/registry.cpp"
+  "src/reader.cpp"
+  "src/utils.cpp"
+  "src/writer.cpp"
 )
-add_library(structstream++ SHARED ${EBML_SOURCES})
+add_library(structstream++ ${STRUCTSTREAM_SOURCES})
 
 set(CATCH_INCLUDE_DIRS "Catch/single_include")
 set(TEST_SOURCES

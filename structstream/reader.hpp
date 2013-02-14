@@ -23,15 +23,15 @@ FEEDBACK & QUESTIONS
 For feedback and questions about ebml++ please e-mail one of the authors
 named in the AUTHORS file.
 **********************************************************************/
-#ifndef _STRSTR_READER_H
-#define _STRSTR_READER_H
+#ifndef _STRUCTSTREAM_READER_H
+#define _STRUCTSTREAM_READER_H
 
 #include <functional>
 #include <forward_list>
 
-#include "include/strstr_nodes.hpp"
-#include "include/strstr_registry.hpp"
-#include "include/strstr_io.hpp"
+#include "structstream/nodes.hpp"
+#include "structstream/registry.hpp"
+#include "structstream/io.hpp"
 
 namespace StructStream {
 

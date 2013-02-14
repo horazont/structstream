@@ -23,13 +23,13 @@ FEEDBACK & QUESTIONS
 For feedback and questions about ebml++ please e-mail one of the authors
 named in the AUTHORS file.
 **********************************************************************/
-#ifndef _STRSTR_REGISTRY_H
-#define _STRSTR_REGISTRY_H
+#ifndef _STRUCTSTREAM_REGISTRY_H
+#define _STRUCTSTREAM_REGISTRY_H
 
 #include <unordered_map>
 #include <memory>
 
-#include "include/strstr_nodes.hpp"
+#include "structstream/nodes.hpp"
 
 namespace std {
 
