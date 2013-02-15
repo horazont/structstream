@@ -1,6 +1,6 @@
 /**********************************************************************
 File name: io.cpp
-This file is part of: ebml++
+This file is part of: structstream++
 
 LICENSE
 
@@ -20,8 +20,8 @@ provisions of GPL License are applicable instead of those above.
 
 FEEDBACK & QUESTIONS
 
-For feedback and questions about ebml++ please e-mail one of the authors
-named in the AUTHORS file.
+For feedback and questions about structstream++ please e-mail one of the
+authors named in the AUTHORS file.
 **********************************************************************/
 #include "structstream/io.hpp"
 
