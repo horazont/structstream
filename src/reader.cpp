@@ -239,11 +239,19 @@ NodeHandle Reader::read_next() {
     } else if (rt == RT_END_OF_CHILDREN) {
         // printf("end of children encountered\n");
 
-        if (_curr_parent->armored) {
+        if (_curr_parent->armored &&
+            (_curr_parent->expected_children == -1
+             || _curr_parent->expected_children == _curr_parent->read_child_count)
+            )
+        {
             // EOC is only valid if container has CF_ARMORED flag
             end_of_container();
         } else {
-            throw std::exception();
+            if (_curr_parent->armored) {
+                throw UnexpectedEndOfChildren("Armored container ended unexpectedly (not all announced children found).");
+            } else {
+                throw UnexpectedEndOfChildren("Non-armored container closed by End-Of-Children tag. This may also imply that some children are missing.");
+            }
         }
 	return read_next();
     }

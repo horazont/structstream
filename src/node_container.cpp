@@ -102,7 +102,7 @@ void Container::child_erase(NodeVector::iterator &to_remove)
 {
     NodeHandle child = *to_remove;
     if ((*to_remove)->parent().get() != this) {
-        throw std::exception();
+        throw NotMyChild("Cannot erase a child which is not mine.");
     }
     _children.erase(to_remove);
     child->set_parent(nullptr);

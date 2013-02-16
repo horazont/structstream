@@ -46,20 +46,22 @@ public:
 typedef DefaultException<std::logic_error> ParentAlreadySet;
 typedef DefaultException<std::logic_error> AlreadyOpen;
 typedef DefaultException<std::logic_error> AlreadyClosed;
+typedef DefaultException<std::logic_error> NotMyChild;
 
 // errors for incoming files
 typedef DefaultException<std::runtime_error> FormatError;
 typedef DefaultException<std::runtime_error> UnsupportedInput;
 
-
 typedef DefaultException<UnsupportedInput> UnsupportedContainerFlags;
 typedef DefaultException<UnsupportedInput> UnsupportedRecordType;
 typedef DefaultException<UnsupportedInput> UnsupportedHashFunction;
 
+typedef DefaultException<FormatError> IllegalData;
 typedef DefaultException<FormatError> MissingEndOfChildren;
 typedef DefaultException<FormatError> UnexpectedEndOfChildren;
-typedef DefaultException<FormatError> IllegalCombinationOfFlags;
-typedef DefaultException<FormatError> InvalidIDError;
+
+typedef DefaultException<IllegalData> IllegalCombinationOfFlags;
+typedef DefaultException<IllegalData> InvalidIDError;
 
 }
 
