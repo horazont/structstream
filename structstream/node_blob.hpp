@@ -33,6 +33,7 @@ authors named in the AUTHORS file.
 
 #include "structstream/node_primitive.hpp"
 #include "structstream/utils.hpp"
+#include "structstream/errors.hpp"
 
 namespace StructStream {
 
@@ -71,6 +72,21 @@ protected:
     inline intptr_t size() const {
         return _len * sizeof(_IntfT);
     };
+protected:
+    inline static VarInt read_and_check_length(IOIntf *stream) {
+        VarInt length = Utils::read_varint(stream);
+        if (length < 0) {
+            throw IllegalData("Negative-length blob record.");
+        }
+        return length;
+    };
+
+    inline void allocate_length(VarInt length) {
+	if (length != _len) {
+	    _len = length;
+	    _buf = realloc(_buf, size());
+	}
+    };
 public:
     virtual void raw_get(void *to) const {
         memcpy(to, _buf, size());
@@ -84,17 +100,6 @@ public:
         memcpy(_buf, from, size());
     };
 
-    virtual void read(IOIntf *stream) {
-	VarInt length = Utils::read_varint(stream);
-	if (length < 0) {
-	    throw std::exception();
-	}
-	if (length != _len) {
-	    _len = length;
-	    _buf = realloc(_buf, size());
-	}
-	sread(stream, _buf, size());
-    };
 public:
     void set(const _IntfT *from, const intptr_t len) {
         if (len != _len) {
@@ -151,6 +156,7 @@ public:
         return RT_BLOB;
     };
 
+    virtual void read(IOIntf *stream);
     virtual void write(IOIntf *stream) const;
 
     friend class NodeHandleFactory<BlobRecord>;

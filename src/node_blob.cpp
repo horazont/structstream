@@ -42,14 +42,10 @@ NodeHandle UTF8Record::copy() const
 void UTF8Record::read(IOIntf *stream)
 {
     // \0 is implied!
-    VarInt length = Utils::read_varint(stream) + 1;
-    if (length < 0) {
-        throw std::exception();
-    }
-    if (length != _len) {
-        _len = length;
-        _buf = realloc(_buf, size());
-    }
+    VarInt length = read_and_check_length(stream) + 1;
+
+    allocate_length(length);
+
     sread(stream, _buf, size()-1);
     ((char*)_buf)[length-1] = 0;
 }
@@ -72,6 +68,12 @@ NodeHandle BlobRecord::copy() const
 {
     return NodeHandleFactory<BlobRecord>::copy(*this);
 }
+
+void BlobRecord::read(IOIntf *stream) {
+    VarInt length = read_and_check_length(stream);
+    allocate_length(length);
+    sread(stream, _buf, size());
+};
 
 void BlobRecord::write(IOIntf *stream) const
 {
