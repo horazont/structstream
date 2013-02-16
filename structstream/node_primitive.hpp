@@ -97,7 +97,7 @@ protected:
         _data(ref._data) {}
 public:
     virtual ~PrimitiveDataRecord() {}
-private:
+protected:
     _T _data;
 public:
     virtual NodeHandle copy() const {
@@ -146,7 +146,20 @@ typedef PrimitiveDataRecord<int64_t, RT_INT64> Int64Record;
 typedef PrimitiveDataRecord<uint64_t, RT_UINT64> UInt64Record;
 typedef PrimitiveDataRecord<float, RT_FLOAT32> Float32Record;
 typedef PrimitiveDataRecord<double, RT_FLOAT64> Float64Record;
+typedef PrimitiveDataRecord<bool, RT_BOOL_FALSE> BoolRecordBase;
 
+class BoolRecord: public BoolRecordBase
+{
+protected:
+    BoolRecord(ID id);
+    BoolRecord(const BoolRecord &ref);
+public:
+    virtual void read(IOIntf *stream);
+    virtual void write(IOIntf *stream) const;
+    virtual RecordType record_type() const;
+public:
+    friend class NodeHandleFactory< BoolRecord >;
+};
 
 }
 

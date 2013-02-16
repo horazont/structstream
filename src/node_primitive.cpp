@@ -46,4 +46,33 @@ DataRecord::~DataRecord()
 
 }
 
+/* StructStream::BoolRecord */
+
+BoolRecord::BoolRecord(ID id):
+    BoolRecordBase(id)
+{
+
+}
+
+BoolRecord::BoolRecord(const BoolRecord &ref):
+    BoolRecordBase(ref)
+{
+
+}
+
+void BoolRecord::read(IOIntf *stream)
+{
+
+}
+
+void BoolRecord::write(IOIntf *stream) const
+{
+    write_header(stream);
+}
+
+RecordType BoolRecord::record_type() const
+{
+    return (_data ? RT_BOOL_TRUE : RT_BOOL_FALSE);
+}
+
 }

@@ -160,3 +160,29 @@ TEST_CASE ("decode/records/utf8", "Test decode of a utf8 record")
     REQUIRE(strlen(reference) == rec->raw_size()-1);
     REQUIRE(strcmp(buf, reference) == 0);
 }
+
+TEST_CASE ("decode/records/bool", "Test decode of boolean records")
+{
+    static const uint8_t data[] = {
+        (uint8_t)(RT_BOOL_TRUE) | 0x80, uint8_t(0x01) | 0x80,
+        (uint8_t)(RT_BOOL_FALSE) | 0x80, uint8_t(0x01) | 0x80,
+        (uint8_t)(RT_END_OF_CHILDREN) | 0x80,
+    };
+
+    RegistryHandle registry = RegistryHandle(new Registry());
+    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, sizeof(data)));
+    Reader reader(io, registry);
+
+    NodeHandle node = reader.read_next();
+    REQUIRE(node.get() != 0);
+    BoolRecord *rec = dynamic_cast<BoolRecord*>(node.get());
+    REQUIRE(rec != 0);
+    CHECK(rec->get() == true);
+
+    node = reader.read_next();
+    rec = dynamic_cast<BoolRecord*>(node.get());
+    REQUIRE(rec != 0);
+    CHECK(rec->get() == false);
+
+    reader.read_all();
+}

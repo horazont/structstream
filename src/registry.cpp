@@ -31,6 +31,14 @@ authors named in the AUTHORS file.
 
 namespace StructStream {
 
+template <bool value>
+NodeHandle create_boolean(ID id)
+{
+    NodeHandle node = NodeHandleFactory<BoolRecord>::create(id);
+    static_cast<BoolRecord*>(node.get())->set(value);
+    return node;
+}
+
 Registry::Registry():
     _record_types()
 {
@@ -57,7 +65,8 @@ void Registry::register_defaults() {
     _record_types[RT_FLOAT64] = NodeHandleFactory<Float64Record>::create;
     _record_types[RT_UTF8STRING] = NodeHandleFactory<UTF8Record>::create;
     _record_types[RT_BLOB] = NodeHandleFactory<BlobRecord>::create;
-    // _record_types[RT_BOOLEAN_FALSE] = NodeHandleFactory<
+    _record_types[RT_BOOL_FALSE] = create_boolean<false>;
+    _record_types[RT_BOOL_TRUE] = create_boolean<true>;
     _record_types[RT_CONTAINER] = NodeHandleFactory<Container>::create;
 }
 
