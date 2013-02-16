@@ -258,7 +258,7 @@ NodeHandle Reader::read_next() {
 
     if (_curr_parent->armored
         && _curr_parent->expected_children != -1
-        && _curr_parent->read_child_count > _curr_parent->expected_children)
+        && _curr_parent->read_child_count >= _curr_parent->expected_children)
     {
         throw MissingEndOfChildren("CF_ARMORED | CF_WITH_SIZE container without EOC marker.");
     }

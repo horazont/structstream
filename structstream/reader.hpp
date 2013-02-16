@@ -99,6 +99,21 @@ public:
      * open. No reading takes place until read methods are called.
      */
     void open(IOIntfHandle stream);
+
+    /**
+     * Set/unset a callback which is called on each node.
+     *
+     * The callback is supposed to return a boolean value which
+     * indicates whether the node passed to the callback is to be
+     * included into the final document-tree. Thus an application can
+     * process data on-the-fly.
+     *
+     * If the callback returns false, the handle on the node stored in
+     * the reader is released.
+     */
+    inline void set_node_handler(ReaderOnNode handler) {
+        _on_node = handler;
+    };
 public:
     /**
      * Read all remaining nodes of the structstream.

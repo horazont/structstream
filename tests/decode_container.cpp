@@ -169,3 +169,50 @@ TEST_CASE ("decode/container/complex", "Complex nesting structure")
     children += 1;
     REQUIRE(children == cont1->children_end());
 }
+
+TEST_CASE ("decode/container/surplus_eoc", "Detect errornous End-Of-Children / lost child")
+{
+    static const uint8_t data[] = {
+        (uint8_t)(RT_CONTAINER) | 0x80, uint8_t(0x01) | 0x80,
+        uint8_t(CF_WITH_SIZE) | 0x80, uint8_t(0x01) | 0x80,
+        uint8_t(RT_END_OF_CHILDREN) | 0x80
+    };
+
+    RegistryHandle registry = RegistryHandle(new Registry());
+    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, sizeof(data)));
+    Reader reader(io, registry);
+
+    REQUIRE_THROWS_AS(reader.read_all(), UnexpectedEndOfChildren);
+}
+
+TEST_CASE ("decode/container/early_eoc", "Detect early End-Of-Children")
+{
+    static const uint8_t data[] = {
+        (uint8_t)(RT_CONTAINER) | 0x80, uint8_t(0x01) | 0x80,
+        uint8_t(CF_WITH_SIZE | CF_ARMORED) | 0x80, uint8_t(0x01) | 0x80,
+        uint8_t(RT_END_OF_CHILDREN) | 0x80
+    };
+
+    RegistryHandle registry = RegistryHandle(new Registry());
+    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, sizeof(data)));
+    Reader reader(io, registry);
+
+    REQUIRE_THROWS_AS(reader.read_all(), UnexpectedEndOfChildren);
+}
+
+TEST_CASE ("decode/container/missing_eoc", "Detect too many children / missing EOC")
+{
+    static const uint8_t data[] = {
+        (uint8_t)(RT_CONTAINER) | 0x80, uint8_t(0x01) | 0x80,
+        uint8_t(CF_WITH_SIZE | CF_ARMORED) | 0x80, uint8_t(0x00),
+        (uint8_t)(RT_UINT32) | 0x80, uint8_t(0x02) | 0x80, 0x00, 0x00, 0x00, 0x00,
+        uint8_t(RT_END_OF_CHILDREN) | 0x80,
+        uint8_t(RT_END_OF_CHILDREN) | 0x80
+    };
+
+    RegistryHandle registry = RegistryHandle(new Registry());
+    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, sizeof(data)));
+    Reader reader(io, registry);
+
+    REQUIRE_THROWS_AS(reader.read_all(), MissingEndOfChildren);
+}
