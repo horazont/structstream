@@ -121,21 +121,6 @@ struct serialize_block<_struct_t>
         };
 };
 
-template <ID _cont_id, typename serializer_t>
-struct serializer {
-
-    static const ID cont_id = _cont_id;
-    typedef typename serializer_t::struct_t dest_t;
-
-    static inline void deserialize(Container *node, dest_t *dest)
-        {
-            assert(node->id() == cont_id);
-            assert(dest != nullptr);
-
-            serializer_t::deserialize(node, dest);
-        }
-};
-
 }
 
 #endif

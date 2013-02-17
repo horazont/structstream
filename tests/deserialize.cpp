@@ -35,14 +35,11 @@ TEST_CASE ("deserialize/pod", "Deserialization of a plain-old-data type")
 
     pod_t pod;
 
-    serializer<
-        0x01,
-        serialize_block<pod_t,
-                        serialize_primitive<0x02, UInt32Record, uint32_t, offsetof(pod_t, v1)>,
-                        serialize_primitive<0x04, UInt32Record, uint8_t, offsetof(pod_t, v3)>,
-                        serialize_primitive<0x03, Float64Record, double, offsetof(pod_t, v2)>
-                        >
-        >::deserialize(pod_root, &pod);
+    serialize_block<pod_t,
+                    serialize_primitive<0x02, UInt32Record, uint32_t, offsetof(pod_t, v1)>,
+                    serialize_primitive<0x04, UInt32Record, uint8_t, offsetof(pod_t, v3)>,
+                    serialize_primitive<0x03, Float64Record, double, offsetof(pod_t, v2)>
+                    >::deserialize(pod_root, &pod);
 
     CHECK(pod.v1 == 0x2342dead);
     CHECK(pod.v2 == 23.42);
@@ -68,12 +65,9 @@ TEST_CASE ("deserialize/str_callback", "Deserialization of a string")
 
     block_t block;
 
-    serializer<
-        0x01,
-        serialize_block<block_t,
-                        deserialize_string<0x02, UTF8Record, block_t, &block_t::set_str>
-                        >
-        >::deserialize(pod_root, &block);
+    serialize_block<block_t,
+                    deserialize_string<0x02, UTF8Record, block_t, &block_t::set_str>
+                    >::deserialize(pod_root, &block);
 
     CHECK(block.value == "Hello World!");
 
@@ -110,12 +104,9 @@ TEST_CASE ("deserialize/blob_callback", "Deserialization of a blob")
 
     block_t block;
 
-    serializer<
-        0x01,
-        serialize_block<block_t,
-                        deserialize_buffer<0x02, UTF8Record, block_t, char, &block_t::set_str>
-                        >
-        >::deserialize(pod_root, &block);
+    serialize_block<block_t,
+                    deserialize_buffer<0x02, UTF8Record, block_t, char, &block_t::set_str>
+                    >::deserialize(pod_root, &block);
 
     CHECK(strcmp(block.get_str(), text) == 0);
 }
