@@ -153,8 +153,16 @@ NodeVector::const_iterator Container::children_cend() const
 
 Container::NodeRangeByID Container::children_by_id(const ID id) const
 {
-    NodeRangeByID range = _id_lut.equal_range(id);
-    return std::make_pair(range.first, range.second);
+    return _id_lut.equal_range(id);
+}
+
+NodeHandle Container::first_child_by_id(const ID id) const
+{
+    NodeRangeByID range = children_by_id(id);
+    if (range.first == range.second) {
+        return NodeHandle();
+    }
+    return (*range.first).second;
 }
 
 NodeHandle Container::copy() const

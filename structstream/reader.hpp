@@ -140,7 +140,9 @@ public:
      * @return Handle to the root container or an empty handle if no
      * stream is currently opened.
      */
-    ContainerHandle root();
+    inline ContainerHandle root() const {
+        return _root;
+    };
 };
 
 }

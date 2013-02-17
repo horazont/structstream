@@ -12,6 +12,7 @@ set(STRUCTSTREAM_SOURCES
   "src/reader.cpp"
   "src/utils.cpp"
   "src/writer.cpp"
+  "src/serializer.cpp"
 )
 add_library(structstream++ ${STRUCTSTREAM_SOURCES})
 
@@ -22,6 +23,7 @@ set(TEST_SOURCES
   "tests/encode_container.cpp"
   "tests/decode_record.cpp"
   "tests/decode_container.cpp"
+  "tests/deserialize.cpp"
 )
 
 include_directories(${CATCH_INCLUDE_DIRS})

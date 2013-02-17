@@ -140,6 +140,8 @@ public:
      */
     NodeRangeByID children_by_id(const ID id) const;
 
+    NodeHandle first_child_by_id(const ID id) const;
+
     idpath_find_most_shallow idpath_most_shallow(const ID id) const;
 
     /**

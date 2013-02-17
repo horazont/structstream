@@ -158,6 +158,7 @@ TEST_CASE ("decode/records/utf8", "Test decode of a utf8 record")
     rec->raw_get(buf);
 
     REQUIRE(strlen(reference) == rec->raw_size()-1);
+    CHECK(rec->datalen() == rec->raw_size());
     REQUIRE(strcmp(buf, reference) == 0);
 }
 

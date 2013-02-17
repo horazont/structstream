@@ -101,6 +101,14 @@ public:
     };
 
 public:
+    const _IntfT *dataptr() const {
+        return (_IntfT*)(_buf);
+    };
+
+    const intptr_t datalen() const {
+        return _len;
+    };
+
     void set(const _IntfT *from, const intptr_t len) {
         if (len != _len) {
             _len = len;
@@ -110,9 +118,12 @@ public:
     };
 
     void set(const std::string &str) {
-        set((_IntfT*)str.c_str(), str.size());
+        set((_IntfT*)str.c_str(), str.size()+1);
     };
 
+    virtual std::string datastr() const {
+        return std::string((const char*)_buf, size());
+    };
 };
 
 /**
@@ -130,6 +141,10 @@ public:
     virtual NodeHandle copy() const;
     virtual void read(IOIntf *stream);
     virtual void write(IOIntf *stream) const;
+
+    virtual std::string datastr() const {
+        return std::string((const char*)_buf);
+    };
 
     virtual RecordType record_type() const {
         return RT_UTF8STRING;
