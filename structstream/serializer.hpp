@@ -11,7 +11,7 @@ namespace StructStream {
 typedef std::function< void (Node *rec) > SetFunc;
 
 template <ID _record_id, class _record_t, typename _dest_t, intptr_t _dest_offs, bool _required=false>
-struct serialize_primitive {
+struct deserialize_primitive {
     static_assert(std::is_standard_layout<_dest_t>::value, "primitive serialization target must be standard layout type.");
 
     static const bool required = _required;
@@ -71,13 +71,13 @@ struct deserialize_string
 };
 
 template <typename _struct_t, typename... field_ts>
-struct serialize_block
+struct deserialize_block
 {
 };
 
 
 template <typename _struct_t, typename field_t, typename... field_ts>
-struct serialize_block<_struct_t, field_t, field_ts...>
+struct deserialize_block<_struct_t, field_t, field_ts...>
 {
     typedef _struct_t struct_t;
 
@@ -106,12 +106,12 @@ struct serialize_block<_struct_t, field_t, field_ts...>
             }
 
         next:
-            serialize_block<struct_t, field_ts...>::deserialize(node, dest);
+            deserialize_block<struct_t, field_ts...>::deserialize(node, dest);
         }
 };
 
 template <typename _struct_t>
-struct serialize_block<_struct_t>
+struct deserialize_block<_struct_t>
 {
     typedef _struct_t struct_t;
 

@@ -35,10 +35,10 @@ TEST_CASE ("deserialize/pod", "Deserialization of a plain-old-data type")
 
     pod_t pod;
 
-    serialize_block<pod_t,
-                    serialize_primitive<0x02, UInt32Record, uint32_t, offsetof(pod_t, v1)>,
-                    serialize_primitive<0x04, UInt32Record, uint8_t, offsetof(pod_t, v3)>,
-                    serialize_primitive<0x03, Float64Record, double, offsetof(pod_t, v2)>
+    deserialize_block<pod_t,
+                    deserialize_primitive<0x02, UInt32Record, uint32_t, offsetof(pod_t, v1)>,
+                    deserialize_primitive<0x04, UInt32Record, uint8_t, offsetof(pod_t, v3)>,
+                    deserialize_primitive<0x03, Float64Record, double, offsetof(pod_t, v2)>
                     >::deserialize(pod_root, &pod);
 
     CHECK(pod.v1 == 0x2342dead);
@@ -65,7 +65,7 @@ TEST_CASE ("deserialize/str_callback", "Deserialization of a string")
 
     block_t block;
 
-    serialize_block<block_t,
+    deserialize_block<block_t,
                     deserialize_string<0x02, UTF8Record, block_t, &block_t::set_str>
                     >::deserialize(pod_root, &block);
 
@@ -104,7 +104,7 @@ TEST_CASE ("deserialize/blob_callback", "Deserialization of a blob")
 
     block_t block;
 
-    serialize_block<block_t,
+    deserialize_block<block_t,
                     deserialize_buffer<0x02, UTF8Record, block_t, char, &block_t::set_str>
                     >::deserialize(pod_root, &block);
 
