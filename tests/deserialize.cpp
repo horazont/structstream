@@ -35,11 +35,12 @@ TEST_CASE ("deserialize/pod", "Deserialization of a plain-old-data type")
 
     pod_t pod;
 
-    deserialize_block<pod_t,
-                    deserialize_primitive<0x02, UInt32Record, uint32_t, offsetof(pod_t, v1)>,
-                    deserialize_primitive<0x04, UInt32Record, uint8_t, offsetof(pod_t, v3)>,
-                    deserialize_primitive<0x03, Float64Record, double, offsetof(pod_t, v2)>
-                    >::deserialize(pod_root, &pod);
+    deserialize_block<
+        pod_t,
+        deserialize_primitive<0x02, UInt32Record, uint32_t, offsetof(pod_t, v1)>,
+        deserialize_primitive<0x04, UInt32Record, uint8_t, offsetof(pod_t, v3)>,
+        deserialize_primitive<0x03, Float64Record, double, offsetof(pod_t, v2)>
+        >::deserialize(pod_root, &pod);
 
     CHECK(pod.v1 == 0x2342dead);
     CHECK(pod.v2 == 23.42);
@@ -65,9 +66,10 @@ TEST_CASE ("deserialize/str_callback", "Deserialization of a string")
 
     block_t block;
 
-    deserialize_block<block_t,
-                    deserialize_string<0x02, UTF8Record, block_t, &block_t::set_str>
-                    >::deserialize(pod_root, &block);
+    deserialize_block<
+        block_t,
+        deserialize_string<0x02, UTF8Record, block_t, &block_t::set_str>
+        >::deserialize(pod_root, &block);
 
     CHECK(block.value == "Hello World!");
 
@@ -104,9 +106,44 @@ TEST_CASE ("deserialize/blob_callback", "Deserialization of a blob")
 
     block_t block;
 
-    deserialize_block<block_t,
-                    deserialize_buffer<0x02, UTF8Record, block_t, char, &block_t::set_str>
-                    >::deserialize(pod_root, &block);
+    deserialize_block<
+        block_t,
+        deserialize_buffer<0x02, UTF8Record, block_t, char, &block_t::set_str>
+        >::deserialize(pod_root, &block);
 
     CHECK(strcmp(block.get_str(), text) == 0);
+}
+
+TEST_CASE ("deserialize/array_simple", "Deserialization of an integer array")
+{
+    static const uint32_t values[] = {1, 2, 3, 4, 5};
+
+    NodeHandle pod_root_node = NodeHandleFactory<Container>::create(0x01);
+    Container *pod_root = static_cast<Container*>(pod_root_node.get());
+
+    for (auto &value: values)
+    {
+        NodeHandle rec_node = NodeHandleFactory<UInt32Record>::create(0x02);
+        UInt32Record *rec = static_cast<UInt32Record*>(rec_node.get());
+        rec->set(value);
+        pod_root->child_add(rec_node);
+    }
+
+    std::vector<uint32_t*> dest;
+
+    deserialize_array<
+        deserialize_primitive<0x02, UInt32Record, uint32_t, 0>,
+        std::back_insert_iterator<std::vector<uint32_t*>>
+        >::deserialize(pod_root, std::back_inserter(dest));
+
+    REQUIRE((sizeof(values) / sizeof(uint32_t)) == dest.size());
+
+    int value_idx = 0;
+    for (auto it = dest.begin();
+         it != dest.end();
+         it++, value_idx++)
+    {
+        CHECK(values[value_idx] == *(*it));
+        delete *it;
+    }
 }
