@@ -50,6 +50,22 @@ struct serialize_primitive {
     }
 };
 
+template <ID _record_id, class _record_t, typename _src_t>
+struct serialize_primitive_by_value {
+
+    static constexpr ID record_id = _record_id;
+    typedef _src_t src_t;
+    typedef _record_t record_t;
+
+    static inline NodeHandle serialize(const src_t &src)
+    {
+        NodeHandle node = NodeHandleFactory<record_t>::create(record_id);
+
+        static_cast<record_t*>(node.get())->set(src);
+        return node;
+    }
+};
+
 template <typename _src_t, typename... field_ts>
 struct serialize_block_impl
 {
