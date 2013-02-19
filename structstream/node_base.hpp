@@ -115,7 +115,7 @@ public:
     // If you want to make your node constructible using the
     // NodeHandleFactory, include this line and adapt it
     // appropriately.
-    friend class NodeHandleFactory<Node>;
+    friend struct NodeHandleFactory<Node>;
     friend class Container;
 };
 

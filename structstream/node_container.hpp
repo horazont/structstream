@@ -169,7 +169,7 @@ public:
      */
     virtual void write(IOIntf *stream) const {};
 
-    friend class NodeHandleFactory<Container>;
+    friend struct NodeHandleFactory<Container>;
 };
 
 class idpath_find_most_shallow {

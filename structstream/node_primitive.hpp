@@ -137,7 +137,7 @@ public:
         _data = value;
     };
 
-    friend class NodeHandleFactory< PrimitiveDataRecord<_T, rt> >;
+    friend struct NodeHandleFactory< PrimitiveDataRecord<_T, rt> >;
 };
 
 typedef PrimitiveDataRecord<int32_t, RT_INT32> Int32Record;
@@ -158,7 +158,7 @@ public:
     virtual void write(IOIntf *stream) const;
     virtual RecordType record_type() const;
 public:
-    friend class NodeHandleFactory< BoolRecord >;
+    friend struct NodeHandleFactory< BoolRecord >;
 };
 
 }

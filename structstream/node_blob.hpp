@@ -150,7 +150,7 @@ public:
         return RT_UTF8STRING;
     };
 
-    friend class NodeHandleFactory<UTF8Record>;
+    friend struct NodeHandleFactory<UTF8Record>;
 };
 
 /**
@@ -174,7 +174,7 @@ public:
     virtual void read(IOIntf *stream);
     virtual void write(IOIntf *stream) const;
 
-    friend class NodeHandleFactory<BlobRecord>;
+    friend struct NodeHandleFactory<BlobRecord>;
 };
 
 }
