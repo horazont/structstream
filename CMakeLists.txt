@@ -12,7 +12,7 @@ set(STRUCTSTREAM_SOURCES
   "src/reader.cpp"
   "src/utils.cpp"
   "src/writer.cpp"
-  "src/serializer.cpp"
+  "src/deserializer.cpp"
 )
 add_library(structstream++ ${STRUCTSTREAM_SOURCES})
 
