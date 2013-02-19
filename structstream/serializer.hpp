@@ -31,25 +31,23 @@ authors named in the AUTHORS file.
 
 namespace StructStream {
 
-template <ID _record_id, class _record_t, typename _src_t, intptr_t _src_offs=0, bool _required=false>
+template <ID _record_id, class _record_t, typename _src_t, intptr_t src_offs=0>
 struct serialize_primitive {
     static_assert(std::is_standard_layout<_src_t>::value, "primitive serialization target must be standard layout type.");
 
-    static constexpr bool required = _required;
     static constexpr ID record_id = _record_id;
-    static constexpr intptr_t src_offs = _src_offs;
     typedef _src_t src_t;
     typedef _record_t record_t;
 
     static inline NodeHandle serialize(const void *src)
-        {
-            NodeHandle node = NodeHandleFactory<record_t>::create(record_id);
+    {
+        NodeHandle node = NodeHandleFactory<record_t>::create(record_id);
 
-            static_cast<record_t*>(node.get())->set(
-                *reinterpret_cast<src_t*>(reinterpret_cast<intptr_t>(src) + src_offs)
-                );
-            return node;
-        }
+        static_cast<record_t*>(node.get())->set(
+            *reinterpret_cast<src_t*>(reinterpret_cast<intptr_t>(src) + src_offs)
+            );
+        return node;
+    }
 };
 
 template <typename _src_t, typename... field_ts>
@@ -62,12 +60,11 @@ struct serialize_block_impl<_src_t, field_t, field_ts...>
 {
     typedef _src_t src_t;
 
-    inline static void serialize_one(Container *parent, const src_t *src)
-        {
-            parent->child_add(field_t::serialize(src));
-
-            serialize_block_impl<_src_t, field_ts...>::serialize_one(parent, src);
-        }
+    inline static void serialize_into(Container *parent, const src_t *src)
+    {
+        parent->child_add(field_t::serialize(src));
+        serialize_block_impl<_src_t, field_ts...>::serialize_into(parent, src);
+    }
 };
 
 template <typename _src_t>
@@ -75,10 +72,10 @@ struct serialize_block_impl<_src_t>
 {
     typedef _src_t src_t;
 
-    inline static void serialize_one(Container *parent, const src_t *src)
-        {
+    inline static void serialize_into(Container *parent, const src_t *src)
+    {
 
-        };
+    };
 };
 
 template <ID _record_id, typename _src_t, typename... field_ts>
@@ -91,14 +88,14 @@ private:
     typedef serialize_block_impl<_src_t, field_ts...> serializer_impl;
 public:
     inline static NodeHandle serialize(const src_t *src)
-        {
-            NodeHandle parent_node = NodeHandleFactory<Container>::create(record_id);
-            Container *parent = static_cast<Container*>(parent_node.get());
+    {
+        NodeHandle parent_node = NodeHandleFactory<Container>::create(record_id);
+        Container *parent = static_cast<Container*>(parent_node.get());
 
-            serializer_impl::serialize_one(parent, src);
+        serializer_impl::serialize_into(parent, src);
 
-            return parent_node;
-        }
+        return parent_node;
+    }
 };
 
 }
