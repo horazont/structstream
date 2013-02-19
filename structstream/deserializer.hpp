@@ -95,17 +95,19 @@ struct deserialize_string
     }
 };
 
-template <typename _dest_t, typename... field_ts>
+template <ID _record_id, typename _dest_t, typename... field_ts>
 struct deserialize_block
 {
 };
 
 
-template <typename _dest_t, typename field_t, typename... field_ts>
-struct deserialize_block<_dest_t, field_t, field_ts...>
+template <ID _record_id, typename _dest_t, typename field_t, typename... field_ts>
+struct deserialize_block<_record_id, _dest_t, field_t, field_ts...>
 {
     typedef _dest_t dest_t;
-    typedef typename field_t::record_t record_t;
+    typedef typename field_t::record_t child_record_t;
+    typedef Container record_t;
+    static const ID record_id = _record_id;
 
     static inline void deserialize(Container *node, dest_t *dest)
         {
@@ -119,7 +121,7 @@ struct deserialize_block<_dest_t, field_t, field_ts...>
             }
 
             {
-                const typename field_t::record_t *rec = dynamic_cast<const record_t*>(child);
+                const child_record_t *rec = dynamic_cast<const child_record_t*>(child);
                 if (rec == nullptr) {
                     if (field_t::required) {
                         throw std::exception();
@@ -132,16 +134,18 @@ struct deserialize_block<_dest_t, field_t, field_ts...>
             }
 
         next:
-            deserialize_block<dest_t, field_ts...>::deserialize(node, dest);
+            deserialize_block<_record_id, dest_t, field_ts...>::deserialize(node, dest);
         }
 };
 
-template <typename _dest_t>
-struct deserialize_block<_dest_t>
+template <ID _record_id, typename _dest_t>
+struct deserialize_block<_record_id, _dest_t>
 {
     typedef _dest_t dest_t;
+    typedef Container record_t;
+    static const ID record_id = _record_id;
 
-    static inline void deserialize(Container *node, _dest_t *dest)
+    static inline void deserialize(const Container *node, _dest_t *dest)
         {
 
         };
