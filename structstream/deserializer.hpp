@@ -151,14 +151,15 @@ struct deserialize_block<_record_id, _dest_t>
         };
 };
 
-template <typename _serializer_t, typename iterator_t, typename... args_ts>
-struct deserialize_array
+template <typename _serializer_t, typename... args_ts>
+struct deserialize_iterator
 {
     typedef _serializer_t serializer_t;
     typedef typename serializer_t::dest_t dest_t;
     static constexpr ID record_id = serializer_t::record_id;
     typedef typename serializer_t::record_t record_t;
 
+    template <typename iterator_t>
     static inline void deserialize(const Container *node, iterator_t output_iterator, args_ts... args)
         {
             Container::NodeRangeByID range = node->children_by_id(serializer_t::record_id);

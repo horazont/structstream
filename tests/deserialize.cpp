@@ -73,7 +73,7 @@ TEST_CASE ("deserialize/pod", "Deserialization of a plain-old-data type")
     CHECK(pod.v3 == 0x12);
 }
 
-TEST_CASE ("deserialize/str_callback", "Deserialization of a string")
+TEST_CASE ("deserialize/str/callback", "Deserialization of a string")
 {
     struct block_t {
         std::string value;
@@ -102,7 +102,7 @@ TEST_CASE ("deserialize/str_callback", "Deserialization of a string")
 
 }
 
-TEST_CASE ("deserialize/blob_callback", "Deserialization of a blob")
+TEST_CASE ("deserialize/blob/callback", "Deserialization of a blob")
 {
     struct block_t {
     public:
@@ -142,7 +142,7 @@ TEST_CASE ("deserialize/blob_callback", "Deserialization of a blob")
     CHECK(strcmp(block.get_str(), text) == 0);
 }
 
-TEST_CASE ("deserialize/array_simple", "Deserialization of an integer array")
+TEST_CASE ("deserialize/iterator/simple", "Deserialization of an integer array")
 {
     static const uint32_t values[] = {1, 2, 3, 4, 5};
 
@@ -159,9 +159,8 @@ TEST_CASE ("deserialize/array_simple", "Deserialization of an integer array")
 
     std::vector<uint32_t*> dest;
 
-    deserialize_array<
-        deserialize_primitive<0x02, UInt32Record, uint32_t, 0>,
-        std::back_insert_iterator<std::vector<uint32_t*>>
+    deserialize_iterator<
+        deserialize_primitive<0x02, UInt32Record, uint32_t, 0>
         >::deserialize(pod_root, std::back_inserter(dest));
 
     REQUIRE((sizeof(values) / sizeof(uint32_t)) == dest.size());
@@ -174,4 +173,19 @@ TEST_CASE ("deserialize/array_simple", "Deserialization of an integer array")
         CHECK(values[value_idx] == *(*it));
         delete *it;
     }
+}
+
+TEST_CASE ("deserialize/array_blocks", "Deserialization of an array of blocks with integers")
+{
+    struct pod_t {
+
+    };
+
+    NodeHandle handle = NodeHandleFactory<Container>::create(0x01);
+
+    std::vector<pod_t*> dest;
+
+    deserialize_iterator<
+        deserialize_block<0x01, pod_t>
+        >::deserialize(static_cast<Container*>(handle.get()), std::back_inserter(dest));
 }
