@@ -86,3 +86,29 @@ TEST_CASE ("serialize/block/simple", "Serialize a block with some primitive elem
     CHECK(v2_rec->get() == block.v2);
     CHECK(v3_rec->get() == block.v3);
 }
+
+TEST_CASE ("serialize/array/int", "Serialize an array of integer")
+{
+    static const std::vector<uint32_t> values{1, 2, 3, 4, 5};
+
+    NodeHandle result = NodeHandleFactory<Container>::create(0x01);
+    Container *cont = static_cast<Container*>(result.get());
+
+    serialize_iterator<
+        serialize_primitive_by_value<0x02, UInt32Record, uint32_t>
+        >::serialize_into(cont, values.cbegin(), values.cend());
+
+    REQUIRE((intptr_t)values.size() == (intptr_t)cont->child_count());
+
+    auto intit = values.cbegin();
+
+    for (auto nodeit = cont->children_cbegin();
+         nodeit != cont->children_cend();
+         nodeit++, intit++)
+    {
+        UInt32Record *rec = dynamic_cast<UInt32Record*>((*nodeit).get());
+        REQUIRE(rec != 0);
+        REQUIRE(rec->get() == *intit);
+    }
+
+}

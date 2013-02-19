@@ -114,6 +114,25 @@ public:
     }
 };
 
+template <typename serializer_t>
+struct serialize_iterator
+{
+    typedef Container record_t;
+
+    template <typename iterator_t>
+    inline static void serialize_into(Container *parent,
+                                      iterator_t iterator_begin,
+                                      iterator_t iterator_end)
+    {
+        for (auto it = iterator_begin;
+             it != iterator_end;
+             it++)
+        {
+            parent->child_add(serializer_t::serialize(*it));
+        }
+    }
+};
+
 }
 
 #endif
