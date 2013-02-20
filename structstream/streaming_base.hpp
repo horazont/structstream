@@ -35,24 +35,24 @@ namespace StructStream {
 
 struct ContainerMeta {
 public:
-    ContainerMeta() = default;
+    ContainerMeta();
     ContainerMeta(const Container &cont);
     ContainerMeta(const ContainerMeta &ref);
     virtual ~ContainerMeta();
 public:
-    const int32_t child_count;
+    int32_t child_count;
 public:
     virtual ContainerMeta *copy() const;
 };
 
 struct ContainerFooter {
 public:
-    ContainerFooter() = default;
+    ContainerFooter();
     ContainerFooter(const ContainerFooter &ref);
     virtual ~ContainerFooter();
 public:
-    const bool validated;
-    const HashType hash_function;
+    bool validated;
+    HashType hash_function;
 public:
     virtual ContainerFooter *copy() const;
 };
