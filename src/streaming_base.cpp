@@ -1,5 +1,5 @@
 /**********************************************************************
-File name: streaming_utils.cpp
+File name: streaming_base.cpp
 This file is part of: structstream++
 
 LICENSE
@@ -23,47 +23,26 @@ FEEDBACK & QUESTIONS
 For feedback and questions about structstream++ please e-mail one of the
 authors named in the AUTHORS file.
 **********************************************************************/
-#include "structstream/streaming_utils.hpp"
+#include "structstream/streaming_base.hpp"
 
 namespace StructStream {
 
-SplitStream::SplitStream(std::initializer_list<StreamSink> sinks):
-    _sinks(sinks)
+ContainerMeta::ContainerMeta(const ContainerMeta &ref):
+    id(ref.id),
+    record_type(ref.record_type),
+    child_count(ref.child_count)
 {
 
 }
 
-SplitStream::~SplitStream()
+ContainerMeta::~ContainerMeta()
 {
 
 }
 
-void SplitStream::start_container(ContainerMeta *meta)
-try {
-    for (auto &child: _sinks)
-    {
-        child->start_container(meta->copy());
-    }
-    delete meta;
-} catch (...) {
-    delete meta;
-    throw;
-}
-
-void SplitStream::push_node(NodeHandle node)
+ContainerMeta* ContainerMeta::copy() const
 {
-    for (auto &child: _sinks)
-    {
-        child->push_node(node);
-    }
-}
-
-void SplitStream::end_container()
-{
-    for (auto &child: _sinks)
-    {
-        child->end_container();
-    }
+    return new ContainerMeta(*this);
 }
 
 }

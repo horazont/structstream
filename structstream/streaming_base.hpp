@@ -38,13 +38,15 @@ namespace StructStream {
  */
 struct ContainerMeta {
 public:
-    ContainerMeta();
+    ContainerMeta() = default;
     ContainerMeta(const ContainerMeta &ref);
-    virtual ~ContainerMeta() {};
+    virtual ~ContainerMeta();
 public:
     ID id;
     RecordType record_type;
     int32_t child_count;
+public:
+    virtual ContainerMeta *copy() const;
 };
 
 /**
@@ -62,9 +64,9 @@ public:
      * work with only this set of data and all sources *MUST* at least
      * emit this set of data.
      *
-     * The *meta* object is owned by the stream which sent it and will
-     * be freed by it after the call. If an implementation needs the
-     * data, it is supposed to create a copy of the object.
+     * The *meta* object is a private copy for the stream node
+     * receiving this stream event and shall be freed by the
+     * implementation.
      */
     virtual void start_container(ContainerMeta *meta) = 0;
 
@@ -72,6 +74,9 @@ public:
      * Push a node to the current container. This requires the full node,
      * as nodes do not share a very common format, except for their record
      * type and the ID.
+     *
+     * The *node* is a private copy for the stream node receiving this
+     * stream event.
      */
     virtual void push_node(NodeHandle node) = 0;
 
