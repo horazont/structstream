@@ -16,6 +16,7 @@ set(STRUCTSTREAM_SOURCES
   "src/serializer.cpp"
   "src/streaming_base.cpp"
   "src/streaming_utils.cpp"
+  "src/streaming_tree.cpp"
 )
 add_library(structstream++ ${STRUCTSTREAM_SOURCES})
 

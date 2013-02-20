@@ -33,20 +33,28 @@ authors named in the AUTHORS file.
 
 namespace StructStream {
 
-/**
- * It is intended that all attributes are mutable.
- */
 struct ContainerMeta {
 public:
     ContainerMeta() = default;
+    ContainerMeta(const Container &cont);
     ContainerMeta(const ContainerMeta &ref);
     virtual ~ContainerMeta();
 public:
-    ID id;
-    RecordType record_type;
-    int32_t child_count;
+    const int32_t child_count;
 public:
     virtual ContainerMeta *copy() const;
+};
+
+struct ContainerFooter {
+public:
+    ContainerFooter() = default;
+    ContainerFooter(const ContainerFooter &ref);
+    virtual ~ContainerFooter();
+public:
+    const bool validated;
+    const HashType hash_function;
+public:
+    virtual ContainerFooter *copy() const;
 };
 
 /**
@@ -64,19 +72,20 @@ public:
      * work with only this set of data and all sources *MUST* at least
      * emit this set of data.
      *
-     * The *meta* object is a private copy for the stream node
-     * receiving this stream event and shall be freed by the
-     * implementation.
+     * The *meta* object is owned by the emitter of the stream event
+     * and as such will be deleted after the call. If an
+     * implementation needs a copy, it shall create one.
      */
-    virtual void start_container(ContainerMeta *meta) = 0;
+    virtual void start_container(ContainerHandle cont, const ContainerMeta *meta) = 0;
 
     /**
      * Push a node to the current container. This requires the full node,
      * as nodes do not share a very common format, except for their record
      * type and the ID.
      *
-     * The *node* is a private copy for the stream node receiving this
-     * stream event.
+     * An implemantation MAY assume that the *node* is a private copy
+     * to it. Although users may use the streaming API differently,
+     * they have to care about the possible side effects.
      */
     virtual void push_node(NodeHandle node) = 0;
 
@@ -84,7 +93,7 @@ public:
      * End the current innermost container and return to the upper
      * context.
      */
-    virtual void end_container() = 0;
+    virtual void end_container(const ContainerFooter *foot) = 0;
 };
 
 typedef std::shared_ptr<StreamSinkIntf> StreamSink;

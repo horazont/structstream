@@ -1,5 +1,5 @@
 /**********************************************************************
-File name: streaming_utils.hpp
+File name: streaming_tree.hpp
 This file is part of: structstream++
 
 LICENSE
@@ -23,26 +23,48 @@ FEEDBACK & QUESTIONS
 For feedback and questions about structstream++ please e-mail one of the
 authors named in the AUTHORS file.
 **********************************************************************/
-#ifndef _STRUCTSTREAM_STREAMING_UTILS_H
-#define _STRUCTSTREAM_STREAMING_UTILS_H
+#ifndef _STRUCTSTREAM_STREAMING_TREE_H
+#define _STRUCTSTREAM_STREAMING_TREE_H
 
 #include <forward_list>
-#include <initializer_list>
 
 #include "structstream/streaming_base.hpp"
 
 namespace StructStream {
 
-class SplitStream: public StreamSinkIntf {
+class ToTree: public StreamSinkIntf {
+protected:
+    struct ParentInfo {
+    public:
+        ParentInfo(ContainerMeta *meta, ContainerHandle parent):
+            meta(meta),
+            parent_h(parent),
+            parent(parent.get()) {};
+        virtual ~ParentInfo() {
+            delete meta;
+        };
+    public:
+        ContainerMeta *meta;
+        ContainerHandle parent_h;
+        Container *parent;
+    };
+
 public:
-    SplitStream(std::initializer_list<StreamSink> sinks);
-    virtual ~SplitStream();
+    ToTree();
+    ToTree(ContainerHandle root);
+    virtual ~ToTree();
 private:
-    std::forward_list<StreamSink> _sinks;
+    std::forward_list<ParentInfo*> _stack;
+    ContainerHandle _root;
+    ParentInfo *_curr_parent;
+protected:
+    void init_root();
+    void push_parent(ParentInfo *info);
+    void pop_parent();
 public:
     virtual void start_container(ContainerHandle cont, const ContainerMeta *meta);
     virtual void push_node(NodeHandle node);
-    virtual void end_container(ContainerFooter *foot);
+    virtual void end_container(const ContainerFooter *foot);
 };
 
 }

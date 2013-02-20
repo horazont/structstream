@@ -38,16 +38,12 @@ SplitStream::~SplitStream()
 
 }
 
-void SplitStream::start_container(ContainerMeta *meta)
-try {
+void SplitStream::start_container(ContainerHandle cont, const ContainerMeta *meta)
+{
     for (auto &child: _sinks)
     {
-        child->start_container(meta->copy());
+        child->start_container(cont, meta);
     }
-    delete meta;
-} catch (...) {
-    delete meta;
-    throw;
 }
 
 void SplitStream::push_node(NodeHandle node)
@@ -58,11 +54,11 @@ void SplitStream::push_node(NodeHandle node)
     }
 }
 
-void SplitStream::end_container()
+void SplitStream::end_container(ContainerFooter *foot)
 {
     for (auto &child: _sinks)
     {
-        child->end_container();
+        child->end_container(foot);
     }
 }
 

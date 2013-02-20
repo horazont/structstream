@@ -25,11 +25,17 @@ authors named in the AUTHORS file.
 **********************************************************************/
 #include "structstream/streaming_base.hpp"
 
+#include "structstream/node_container.hpp"
+
 namespace StructStream {
 
+ContainerMeta::ContainerMeta(const Container &cont):
+    child_count(cont.child_count())
+{
+
+}
+
 ContainerMeta::ContainerMeta(const ContainerMeta &ref):
-    id(ref.id),
-    record_type(ref.record_type),
     child_count(ref.child_count)
 {
 
@@ -43,6 +49,20 @@ ContainerMeta::~ContainerMeta()
 ContainerMeta* ContainerMeta::copy() const
 {
     return new ContainerMeta(*this);
+}
+
+/* StructStream::ContainerFooter */
+
+ContainerFooter::ContainerFooter(const ContainerFooter &ref):
+    validated(ref.validated),
+    hash_function(ref.hash_function)
+{
+
+}
+
+ContainerFooter *ContainerFooter::copy() const
+{
+    return new ContainerFooter(*this);
 }
 
 }
