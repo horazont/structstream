@@ -54,7 +54,7 @@ void SplitStream::push_node(NodeHandle node)
     }
 }
 
-void SplitStream::end_container(ContainerFooter *foot)
+void SplitStream::end_container(const ContainerFooter *foot)
 {
     for (auto &child: _sinks)
     {
