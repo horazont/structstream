@@ -25,8 +25,8 @@ authors named in the AUTHORS file.
 **********************************************************************/
 #include "catch.hpp"
 
-#include "structstream/node_primitive.hpp"
-#include "structstream/node_blob.hpp"
+#include "tests/utils.hpp"
+
 #include "structstream/reader.hpp"
 
 using namespace StructStream;
@@ -38,11 +38,7 @@ TEST_CASE ("decode/records/uint32", "Test decode of a uint32 record")
         (uint8_t)(RT_END_OF_CHILDREN) | 0x80
     };
 
-    RegistryHandle registry = RegistryHandle(new Registry());
-    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, sizeof(data)));
-    Reader reader(io, registry);
-
-    NodeHandle node = reader.read_next();
+    NodeHandle node = *(blob_to_tree(data, sizeof(data))->children_begin());
     REQUIRE(node.get() != 0);
 
     UInt32Record *rec = dynamic_cast<UInt32Record*>(node.get());
@@ -58,11 +54,7 @@ TEST_CASE ("decode/records/uint64", "Test decode of a uint64 record")
         (uint8_t)(RT_END_OF_CHILDREN) | 0x80
     };
 
-    RegistryHandle registry = RegistryHandle(new Registry());
-    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, sizeof(data)));
-    Reader reader(io, registry);
-
-    NodeHandle node = reader.read_next();
+    NodeHandle node = *(blob_to_tree(data, sizeof(data))->children_begin());
     REQUIRE(node.get() != 0);
 
     UInt64Record *rec = dynamic_cast<UInt64Record*>(node.get());
@@ -77,11 +69,7 @@ TEST_CASE ("decode/records/int32", "Test decode of a int32 record")
         (uint8_t)(RT_END_OF_CHILDREN) | 0x80
     };
 
-    RegistryHandle registry = RegistryHandle(new Registry());
-    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, sizeof(data)));
-    Reader reader(io, registry);
-
-    NodeHandle node = reader.read_next();
+    NodeHandle node = *(blob_to_tree(data, sizeof(data))->children_begin());
     REQUIRE(node.get() != 0);
 
     Int32Record *rec = dynamic_cast<Int32Record*>(node.get());
@@ -97,11 +85,7 @@ TEST_CASE ("decode/records/int64", "Test decode of a int64 record")
         (uint8_t)(RT_END_OF_CHILDREN) | 0x80
     };
 
-    RegistryHandle registry = RegistryHandle(new Registry());
-    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, sizeof(data)));
-    Reader reader(io, registry);
-
-    NodeHandle node = reader.read_next();
+    NodeHandle node = *(blob_to_tree(data, sizeof(data))->children_begin());
     REQUIRE(node.get() != 0);
 
     Int64Record *rec = dynamic_cast<Int64Record*>(node.get());
@@ -120,11 +104,7 @@ TEST_CASE ("decode/records/blob", "Test decode of a blob record")
     };
     static const char reference[] = "Hello World!";
 
-    RegistryHandle registry = RegistryHandle(new Registry());
-    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, sizeof(data)));
-    Reader reader(io, registry);
-
-    NodeHandle node = reader.read_next();
+    NodeHandle node = *(blob_to_tree(data, sizeof(data))->children_begin());
     REQUIRE(node.get() != 0);
 
     BlobRecord *rec = dynamic_cast<BlobRecord*>(node.get());
@@ -150,11 +130,7 @@ TEST_CASE ("decode/records/utf8", "Test decode of a utf8 record")
     };
     static const char reference[] = "Hello World!";
 
-    RegistryHandle registry = RegistryHandle(new Registry());
-    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, sizeof(data)));
-    Reader reader(io, registry);
-
-    NodeHandle node = reader.read_next();
+    NodeHandle node = *(blob_to_tree(data, sizeof(data))->children_begin());
     REQUIRE(node.get() != 0);
 
     UTF8Record *rec = dynamic_cast<UTF8Record*>(node.get());
@@ -176,20 +152,16 @@ TEST_CASE ("decode/records/bool", "Test decode of boolean records")
         (uint8_t)(RT_END_OF_CHILDREN) | 0x80,
     };
 
-    RegistryHandle registry = RegistryHandle(new Registry());
-    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, sizeof(data)));
-    Reader reader(io, registry);
+    ContainerHandle root = blob_to_tree(data, sizeof(data));
 
-    NodeHandle node = reader.read_next();
-    REQUIRE(node.get() != 0);
-    BoolRecord *rec = dynamic_cast<BoolRecord*>(node.get());
+    auto children = root->children_begin();
+
+    BoolRecord *rec = dynamic_cast<BoolRecord*>((*children).get());
     REQUIRE(rec != 0);
     CHECK(rec->get() == true);
 
-    node = reader.read_next();
-    rec = dynamic_cast<BoolRecord*>(node.get());
+    children++;
+    rec = dynamic_cast<BoolRecord*>((*children).get());
     REQUIRE(rec != 0);
     CHECK(rec->get() == false);
-
-    reader.read_all();
 }
