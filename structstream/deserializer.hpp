@@ -51,7 +51,7 @@ struct deserialize_primitive {
         }
 };
 
-template <ID _record_id, class _record_t, typename _dest_t, void (_dest_t::*setfunc)(const _record_t*), bool _required=false>
+template <ID _record_id, class _record_t, typename _dest_t, typename value_t, void (_dest_t::*setfunc)(const value_t), bool _required=false>
 struct deserialize_custom {
     static constexpr ID record_id = _record_id;
     static constexpr bool required = _required;
@@ -61,7 +61,7 @@ struct deserialize_custom {
 
     static inline void deserialize(const record_t *rec, dest_t *dest)
         {
-            (dest->*setfunc)(rec);
+            (dest->*setfunc)(rec->get());
         }
 };
 

@@ -57,11 +57,39 @@ struct serialize_primitive_by_value {
     typedef _src_t src_t;
     typedef _record_t record_t;
 
-    static inline NodeHandle serialize(const src_t &src)
+    static inline NodeHandle serialize(const src_t *src)
     {
         NodeHandle node = NodeHandleFactory<record_t>::create(record_id);
 
         static_cast<record_t*>(node.get())->set(src);
+        return node;
+    }
+};
+
+template <ID _record_id, class _record_t, typename _src_t, const std::string& (_src_t::*getfunc)() const>
+struct serialize_string {
+    static constexpr ID record_id = _record_id;
+    typedef _src_t src_t;
+    typedef _record_t record_t;
+
+    static inline NodeHandle serialize(const src_t *src)
+    {
+        NodeHandle node = NodeHandleFactory<record_t>::create(record_id);
+        static_cast<record_t*>(node.get())->set((src->*getfunc)());
+        return node;
+    }
+};
+
+template <ID _record_id, class _record_t, typename _src_t, typename _value_t, _value_t (_src_t::*getfunc)() const>
+struct serialize_custom {
+    static constexpr ID record_id = _record_id;
+    typedef _src_t src_t;
+    typedef _record_t record_t;
+
+    static inline NodeHandle serialize(const src_t *src)
+    {
+        NodeHandle node = NodeHandleFactory<record_t>::create(record_id);
+        static_cast<record_t*>(node.get())->set((src->*getfunc)());
         return node;
     }
 };
