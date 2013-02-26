@@ -27,7 +27,7 @@ authors named in the AUTHORS file.
 #define _STRUCTSTREAM_H
 
 #include "structstream/nodes.hpp"
-#include "structstream/reader.hpp"
-#include "structstream/writer.hpp"
+#include "structstream/streaming.hpp"
+#include "structstream/hashing.hpp"
 
 #endif
