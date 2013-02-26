@@ -27,8 +27,6 @@ authors named in the AUTHORS file.
 
 #include "tests/utils.hpp"
 
-#include "structstream/reader.hpp"
-
 using namespace StructStream;
 
 TEST_CASE ("decode/records/uint32", "Test decode of a uint32 record")
