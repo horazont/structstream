@@ -83,4 +83,11 @@ ContainerFooter *ContainerFooter::copy() const
     return new ContainerFooter(*this);
 }
 
+/* StructStream::StreamSinkIntf */
+
+void StreamSinkIntf::end_of_stream()
+{
+
+}
+
 }

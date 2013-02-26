@@ -94,6 +94,11 @@ public:
      * context.
      */
     virtual void end_container(const ContainerFooter *foot) = 0;
+
+    /**
+     * Mark the end of the stream. Not all sinks may need this.
+     */
+    virtual void end_of_stream();
 };
 
 typedef std::shared_ptr<StreamSinkIntf> StreamSink;
