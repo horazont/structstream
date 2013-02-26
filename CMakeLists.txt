@@ -18,6 +18,9 @@ set(STRUCTSTREAM_SOURCES
   "src/streaming_utils.cpp"
   "src/streaming_tree.cpp"
   "src/streaming_bitstream.cpp"
+  "src/hashing_base.cpp"
+  "src/hashing_gnutls.cpp"
+  "src/hashing.cpp"
 )
 
 set(DEPS)
@@ -29,10 +32,9 @@ if (DEFINED GNUTLS_FOUND)
   add_definitions(${GNUTLS_DEFINITIONS})
   include_directories(${GNUTLS_INCLUDE_DIR})
   list(APPEND DEPS ${GNUTLS_LIBRARIES})
-  list(APPEND STRUCTSTREAM_SOURCES "src/hashing_gnutls.cpp")
 endif (DEFINED GNUTLS_FOUND)
 
-add_library(structstream++ ${STRUCTSTREAM_SOURCES})
+add_library(structstream++ ${STRUCTSTREAM_SOURCES} ${DEPS})
 
 set(CATCH_INCLUDE_DIRS "Catch/single_include")
 set(TEST_SOURCES
