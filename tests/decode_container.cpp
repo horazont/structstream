@@ -166,11 +166,7 @@ TEST_CASE ("decode/container/surplus_eoc", "Detect errornous End-Of-Children / l
         uint8_t(RT_END_OF_CHILDREN) | 0x80
     };
 
-    RegistryHandle registry = RegistryHandle(new Registry());
-    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, sizeof(data)));
-    Reader reader(io, registry);
-
-    REQUIRE_THROWS_AS(reader.read_all(), UnexpectedEndOfChildren);
+    REQUIRE_THROWS_AS(blob_to_tree(data, sizeof(data)), UnexpectedEndOfChildren);
 }
 
 TEST_CASE ("decode/container/early_eoc", "Detect early End-Of-Children")
