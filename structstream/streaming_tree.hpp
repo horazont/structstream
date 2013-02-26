@@ -69,6 +69,23 @@ public:
     inline ContainerHandle root() { return _root; };
 };
 
+/* class FromTree {
+public:
+    FromTree(StreamSink sink, ContainerHandle root);
+    FromTree(StreamSink sink, NodeHandle first_child);
+    virtual ~FromTree();
+private:
+    StreamSink _sink_h;
+    StreamSinkIntf *_sink;
+
+    ContainerHandle _root;
+public:
+    void send_all();
+    };*/
+
+void FromTree(StreamSink sink, ContainerHandle root);
+void FromTree(StreamSink sink, std::initializer_list<NodeHandle> children);
+
 }
 
 #endif

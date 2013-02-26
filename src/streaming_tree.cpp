@@ -105,4 +105,50 @@ void ToTree::end_container(const ContainerFooter *foot)
     pop_parent();
 }
 
+/* StructStream::FromTree */
+
+void subtree_to_sink(StreamSink sink, NodeHandle subtree)
+{
+    Container *cont = dynamic_cast<Container*>(subtree.get());
+    if (cont != nullptr) {
+        ContainerMeta meta;
+        meta.child_count = cont->child_count();
+        sink->start_container(
+            std::static_pointer_cast<Container>(subtree),
+            &meta
+            );
+        for (auto it = cont->children_begin();
+             it != cont->children_end();
+             it++)
+        {
+            subtree_to_sink(sink, *it);
+        }
+        ContainerFooter foot;
+        foot.validated = false;
+        foot.hash_function = HT_INVALID;
+        sink->end_container(&foot);
+    } else {
+        sink->push_node(subtree);
+    }
+}
+
+void FromTree(StreamSink sink, ContainerHandle root)
+{
+    for (auto it = root->children_begin();
+         it != root->children_end();
+         it++)
+    {
+        subtree_to_sink(sink, *it);
+    }
+    sink->end_of_stream();
+}
+
+void FromTree(StreamSink sink, std::initializer_list<NodeHandle> children)
+{
+    for (auto child: children) {
+        subtree_to_sink(sink, child);
+    }
+    sink->end_of_stream();
+}
+
 }
