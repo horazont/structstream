@@ -29,5 +29,7 @@ authors named in the AUTHORS file.
 #include "structstream/nodes.hpp"
 #include "structstream/streaming.hpp"
 #include "structstream/hashing.hpp"
+#include "structstream/serializer.hpp"
+#include "structstream/deserializer.hpp"
 
 #endif
