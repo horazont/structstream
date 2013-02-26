@@ -25,9 +25,7 @@ authors named in the AUTHORS file.
 **********************************************************************/
 #include "catch.hpp"
 
-#include "structstream/node_primitive.hpp"
-#include "structstream/node_blob.hpp"
-#include "structstream/writer.hpp"
+#include "tests/utils.hpp"
 
 #define COMMON_HEADER
 #define COMMON_FOOTER (uint8_t)(RT_END_OF_CHILDREN) | 0x80
@@ -49,14 +47,9 @@ TEST_CASE ("encode/container/empty", "Encode an empty container, without armor")
 
     uint8_t output[sizeof(expected)];
 
-    IOIntfHandle io = IOIntfHandle(new WritableMemory(output, sizeof(expected)));
-    Writer writer;
-    writer.open(io);
-    writer.set_use_armor(false);
-    writer.write(tree);
-    writer.close();
+    intptr_t size = tree_to_blob(output, sizeof(output), {tree}, false);
+    REQUIRE(size == sizeof(expected));
 
-    REQUIRE(static_cast<WritableMemory*>(io.get())->size() == sizeof(expected));
     REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
 }
 
@@ -76,14 +69,9 @@ TEST_CASE ("encode/container/empty_with_armor", "Encode an empty container, with
 
     uint8_t output[sizeof(expected)];
 
-    IOIntfHandle io = IOIntfHandle(new WritableMemory(output, sizeof(expected)));
-    Writer writer;
-    writer.open(io);
-    writer.set_use_armor(true);
-    writer.write(tree);
-    writer.close();
+    intptr_t size = tree_to_blob(output, sizeof(output), {tree}, true);
+    REQUIRE(size == sizeof(expected));
 
-    REQUIRE(static_cast<WritableMemory*>(io.get())->size() == sizeof(expected));
     REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
 }
 
@@ -111,13 +99,8 @@ TEST_CASE ("encode/container/with_child", "Encode a container with one child")
 
     uint8_t output[sizeof(expected)];
 
-    IOIntfHandle io = IOIntfHandle(new WritableMemory(output, sizeof(expected)));
-    Writer writer;
-    writer.open(io);
-    writer.set_use_armor(false);
-    writer.write(tree);
-    writer.close();
+    intptr_t size = tree_to_blob(output, sizeof(output), {tree}, false);
+    REQUIRE(size == sizeof(expected));
 
-    REQUIRE(static_cast<WritableMemory*>(io.get())->size() == sizeof(expected));
     REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
 }

@@ -22,5 +22,22 @@ inline ContainerHandle blob_to_tree(const uint8_t *data, intptr_t data_len)
     return tree->root();
 }
 
+inline intptr_t tree_to_blob(uint8_t *output, intptr_t output_len, std::initializer_list<NodeHandle> children, bool armor = true)
+{
+    IOIntfHandle io = IOIntfHandle(new WritableMemory(output, output_len));
+    ToFile *out = new ToFile(io);
+    out->set_armor_default(armor);
+    FromTree(StreamSink(out), children);
+    return static_cast<WritableMemory*>(io.get())->size();
+}
+
+inline intptr_t tree_to_blob(uint8_t *output, intptr_t output_len, ContainerHandle root, bool armor = true)
+{
+    IOIntfHandle io = IOIntfHandle(new WritableMemory(output, output_len));
+    ToFile *out = new ToFile(io);
+    out->set_armor_default(armor);
+    FromTree(StreamSink(out), root);
+    return static_cast<WritableMemory*>(io.get())->size();
+}
 
 #endif

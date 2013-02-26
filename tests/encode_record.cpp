@@ -25,9 +25,7 @@ authors named in the AUTHORS file.
 **********************************************************************/
 #include "catch.hpp"
 
-#include "structstream/node_primitive.hpp"
-#include "structstream/node_blob.hpp"
-#include "structstream/writer.hpp"
+#include "tests/utils.hpp"
 
 #define COMMON_HEADER
 #define COMMON_FOOTER (uint8_t)(RT_END_OF_CHILDREN) | 0x80
@@ -48,13 +46,9 @@ TEST_CASE ("encode/record/uint32", "Encode a RT_UINT32 record")
 
     uint8_t output[sizeof(expected)];
 
-    IOIntfHandle io = IOIntfHandle(new WritableMemory(output, sizeof(expected)));
-    Writer writer;
-    writer.open(io);
-    writer.write(tree);
-    writer.close();
+    intptr_t size = tree_to_blob(output, sizeof(output), {tree});
+    REQUIRE(size == sizeof(expected));
 
-    REQUIRE(static_cast<WritableMemory*>(io.get())->size() == sizeof(expected));
     REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
 }
 
@@ -73,13 +67,9 @@ TEST_CASE ("encode/record/uint64", "Encode a RT_UINT64 record")
 
     uint8_t output[sizeof(expected)];
 
-    IOIntfHandle io = IOIntfHandle(new WritableMemory(output, sizeof(expected)));
-    Writer writer;
-    writer.open(io);
-    writer.write(tree);
-    writer.close();
+    intptr_t size = tree_to_blob(output, sizeof(output), {tree});
+    REQUIRE(size == sizeof(expected));
 
-    REQUIRE(static_cast<WritableMemory*>(io.get())->size() == sizeof(expected));
     REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
 }
 
@@ -97,13 +87,9 @@ TEST_CASE ("encode/record/int32", "Encode a RT_INT32 record")
 
     uint8_t output[sizeof(expected)];
 
-    IOIntfHandle io = IOIntfHandle(new WritableMemory(output, sizeof(expected)));
-    Writer writer;
-    writer.open(io);
-    writer.write(tree);
-    writer.close();
+    intptr_t size = tree_to_blob(output, sizeof(output), {tree});
+    REQUIRE(size == sizeof(expected));
 
-    REQUIRE(static_cast<WritableMemory*>(io.get())->size() == sizeof(expected));
     REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
 }
 
@@ -122,13 +108,9 @@ TEST_CASE ("encode/record/int64", "Encode a RT_INT64 record")
 
     uint8_t output[sizeof(expected)];
 
-    IOIntfHandle io = IOIntfHandle(new WritableMemory(output, sizeof(expected)));
-    Writer writer;
-    writer.open(io);
-    writer.write(tree);
-    writer.close();
+    intptr_t size = tree_to_blob(output, sizeof(output), {tree});
+    REQUIRE(size == sizeof(expected));
 
-    REQUIRE(static_cast<WritableMemory*>(io.get())->size() == sizeof(expected));
     REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
 }
 
@@ -150,13 +132,9 @@ TEST_CASE ("encode/record/blob", "Encode a blob")
 
     uint8_t output[sizeof(expected)];
 
-    IOIntfHandle io = IOIntfHandle(new WritableMemory(output, sizeof(expected)));
-    Writer writer;
-    writer.open(io);
-    writer.write(tree);
-    writer.close();
+    intptr_t size = tree_to_blob(output, sizeof(output), {tree});
+    REQUIRE(size == sizeof(expected));
 
-    REQUIRE(static_cast<WritableMemory*>(io.get())->size() == sizeof(expected));
     REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
 }
 
@@ -178,12 +156,8 @@ TEST_CASE ("encode/record/utf8", "Encode a utf8 string")
 
     uint8_t output[sizeof(expected)];
 
-    IOIntfHandle io = IOIntfHandle(new WritableMemory(output, sizeof(expected)));
-    Writer writer;
-    writer.open(io);
-    writer.write(tree);
-    writer.close();
+    intptr_t size = tree_to_blob(output, sizeof(output), {tree});
+    REQUIRE(size == sizeof(expected));
 
-    REQUIRE(static_cast<WritableMemory*>(io.get())->size() == sizeof(expected));
     REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
 }
