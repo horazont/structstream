@@ -1,5 +1,5 @@
 /**********************************************************************
-File name: streaming.cpp
+File name: nodes.hpp
 This file is part of: structstream++
 
 LICENSE
@@ -23,28 +23,12 @@ FEEDBACK & QUESTIONS
 For feedback and questions about structstream++ please e-mail one of the
 authors named in the AUTHORS file.
 **********************************************************************/
-#include "structstream/streaming.hpp"
+#ifndef _STRUCTSTREAM_NODES_H
+#define _STRUCTSTREAM_NODES_H
 
-namespace StructStream {
+#include "structstream/node_base.hpp"
+#include "structstream/node_container.hpp"
+#include "structstream/node_primitive.hpp"
+#include "structstream/node_blob.hpp"
 
-ContainerHandle bitstream_to_tree(IOIntfHandle in, RegistryHandle registry)
-{
-    ToTree *sink = new ToTree();
-    StreamSink sink_h(sink);
-
-    FromFile reader(in, registry, sink_h);
-    reader.read_all();
-    return sink->root();
-}
-
-void tree_to_bitstream(ContainerHandle root, IOIntfHandle out)
-{
-    FromTree(StreamSink(new ToFile(out)), root);
-}
-
-void tree_to_bitstream(std::initializer_list<NodeHandle> nodes, IOIntfHandle out)
-{
-    FromTree(StreamSink(new ToFile(out)), nodes);
-}
-
-}
+#endif
