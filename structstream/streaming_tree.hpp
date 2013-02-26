@@ -65,6 +65,8 @@ public:
     virtual void start_container(ContainerHandle cont, const ContainerMeta *meta);
     virtual void push_node(NodeHandle node);
     virtual void end_container(const ContainerFooter *foot);
+public:
+    inline ContainerHandle root() { return _root; };
 };
 
 }

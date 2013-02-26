@@ -26,6 +26,7 @@ authors named in the AUTHORS file.
 #include "structstream/streaming_tree.hpp"
 
 #include <cassert>
+#include <cstdio>
 
 #include "structstream/node_container.hpp"
 
@@ -45,6 +46,11 @@ ToTree::ToTree(ContainerHandle root):
     _curr_parent()
 {
     init_root();
+}
+
+ToTree::~ToTree()
+{
+
 }
 
 void ToTree::init_root()
@@ -73,6 +79,8 @@ void ToTree::start_container(ContainerHandle cont, const ContainerMeta *meta)
 {
     assert(_curr_parent != nullptr);
 
+    // printf("tree: starting container with id 0x%lx\n", cont->id());
+
     _curr_parent->parent->child_add(cont);
     push_parent(new ParentInfo(meta->copy(), cont));
 }
@@ -81,12 +89,16 @@ void ToTree::push_node(NodeHandle node)
 {
     assert(_curr_parent != nullptr);
 
+    // printf("tree: new child with id 0x%lx\n", node->id());
+
     _curr_parent->parent->child_add(node);
 }
 
 void ToTree::end_container(const ContainerFooter *foot)
 {
     assert(_curr_parent != nullptr);
+
+    // printf("tree: finish container with id 0x%lx\n", _curr_parent->parent_h->id());
 
     pop_parent();
 }

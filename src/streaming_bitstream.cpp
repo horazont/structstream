@@ -55,15 +55,26 @@ void FromFile::check_end_of_container()
     if (!_curr_parent)
         return;
 
-    // printf("%ld out of %ld children found\n",
+    // printf("bitstream: %d out of %d children found\n",
     //        _curr_parent->read_child_count,
-    //        _curr_parent->expected_children);
+    //        _curr_parent->meta->child_count);
 
     if (!_curr_parent->armored
         && _curr_parent->meta->child_count == _curr_parent->read_child_count)
     {
         end_of_container();
     }
+}
+
+void FromFile::push_root()
+{
+    ParentInfo *root_pi = new ParentInfo();
+    root_pi->meta->child_count = -1;
+    root_pi->armored = true;
+    root_pi->read_child_count = 0;
+    root_pi->cont = ContainerHandle();
+    _parent_stack.push_front(root_pi);
+    _curr_parent = root_pi;
 }
 
 FromFile::ParentInfo *FromFile::new_parent_info() const
@@ -94,8 +105,10 @@ void FromFile::start_of_container(ContainerHandle cont_h)
 
     _parent_stack.push_front(info);
     _curr_parent = info;
+    _sink->start_container(info->cont, info->meta);
+    info->cont = ContainerHandle();
 
-    // printf("push %lx\n", (uint64_t)_curr_parent->parent_node.get());
+    // printf("bitstream: push %lx\n", (uint64_t)_curr_parent->cont.get());
 }
 
 void FromFile::proc_container_flags(VarUInt &flags_int, FromFile::ParentInfo *info)
@@ -144,10 +157,15 @@ void FromFile::end_of_container()
     }
 
     if (_curr_parent) {
+        // printf("bitstream: pop %lx\n", (intptr_t)(info->cont.get()));
+
         // Do not call this virtual method for the root node
         end_of_container_body(info->footer);
+        _sink->end_container(info->footer);
 
         _curr_parent->read_child_count += 1;
+    } else {
+        // printf("bitstream: end-of-stream reached\n");
     }
 
     delete info;
@@ -157,6 +175,7 @@ void FromFile::end_of_container()
 
 NodeHandle FromFile::read_next() {
     if (_curr_parent == nullptr) {
+        // printf("bitstream: state suggests end-of-stream, won't read further\n");
 	return NodeHandle();
     }
 
@@ -164,7 +183,7 @@ NodeHandle FromFile::read_next() {
     if (rt == RT_RESERVED) {
 	throw UnsupportedRecordType("RT_RESERVED encountered. This stream may have been created with a newer version of structstream.");
     } else if (rt == RT_END_OF_CHILDREN) {
-        // printf("end of children encountered\n");
+        // printf("bitstream: end of children encountered\n");
 
         if (_curr_parent->armored &&
             (_curr_parent->meta->child_count == -1
@@ -196,7 +215,7 @@ NodeHandle FromFile::read_next() {
 	throw InvalidIDError("Invalid object ID encountered.");
     }
 
-    // printf("found 0x%x with id 0x%lx\n", rt, id);
+    // printf("bitstream: found 0x%x with id 0x%lx\n", rt, id);
 
     NodeHandle new_node = _node_factory->node_from_record_type(rt, id);
     if (!new_node.get()) {
@@ -208,6 +227,7 @@ NodeHandle FromFile::read_next() {
         start_of_container(new_parent);
     } else {
 	new_node->read(_source);
+        _sink->push_node(new_node);
 
         _curr_parent->read_child_count++;
     }
@@ -215,6 +235,14 @@ NodeHandle FromFile::read_next() {
     check_end_of_container();
 
     return new_node;
+}
+
+void FromFile::read_all()
+{
+    NodeHandle node;
+    do {
+        node = read_next();
+    } while (node.get() != nullptr);
 }
 
 }

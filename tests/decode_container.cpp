@@ -28,8 +28,23 @@ authors named in the AUTHORS file.
 #include "structstream/node_primitive.hpp"
 #include "structstream/node_blob.hpp"
 #include "structstream/reader.hpp"
+#include "structstream/streaming_tree.hpp"
+#include "structstream/streaming_bitstream.hpp"
 
 using namespace StructStream;
+
+inline ContainerHandle blob_to_tree(const uint8_t *data, intptr_t data_len)
+{
+    RegistryHandle registry = RegistryHandle(new Registry());
+    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, data_len));
+    ToTree *tree = new ToTree();
+
+    StreamSink sink_h(tree);
+    FromFile reader(io, registry, sink_h);
+    reader.read_all();
+
+    return tree->root();
+}
 
 TEST_CASE ("decode/container/empty", "Test decode of an empty container with explicit length")
 {
@@ -39,17 +54,15 @@ TEST_CASE ("decode/container/empty", "Test decode of an empty container with exp
         uint8_t(RT_END_OF_CHILDREN) | 0x80
     };
 
-    RegistryHandle registry = RegistryHandle(new Registry());
-    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, sizeof(data)));
-    Reader reader(io, registry);
+    ContainerHandle root = blob_to_tree(data, sizeof(data));
 
-    NodeHandle node = reader.read_next();
+    NodeHandle node = *(root->children_begin());
     REQUIRE(node.get() != 0);
-    reader.read_all();
 
     Container *cont = dynamic_cast<Container*>(node.get());
     REQUIRE(cont != 0);
-    REQUIRE(cont->children_begin() == cont->children_end());
+    CHECK(cont->id() == 0x01);
+    CHECK(cont->children_begin() == cont->children_end());
 }
 
 TEST_CASE ("decode/container/empty_implicit", "Test decode of an empty container without explicit length")
@@ -61,13 +74,10 @@ TEST_CASE ("decode/container/empty_implicit", "Test decode of an empty container
         uint8_t(RT_END_OF_CHILDREN) | 0x80
     };
 
-    RegistryHandle registry = RegistryHandle(new Registry());
-    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, sizeof(data)));
-    Reader reader(io, registry);
+    ContainerHandle root = blob_to_tree(data, sizeof(data));
 
-    NodeHandle node = reader.read_next();
+    NodeHandle node = *(root->children_begin());
     REQUIRE(node.get() != 0);
-    reader.read_all();
 
     Container *cont = dynamic_cast<Container*>(node.get());
     REQUIRE(cont != 0);
@@ -84,13 +94,10 @@ TEST_CASE ("decode/container/with_child", "Test decode of an empty container")
         uint8_t(RT_END_OF_CHILDREN) | 0x80
     };
 
-    RegistryHandle registry = RegistryHandle(new Registry());
-    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, sizeof(data)));
-    Reader reader(io, registry);
+    ContainerHandle root = blob_to_tree(data, sizeof(data));
 
-    NodeHandle node = reader.read_next();
+    NodeHandle node = *(root->children_begin());
     REQUIRE(node.get() != 0);
-    reader.read_all();
 
     Container *cont = dynamic_cast<Container*>(node.get());
     REQUIRE(cont != 0);
@@ -131,12 +138,10 @@ TEST_CASE ("decode/container/complex", "Complex nesting structure")
         (uint8_t)(RT_END_OF_CHILDREN) | 0x80
     };
 
-    RegistryHandle registry = RegistryHandle(new Registry());
-    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, sizeof(data)));
-    Reader reader(io, registry);
+    ContainerHandle root = blob_to_tree(data, sizeof(data));
 
-    NodeHandle node = reader.read_next();
-    reader.read_all();
+    NodeHandle node = *(root->children_begin());
+    REQUIRE(node.get() != 0);
 
     Container *cont1 = dynamic_cast<Container*>(node.get());
     REQUIRE(cont1 != 0);
@@ -193,11 +198,7 @@ TEST_CASE ("decode/container/early_eoc", "Detect early End-Of-Children")
         uint8_t(RT_END_OF_CHILDREN) | 0x80
     };
 
-    RegistryHandle registry = RegistryHandle(new Registry());
-    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, sizeof(data)));
-    Reader reader(io, registry);
-
-    REQUIRE_THROWS_AS(reader.read_all(), UnexpectedEndOfChildren);
+    REQUIRE_THROWS_AS(blob_to_tree(data, sizeof(data)), UnexpectedEndOfChildren);
 }
 
 TEST_CASE ("decode/container/missing_eoc", "Detect too many children / missing EOC")
@@ -210,9 +211,5 @@ TEST_CASE ("decode/container/missing_eoc", "Detect too many children / missing E
         uint8_t(RT_END_OF_CHILDREN) | 0x80
     };
 
-    RegistryHandle registry = RegistryHandle(new Registry());
-    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, sizeof(data)));
-    Reader reader(io, registry);
-
-    REQUIRE_THROWS_AS(reader.read_all(), MissingEndOfChildren);
+    REQUIRE_THROWS_AS(blob_to_tree(data, sizeof(data)), MissingEndOfChildren);
 }

@@ -29,6 +29,12 @@ authors named in the AUTHORS file.
 
 namespace StructStream {
 
+ContainerMeta::ContainerMeta():
+    child_count(-1)
+{
+
+}
+
 ContainerMeta::ContainerMeta(const Container &cont):
     child_count(cont.child_count())
 {
@@ -53,9 +59,21 @@ ContainerMeta* ContainerMeta::copy() const
 
 /* StructStream::ContainerFooter */
 
+ContainerFooter::ContainerFooter():
+    validated(false),
+    hash_function(HT_INVALID)
+{
+
+}
+
 ContainerFooter::ContainerFooter(const ContainerFooter &ref):
     validated(ref.validated),
     hash_function(ref.hash_function)
+{
+
+}
+
+ContainerFooter::~ContainerFooter()
 {
 
 }
