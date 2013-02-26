@@ -35,7 +35,7 @@ namespace StructStream { namespace Utils {
 
 using namespace StructStream;
 
-VarUInt read_varuint_ex(IOIntf *stream, intptr_t *overlen)
+VarUInt read_varuint_ex(IOIntf *stream, intptr_t *overlen, uint_fast8_t *bytecount)
 {
     VarUInt result = 0;
     uint8_t leading = 0;
@@ -43,13 +43,20 @@ VarUInt read_varuint_ex(IOIntf *stream, intptr_t *overlen)
     if (overlen) {
         *overlen = 0;
     }
-    if (leading == 0) {
-	return result;
+    assert(leading != 0);
+    if (leading == 0x80) {
+        if (bytecount) {
+            *bytecount = 1;
+        }
+        return 0;
     }
 
     // GCC rulez
     uint8_t count = __builtin_clz(leading)-24;
     result |= ((uint64_t)(leading & (0xFF >> (count+1))) << count*8);
+    if (bytecount) {
+        *bytecount = count+1;
+    }
     if (overlen && (result == 0))  {
         *overlen += 1;
     }
@@ -73,39 +80,47 @@ VarUInt read_varuint_ex(IOIntf *stream, intptr_t *overlen)
 
 VarInt read_varint(IOIntf *stream)
 {
-    VarUInt raw = read_varuint_ex(stream, nullptr);
-    return *((VarInt*)&raw);
+    uint_fast8_t bytecount = 0;
+    VarUInt raw = read_varuint_ex(stream, nullptr, &bytecount);
+    assert(bytecount != 0);
+
+    VarUInt mask = ((VarUInt)1 << (7*bytecount-1));
+    if ((raw & mask) != 0) {
+        raw ^= mask;
+        return -(VarInt)(raw);
+    }
+    return raw;
 }
 
 VarUInt read_varuint(IOIntf *stream)
 {
-    return read_varuint_ex(stream, 0);
+    return read_varuint_ex(stream, nullptr, nullptr);
 }
 
 ID read_id(IOIntf *stream)
 {
-    return read_varuint_ex(stream, 0);
+    return read_varuint_ex(stream, nullptr, nullptr);
 }
 
 RecordType read_record_type(IOIntf *stream)
 {
-    return (RecordType)read_varuint_ex(stream, 0);
+    return (RecordType)read_varuint_ex(stream, nullptr, nullptr);
 }
 
-void write_varint(IOIntf *stream, VarInt value)
-{
-    write_varuint(stream, *((VarUInt*)&value));
-}
-
-void write_varuint(IOIntf *stream, VarUInt value)
+inline uint_fast8_t bytecount_from_varuint(VarUInt value)
 {
     const uint_fast8_t total_bit_count = (sizeof(value)*8);
     const uint_fast8_t bitcount = total_bit_count-__builtin_clzl(value);
     // this gives ceil((float)bitcount / 7)
     const uint_fast8_t bytecount = (bitcount+6) / 7;
 
-    if (value == 0) {
-        swritev<uint8_t>(stream, 0x00);
+    return bytecount;
+}
+
+void write_varbuf_ex(IOIntf *stream, VarUInt buf, uint_fast8_t bytecount)
+{
+    if (buf == 0) {
+        swritev<uint8_t>(stream, 0x80);
         return;
     }
 
@@ -122,7 +137,7 @@ void write_varuint(IOIntf *stream, VarUInt value)
 
     //assert((total_bit_count-__builtin_clzl(leading_mask)) == bytecount);
 
-    leading |= (value & leading_mask) >> ((bytecount-1)*8);
+    leading |= (buf & leading_mask) >> ((bytecount-1)*8);
 
     // printf("  => leading = 0x%x\n", leading);
 
@@ -135,10 +150,39 @@ void write_varuint(IOIntf *stream, VarUInt value)
         const VarUInt mask = (VarUInt)0xff << (i*8);
         // printf("  i = %d\n", i);
         // printf("    mask = %lx\n", mask);
-        const uint8_t masked = (value & mask) >> (i*8);
+        const uint8_t masked = (buf & mask) >> (i*8);
         // printf("    masked = %x\n", masked);
         swritev<uint8_t>(stream, masked);
     }
+}
+
+void write_varint(IOIntf *stream, VarInt value)
+{
+    if (value < 0) {
+        VarUInt enc_value = 0;
+        enc_value = (VarUInt)(-value);
+
+        const uint_fast8_t total_bit_count = (sizeof(enc_value)*8);
+        const uint_fast8_t bitcount = total_bit_count-__builtin_clzl(enc_value);
+        // intentionally one bit more than needed to encode the value
+        const uint_fast8_t bytecount = (bitcount+7)/7;
+
+        assert((enc_value | ((VarUInt)1 << (bytecount*7-1))) != enc_value);
+        enc_value |= (VarUInt(1) << (bytecount*7-1));
+        write_varbuf_ex(stream, enc_value, bytecount);
+    } else {
+        const uint_fast8_t total_bit_count = (sizeof(value)*8);
+        const uint_fast8_t bitcount = total_bit_count-__builtin_clzl(value);
+        // intentionally one bit more than needed to encode the value
+        const uint_fast8_t bytecount = (bitcount+7)/7;
+
+        write_varbuf_ex(stream, (VarUInt)value, bytecount);
+    }
+}
+
+void write_varuint(IOIntf *stream, VarUInt value)
+{
+    write_varbuf_ex(stream, value, bytecount_from_varuint(value));
 }
 
 void write_id(IOIntf *stream, ID value)

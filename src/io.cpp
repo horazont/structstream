@@ -48,6 +48,14 @@ ReadableMemory::ReadableMemory(const ReadableMemory &ref):
     memcpy(_buf, ref._buf, _len);
 }
 
+ReadableMemory::ReadableMemory(const WritableMemory &ref):
+    _buf(malloc(ref.size())),
+    _len(ref.size()),
+    _offs(0)
+{
+    memcpy(_buf, ref.buffer(), _len);
+}
+
 ReadableMemory::~ReadableMemory()
 {
     free(_buf);

@@ -35,6 +35,10 @@ typedef int64_t VarInt;
 typedef uint64_t ID;
 
 const VarUInt MaxVarUInt = 0xffffffffffffff;
+const VarUInt MinVarUInt = 0x0;
+
+const VarInt MinVarInt = -0x7fffffffffffff;
+const VarInt MaxVarInt = 0x7fffffffffffff;
 
 const ID TreeRootID = 0x00000000;
 const ID MaxID = MaxVarUInt;

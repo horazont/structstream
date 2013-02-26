@@ -65,4 +65,15 @@ inline intptr_t tree_to_blob(uint8_t *output, intptr_t output_len, ContainerHand
     return static_cast<WritableMemory*>(io.get())->size();
 }
 
+inline void hexdump(const uint8_t *buf, intptr_t buf_len)
+{
+    const uint8_t *const end = buf + buf_len;
+    for (; buf != end; buf++)
+    {
+        const uint8_t lo = (*buf) & 0x0F;
+        const uint8_t hi = ((*buf) & 0xF0) >> 4;
+        printf("%x%x ", hi, lo);
+    }
+}
+
 #endif

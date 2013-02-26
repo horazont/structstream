@@ -38,6 +38,7 @@ add_library(structstream++ ${STRUCTSTREAM_SOURCES} ${DEPS})
 set(CATCH_INCLUDE_DIRS "Catch/single_include")
 set(TEST_SOURCES
   "tests/encode_varint.cpp"
+  "tests/decode_varint.cpp"
   "tests/encode_record.cpp"
   "tests/encode_container.cpp"
   "tests/decode_record.cpp"

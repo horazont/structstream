@@ -30,12 +30,14 @@ authors named in the AUTHORS file.
 #include "structstream/io.hpp"
 #include "structstream/utils.hpp"
 
+#include "tests/utils.hpp"
+
 using namespace StructStream;
 
 TEST_CASE ("encode/varuint/0", "Encode a 1 byte long varuint (zero)")
 {
     static const uint8_t expected[] = {
-        0x00
+        0x80
     };
     uint8_t output[sizeof(expected)];
     IOIntfHandle io = IOIntfHandle(new WritableMemory(output, sizeof(expected)));
@@ -153,6 +155,43 @@ TEST_CASE ("encode/varuint/8", "Encode a 8 bytes long varuint")
     IOIntfHandle io = IOIntfHandle(new WritableMemory(output, sizeof(expected)));
 
     Utils::write_varuint(io.get(), 0xffffffffffffff);
+
+    REQUIRE(static_cast<WritableMemory*>(io.get())->size() == sizeof(expected));
+    REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
+}
+
+TEST_CASE ("encode/varint/-1", "Encode a negative one as varint")
+{
+    static const uint8_t expected[] = {
+        (uint8_t)(0x80 | 0x41)
+    };
+
+    uint8_t output[sizeof(expected)];
+    IOIntfHandle io = IOIntfHandle(new WritableMemory(output, sizeof(expected)));
+
+    Utils::write_varint(io.get(), -1);
+
+    // hexdump(output, static_cast<WritableMemory*>(io.get())->size());
+    // printf("\n");
+
+    REQUIRE(static_cast<WritableMemory*>(io.get())->size() == sizeof(expected));
+    REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
+}
+
+TEST_CASE ("encode/varint/-0x7f", "Encode a negative varint at the byte count border")
+{
+    static const uint8_t expected[] = {
+        (uint8_t)(0x40 | 0x20),
+        (uint8_t)(0x7f)
+    };
+
+    uint8_t output[sizeof(expected)];
+    IOIntfHandle io = IOIntfHandle(new WritableMemory(output, sizeof(expected)));
+
+    Utils::write_varint(io.get(), -0x7f);
+
+    // hexdump(output, static_cast<WritableMemory*>(io.get())->size());
+    // printf("\n");
 
     REQUIRE(static_cast<WritableMemory*>(io.get())->size() == sizeof(expected));
     REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);

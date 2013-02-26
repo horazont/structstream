@@ -33,7 +33,7 @@ TEST_CASE ("decode/container/empty", "Test decode of an empty container with exp
 {
     static const uint8_t data[] = {
         (uint8_t)(RT_CONTAINER) | 0x80, uint8_t(0x01) | 0x80,
-        uint8_t(CF_WITH_SIZE) | 0x80, uint8_t(0x00),
+        uint8_t(CF_WITH_SIZE) | 0x80, uint8_t(0x00) | 0x80,
         uint8_t(RT_END_OF_CHILDREN) | 0x80
     };
 
@@ -184,7 +184,7 @@ TEST_CASE ("decode/container/missing_eoc", "Detect too many children / missing E
 {
     static const uint8_t data[] = {
         (uint8_t)(RT_CONTAINER) | 0x80, uint8_t(0x01) | 0x80,
-        uint8_t(CF_WITH_SIZE | CF_ARMORED) | 0x80, uint8_t(0x00),
+        uint8_t(CF_WITH_SIZE | CF_ARMORED) | 0x80, uint8_t(0x00) | 0x80,
         (uint8_t)(RT_UINT32) | 0x80, uint8_t(0x02) | 0x80, 0x00, 0x00, 0x00, 0x00,
         uint8_t(RT_END_OF_CHILDREN) | 0x80,
         uint8_t(RT_END_OF_CHILDREN) | 0x80

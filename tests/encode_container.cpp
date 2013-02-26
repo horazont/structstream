@@ -39,7 +39,7 @@ TEST_CASE ("encode/container/empty", "Encode an empty container, without armor")
         (uint8_t)(RT_CONTAINER) | 0x80,
         (uint8_t)(0x01) | 0x80,
         (uint8_t)(CF_WITH_SIZE) | 0x80,
-        (uint8_t)(0x00),
+        (uint8_t)(0x00) | 0x80,
         COMMON_FOOTER
     };
 
@@ -60,7 +60,7 @@ TEST_CASE ("encode/container/empty_with_armor", "Encode an empty container, with
         (uint8_t)(RT_CONTAINER) | 0x80,
         (uint8_t)(0x01) | 0x80,
         (uint8_t)(CF_WITH_SIZE | CF_ARMORED) | 0x80,
-        (uint8_t)(0x00),
+        (uint8_t)(0x00) | 0x80,
         (uint8_t)(RT_END_OF_CHILDREN) | 0x80,
         COMMON_FOOTER
     };
