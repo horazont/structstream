@@ -25,6 +25,8 @@ authors named in the AUTHORS file.
 **********************************************************************/
 #include "structstream/streaming_bitstream.hpp"
 
+#include <cassert>
+
 #include "structstream/utils.hpp"
 #include "structstream/errors.hpp"
 #include "structstream/node_container.hpp"
@@ -246,6 +248,140 @@ void FromFile::read_all()
     do {
         node = read_next();
     } while (node.get() != nullptr);
+}
+
+/* StructStream::ToFile */
+
+ToFile::ToFile(IOIntfHandle dest):
+    _dest_h(dest),
+    _dest(dest.get())
+{
+
+}
+
+ToFile::~ToFile()
+{
+
+}
+
+void ToFile::require_open() const
+{
+    if (!_dest) {
+        throw AlreadyClosed("This operation is not allowed on a closed writer.");
+    }
+}
+
+ToFile::ParentInfo *ToFile::new_parent_info() const
+{
+    return new ParentInfo();
+}
+
+VarUInt ToFile::get_container_flags(ToFile::ParentInfo *info)
+{
+    VarUInt flags = 0;
+    if (info->armored) {
+        flags |= CF_ARMORED;
+    }
+    if (info->child_count >= 0) {
+        flags |= CF_WITH_SIZE;
+    }
+    if (info->hash_function != HT_INVALID) {
+        flags |= CF_HASHED;
+    }
+
+    return flags;
+}
+
+ToFile::ParentInfo *ToFile::setup_container(ContainerHandle cont, const ContainerMeta *meta)
+{
+    // TODO: support for configuring hashes etc.
+
+    ParentInfo *info = new_parent_info();
+    info->cont = cont;
+    info->child_count = meta->child_count;
+    info->armored = _default_armor || (meta->child_count < 0);
+    info->hash_function = HT_INVALID;
+
+    return info;
+}
+
+void ToFile::write_container_header(VarUInt flags, ParentInfo *info)
+{
+    Utils::write_record_type(_dest, info->cont->record_type());
+    Utils::write_id(_dest, info->cont->id());
+
+    Utils::write_varuint(_dest, flags);
+    if ((flags & CF_WITH_SIZE) != 0) {
+        assert(info->child_count >= 0);
+        Utils::write_varuint(_dest, static_cast<VarUInt>(info->child_count));
+    }
+
+    if ((flags & CF_HASHED) != 0) {
+        assert(info->hash_function != HT_INVALID);
+        Utils::write_varuint(_dest, static_cast<VarUInt>(info->hash_function));
+    }
+}
+
+void ToFile::write_container_footer(ParentInfo *info)
+{
+    if (info->armored) {
+        Utils::write_record_type(_dest, RT_END_OF_CHILDREN);
+    }
+}
+
+void ToFile::write_footer()
+{
+    Utils::write_record_type(_dest, RT_END_OF_CHILDREN);
+}
+
+void ToFile::start_container(ContainerHandle cont, const ContainerMeta *meta)
+{
+    require_open();
+
+    ParentInfo *info = setup_container(cont, meta);
+
+    VarUInt flags = get_container_flags(info);
+
+    write_container_header(flags, info);
+
+    _parent_stack.push_front(info);
+    _curr_parent = info;
+}
+
+void ToFile::push_node(NodeHandle node)
+{
+    require_open();
+
+    node->write(_dest);
+}
+
+void ToFile::end_container(const ContainerFooter *foot)
+{
+    require_open();
+
+    ParentInfo *old = _curr_parent;
+    _parent_stack.pop_front();
+    if (_parent_stack.empty()) {
+        _curr_parent = nullptr;
+    } else {
+        _curr_parent = _parent_stack.front();
+    }
+
+    write_container_footer(old);
+}
+
+void ToFile::end_of_stream()
+{
+    close();
+}
+
+void ToFile::close()
+{
+    require_open();
+
+    write_footer();
+    _dest = nullptr;
+    _dest_h = IOIntfHandle();
 }
 
 }

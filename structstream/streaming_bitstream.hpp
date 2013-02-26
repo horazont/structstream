@@ -91,6 +91,50 @@ public:
     void read_all();
 };
 
+class ToFile: public StreamSinkIntf {
+protected:
+    struct ParentInfo {
+        ContainerHandle cont;
+        int32_t child_count;
+        bool armored;
+        HashType hash_function;
+    };
+public:
+    ToFile(IOIntfHandle dest);
+    virtual ~ToFile();
+private:
+    IOIntfHandle _dest_h;
+    IOIntf *_dest;
+
+    std::forward_list<ParentInfo*> _parent_stack;
+    ParentInfo *_curr_parent;
+
+    bool _default_armor;
+protected:
+    void require_open() const;
+protected:
+    virtual ParentInfo *new_parent_info() const;
+    virtual VarUInt get_container_flags(ParentInfo *info);
+    virtual ParentInfo *setup_container(ContainerHandle cont, const ContainerMeta *meta);
+    virtual void write_container_header(VarUInt flags, ParentInfo *info);
+    virtual void write_container_footer(ParentInfo *info);
+    virtual void write_footer();
+public:
+    virtual void start_container(ContainerHandle cont, const ContainerMeta *meta);
+    virtual void push_node(NodeHandle node);
+    virtual void end_container(const ContainerFooter *foot);
+    virtual void end_of_stream();
+public:
+    void close();
+public:
+    inline bool get_armor_default() const {
+        return _default_armor;
+    };
+    void set_armor_default(bool armor) {
+        _default_armor = armor;
+    };
+};
+
 }
 
 #endif

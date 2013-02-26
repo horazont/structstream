@@ -32,6 +32,8 @@ authors named in the AUTHORS file.
 
 namespace StructStream {
 
+/* StructStream::ToTree */
+
 ToTree::ToTree():
     _stack(),
     _root(std::static_pointer_cast<Container>(NodeHandleFactory<Container>::create(TreeRootID))),
