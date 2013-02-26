@@ -25,26 +25,9 @@ authors named in the AUTHORS file.
 **********************************************************************/
 #include "catch.hpp"
 
-#include "structstream/node_primitive.hpp"
-#include "structstream/node_blob.hpp"
-#include "structstream/reader.hpp"
-#include "structstream/streaming_tree.hpp"
-#include "structstream/streaming_bitstream.hpp"
+#include "tests/utils.hpp"
 
 using namespace StructStream;
-
-inline ContainerHandle blob_to_tree(const uint8_t *data, intptr_t data_len)
-{
-    RegistryHandle registry = RegistryHandle(new Registry());
-    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, data_len));
-    ToTree *tree = new ToTree();
-
-    StreamSink sink_h(tree);
-    FromFile reader(io, registry, sink_h);
-    reader.read_all();
-
-    return tree->root();
-}
 
 TEST_CASE ("decode/container/empty", "Test decode of an empty container with explicit length")
 {
