@@ -51,3 +51,6 @@ set(TEST_SOURCES
 include_directories(${CATCH_INCLUDE_DIRS})
 add_executable(run_tests tests/main.cpp ${TEST_SOURCES} )
 target_link_libraries(run_tests structstream++)
+
+add_executable(examples/person EXCLUDE_FROM_ALL examples/person.cpp)
+target_link_libraries(examples/person structstream++)
