@@ -62,6 +62,10 @@ public:
  */
 class StreamSinkIntf {
 public:
+    StreamSinkIntf() = default;
+    StreamSinkIntf(const StreamSinkIntf &ref) = default;
+    StreamSinkIntf& operator= (const StreamSinkIntf &ref) = default;
+public:
     /**
      * Start a new container in the current container. Only the
      * metadata of the container is required; it not neccessary or
@@ -103,6 +107,41 @@ public:
 
 typedef std::shared_ptr<StreamSinkIntf> StreamSink;
 typedef std::weak_ptr<StreamSinkIntf> StreamSinkW;
+
+class SinkTree: public StreamSinkIntf {
+public:
+    SinkTree();
+    virtual ~SinkTree();
+private:
+    StreamSink _nested;
+    bool _handling_container;
+    intptr_t _depth;
+protected:
+    void nest(StreamSink &other);
+protected:
+    virtual void _start_container(ContainerHandle cont, const ContainerMeta *meta) = 0;
+    virtual void _push_node(NodeHandle node) = 0;
+    virtual void _end_container(const ContainerFooter *foot) = 0;
+    virtual void _end_of_stream() = 0;
+public:
+    virtual void start_container(ContainerHandle cont, const ContainerMeta *meta);
+    virtual void push_node(NodeHandle node);
+    virtual void end_container(const ContainerFooter *foot);
+    virtual void end_of_stream();
+};
+
+class ThrowOnAll: public StreamSinkIntf {
+public:
+    ThrowOnAll() = default;
+    ThrowOnAll(const ThrowOnAll &ref) = default;
+    virtual ~ThrowOnAll() = default;
+    ThrowOnAll &operator= (const ThrowOnAll &ref) = default;
+public:
+    virtual void start_container(ContainerHandle cont, const ContainerMeta *meta);
+    virtual void push_node(NodeHandle node);
+    virtual void end_container(const ContainerFooter *foot);
+    virtual void end_of_stream();
+};
 
 /**
  * Push a complete basic container to a stream sink. This does not

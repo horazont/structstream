@@ -25,6 +25,9 @@ authors named in the AUTHORS file.
 **********************************************************************/
 #include "structstream/streaming_base.hpp"
 
+#include <cassert>
+#include <stdexcept>
+
 #include "structstream/node_container.hpp"
 
 namespace StructStream {
@@ -88,6 +91,96 @@ ContainerFooter *ContainerFooter::copy() const
 void StreamSinkIntf::end_of_stream()
 {
 
+}
+
+/* StructStream::SinkTree */
+
+SinkTree::SinkTree():
+    _nested(),
+    _handling_container(false),
+    _depth(0)
+{
+
+}
+
+SinkTree::~SinkTree()
+{
+
+}
+
+void SinkTree::nest(StreamSink &other)
+{
+    assert(_nested.get() == nullptr);
+    if (!_handling_container) {
+        throw std::logic_error("nest() can only be called inside of start_container() handler.");
+    }
+
+    _nested = other;
+    _depth = 1;
+}
+
+void SinkTree::start_container(ContainerHandle cont, const ContainerMeta *meta)
+{
+    if (_nested.get() != nullptr) {
+        _depth += 1;
+        _nested->start_container(cont, meta);
+    } else {
+        _handling_container = true;
+        _start_container(cont, meta);
+        _handling_container = false;
+    }
+}
+
+void SinkTree::push_node(NodeHandle node)
+{
+    if (_nested.get() != nullptr) {
+        _nested->push_node(node);
+    } else {
+        _push_node(node);
+    }
+}
+
+void SinkTree::end_container(const ContainerFooter *foot)
+{
+    if (_nested.get() != nullptr) {
+        _depth -= 1;
+        if (_depth == 0) {
+            _nested = StreamSink();
+            _end_container(foot);
+        } else {
+            _nested->end_container(foot);
+        }
+    } else {
+        _end_container(foot);
+    }
+}
+
+void SinkTree::end_of_stream()
+{
+    // this always goes to the top-level item.
+    _end_of_stream();
+}
+
+/* StructStream::ThrowOnAll */
+
+void ThrowOnAll::start_container(ContainerHandle cont, const ContainerMeta *meta)
+{
+    throw std::logic_error("This sink should not recieve start_container().");
+}
+
+void ThrowOnAll::push_node(NodeHandle node)
+{
+    throw std::logic_error("This sink should not recieve push_node().");
+}
+
+void ThrowOnAll::end_container(const ContainerFooter *foot)
+{
+    throw std::logic_error("This sink should not recieve end_container().");
+}
+
+void ThrowOnAll::end_of_stream()
+{
+    throw std::logic_error("This sink should not recieve end_of_stream().");
 }
 
 }
