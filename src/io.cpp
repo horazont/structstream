@@ -176,6 +176,52 @@ intptr_t WritableMemory::write(const void *buf, const intptr_t len)
     return to_write;
 }
 
+/* StructStream::StandardInputStream */
+
+StandardInputStream::StandardInputStream(std::istream &in):
+    _in(in)
+{
+
+}
+
+intptr_t StandardInputStream::read(void *buf, const intptr_t len)
+{
+    _in.read((char*)buf, len);
+    if (!_in.good()) {
+        return 0;
+    } else {
+        return len;
+    }
+}
+
+intptr_t StandardInputStream::write(const void*, const intptr_t)
+{
+    return 0;
+}
+
+/* StructStream::StandardOutputStream */
+
+StandardOutputStream::StandardOutputStream(std::ostream &out):
+    _out(out)
+{
+
+}
+
+intptr_t StandardOutputStream::read(void*, const intptr_t)
+{
+    return 0;
+}
+
+intptr_t StandardOutputStream::write(const void *buf, const intptr_t len)
+{
+    _out.write((const char*)buf, len);
+    if (!_out.good()) {
+        return 0;
+    } else {
+        return len;
+    }
+}
+
 void sread(IOIntf *io, void *buf, const intptr_t len)
 {
     intptr_t read_bytes = io->read(buf, len);

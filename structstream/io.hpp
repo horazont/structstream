@@ -27,6 +27,7 @@ authors named in the AUTHORS file.
 #define _STRUCTSTREAM_IO_H
 
 #include <memory>
+#include <iostream>
 
 #include <cstdint>
 
@@ -86,6 +87,26 @@ public:
     inline const void *buffer() const { return _buf; };
     inline const intptr_t size() const { return _outward_size; };
 
+    virtual intptr_t read(void *buf, const intptr_t len);
+    virtual intptr_t write(const void *buf, const intptr_t len);
+};
+
+struct StandardInputStream: public IOIntf {
+public:
+    StandardInputStream(std::istream &in);
+private:
+    std::istream &_in;
+public:
+    virtual intptr_t read(void *buf, const intptr_t len);
+    virtual intptr_t write(const void *buf, const intptr_t len);
+};
+
+struct StandardOutputStream: public IOIntf {
+public:
+    StandardOutputStream(std::ostream &out);
+private:
+    std::ostream &_out;
+public:
     virtual intptr_t read(void *buf, const intptr_t len);
     virtual intptr_t write(const void *buf, const intptr_t len);
 };
