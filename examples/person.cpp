@@ -6,6 +6,7 @@
 
 using namespace StructStream;
 
+/* We will be reading and writing this structure to a structstream. */
 struct PersonRecord {
     std::string name;
     uint32_t age;
@@ -27,6 +28,8 @@ struct PersonRecord {
     };
 };
 
+/* Here we define a class which will handle deserialization of our
+ * struct. */
 typedef deserialize_block<
     0x01,
     PersonRecord,
@@ -34,6 +37,8 @@ typedef deserialize_block<
     deserialize_custom<0x03, UInt32Record, PersonRecord, uint32_t, &PersonRecord::set_age>
     > PersonDeserializer;
 
+/* And similarily, a serializer, which converts the struct in a
+ * structstream node tree. */
 typedef serialize_block<
     0x01,
     PersonRecord,
@@ -45,41 +50,62 @@ int main()
 {
     PersonRecord person;
     {
+        /* We check whether this program ran before and whether it
+         * created an info file. */
         std::ifstream infile("person.ss");
         if (!infile.good()) {
             std::cerr << "No input data file ... " << std::endl;
         } else {
+            /* Make the ifstream readable to structstream */
             IOIntfHandle io(new StandardInputStream(infile));
+
+            /* Parse the input */
             ContainerHandle root = bitstream_to_tree(io, RegistryHandle(new Registry()));
-            Container *child = dynamic_cast<Container*>((*root->children_begin()).get());
+
+            /* Extract the first element from the document */
+            Container *child = std::dynamic_pointer_cast<Container>(*root->children_begin()).get();
+
             if (child != nullptr) {
+                /* If it (a) exists and (b) is actually a container,
+                 * we can go on with deserializing it */
                 PersonDeserializer::deserialize(child, &person);
                 std::cout << "Look what I found:" << std::endl;
                 std::cout << "Name: " << person.name << std::endl;
                 std::cout << "Age: " << person.age << std::endl;
                 std::cout << std::endl;
             } else {
+                /* Otherwise, we better stop. */
                 std::cout << "Hmm, that input doesn't look ok to me. I better ignore it." << std::endl;
             }
         }
     }
 
     {
+        /* Collect new input from the user */
         std::cout << "Yay! Let's create a new person record." << std::endl;
         std::cout << "Name: " << std::flush;
+
         char name_buf[128];
         memset(name_buf, 0, sizeof(name_buf));
         std::cin.getline(name_buf, sizeof(name_buf)-1);
         person.name = name_buf;
+
         std::cout << "Age: " << std::flush;
         std::cin >> person.age;
         std::cout << "Great! I'll write it to person.ss." << std::endl;
     }
 
     {
+        /* Open the output file and store the collected input in it*/
         std::ofstream outfile("person.ss");
+
+        /* Make the ofstream usable to structstream */
         IOIntfHandle io(new StandardOutputStream(outfile));
+
+        /* Create a node tree using the serializer */
         NodeHandle tree = PersonSerializer::serialize(&person);
+
+        /* Write the node tree to the file */
         tree_to_bitstream({tree}, io);
     }
 
