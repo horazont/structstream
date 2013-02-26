@@ -31,6 +31,8 @@ authors named in the AUTHORS file.
 
 namespace StructStream {
 
+/* StructStream::FromFile */
+
 FromFile::FromFile(IOIntfHandle source, const RegistryHandle nodetypes,
                    StreamSink sink):
     _source_h(source),
@@ -166,6 +168,7 @@ void FromFile::end_of_container()
         _curr_parent->read_child_count += 1;
     } else {
         // printf("bitstream: end-of-stream reached\n");
+        _sink->end_of_stream();
     }
 
     delete info;
