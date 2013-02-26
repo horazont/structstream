@@ -23,8 +23,8 @@ FEEDBACK & QUESTIONS
 For feedback and questions about structstream++ please e-mail one of the
 authors named in the AUTHORS file.
 **********************************************************************/
-#ifndef _STRUCTSTREAM_STREAMING_H
-#define _STRUCTSTREAM_STREAMING_H
+#ifndef _STRUCTSTREAM_STREAMING_BASE_H
+#define _STRUCTSTREAM_STREAMING_BASE_H
 
 #include <memory>
 
