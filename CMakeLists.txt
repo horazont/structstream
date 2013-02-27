@@ -37,7 +37,8 @@ if (DEFINED GNUTLS_FOUND)
   list(APPEND DEPS ${GNUTLS_LIBRARIES})
 endif (DEFINED GNUTLS_FOUND)
 
-add_library(structstream++ ${STRUCTSTREAM_SOURCES} ${DEPS})
+add_library(structstream++ ${STRUCTSTREAM_SOURCES})
+target_link_libraries(structstream++ ${DEPS})
 
 set(CATCH_INCLUDE_DIRS "Catch/single_include")
 set(TEST_SOURCES
