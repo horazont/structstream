@@ -57,7 +57,7 @@ struct serialize_primitive_by_value {
     typedef _src_t src_t;
     typedef _record_t record_t;
 
-    static inline NodeHandle serialize(const src_t *src)
+    static inline NodeHandle serialize(const src_t &src)
     {
         NodeHandle node = NodeHandleFactory<record_t>::create(record_id);
 
