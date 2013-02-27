@@ -72,6 +72,16 @@ public:
 };
 
 /**
+ * Not a valid varint or varuint.
+ */
+class InvalidVarIntError: public FormatError {
+public:
+    InvalidVarIntError(const std::string& what_arg): FormatError(what_arg) {};
+    InvalidVarIntError(const char *what_arg): FormatError(what_arg) {};
+    InvalidVarIntError(const InvalidVarIntError &ref) = default;
+};
+
+/**
  * An illegal value for a field was encountered.
  */
 class IllegalData: public FormatError {

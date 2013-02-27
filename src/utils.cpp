@@ -29,6 +29,7 @@ authors named in the AUTHORS file.
 #include <cstdlib>
 #include <cstdio>
 
+#include "structstream/errors.hpp"
 
 namespace StructStream { namespace Utils {
 
@@ -42,7 +43,9 @@ VarUInt read_varuint_ex(IOIntf *stream, intptr_t *overlen, uint_fast8_t *bytecou
     if (overlen) {
         *overlen = 0;
     }
-    assert(leading != 0);
+    if (leading == 0x00) {
+        throw InvalidVarIntError("0x00 is not a valid Var(U)Int.");
+    }
     if (leading == 0x80) {
         if (bytecount) {
             *bytecount = 1;

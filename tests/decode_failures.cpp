@@ -30,6 +30,18 @@ authors named in the AUTHORS file.
 
 using namespace StructStream;
 
+inline VarInt blob_to_varint(const uint8_t *data, const intptr_t len)
+{
+    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, len));
+    return Utils::read_varint(io.get());
+}
+
+inline VarInt blob_to_varuint(const uint8_t *data, const intptr_t len)
+{
+    IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, len));
+    return Utils::read_varuint(io.get());
+}
+
 TEST_CASE ("decode/container/surplus_eoc", "Detect errornous End-Of-Children / lost child")
 {
     static const uint8_t data[] = {
@@ -121,4 +133,13 @@ TEST_CASE ("decode/records/unknown_appblob", "Abort on unknown app blobs")
     };
 
     REQUIRE_THROWS_AS(blob_to_tree(data, sizeof(data)), UnsupportedRecordType);
+}
+
+TEST_CASE ("decode/varuint/invalid", "Abort on invalid varints")
+{
+    static const uint8_t data[] = {
+        0x00
+    };
+
+    REQUIRE_THROWS_AS(blob_to_varuint(data, sizeof(data)), InvalidVarIntError);
 }
