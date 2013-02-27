@@ -34,7 +34,7 @@ authors named in the AUTHORS file.
 
 namespace StructStream {
 
-class FromFile {
+class FromBitstream {
 protected:
     struct ParentInfo {
         ParentInfo():
@@ -58,10 +58,10 @@ protected:
         bool armored;
     };
 public:
-    FromFile(IOIntfHandle source,
+    FromBitstream(IOIntfHandle source,
              const RegistryHandle nodetypes,
              StreamSink sink);
-    virtual ~FromFile();
+    virtual ~FromBitstream();
 private:
     IOIntfHandle _source_h;
     IOIntf *_source;

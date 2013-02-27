@@ -33,9 +33,9 @@ authors named in the AUTHORS file.
 
 namespace StructStream {
 
-/* StructStream::FromFile */
+/* StructStream::FromBitstream */
 
-FromFile::FromFile(IOIntfHandle source, const RegistryHandle nodetypes,
+FromBitstream::FromBitstream(IOIntfHandle source, const RegistryHandle nodetypes,
                    StreamSink sink):
     _source_h(source),
     _source(source.get()),
@@ -49,12 +49,12 @@ FromFile::FromFile(IOIntfHandle source, const RegistryHandle nodetypes,
     push_root();
 }
 
-FromFile::~FromFile()
+FromBitstream::~FromBitstream()
 {
 
 }
 
-void FromFile::check_end_of_container()
+void FromBitstream::check_end_of_container()
 {
     if (!_curr_parent)
         return;
@@ -70,7 +70,7 @@ void FromFile::check_end_of_container()
     }
 }
 
-void FromFile::push_root()
+void FromBitstream::push_root()
 {
     ParentInfo *root_pi = new ParentInfo();
     root_pi->meta->child_count = -1;
@@ -81,12 +81,12 @@ void FromFile::push_root()
     _curr_parent = root_pi;
 }
 
-FromFile::ParentInfo *FromFile::new_parent_info() const
+FromBitstream::ParentInfo *FromBitstream::new_parent_info() const
 {
     return new ParentInfo();
 }
 
-void FromFile::start_of_container(ContainerHandle cont_h)
+void FromBitstream::start_of_container(ContainerHandle cont_h)
 {
     VarUInt flags_int = Utils::read_varuint(_source);
     ParentInfo *info = new_parent_info();
@@ -115,7 +115,7 @@ void FromFile::start_of_container(ContainerHandle cont_h)
     // printf("bitstream: push %lx\n", (uint64_t)_curr_parent->cont.get());
 }
 
-void FromFile::proc_container_flags(VarUInt &flags_int, FromFile::ParentInfo *info)
+void FromBitstream::proc_container_flags(VarUInt &flags_int, FromBitstream::ParentInfo *info)
 {
     info->meta->child_count = -1;
     info->footer->hash_function = HT_INVALID;
@@ -138,19 +138,19 @@ void FromFile::proc_container_flags(VarUInt &flags_int, FromFile::ParentInfo *in
     }
 }
 
-void FromFile::end_of_container_header(ParentInfo *info)
+void FromBitstream::end_of_container_header(ParentInfo *info)
 {
     if (info->footer->hash_function != HT_INVALID) {
         throw UnsupportedHashFunction("Unsupported hash function.");
     }
 }
 
-void FromFile::end_of_container_body(ContainerFooter *foot)
+void FromBitstream::end_of_container_body(ContainerFooter *foot)
 {
 
 }
 
-void FromFile::end_of_container()
+void FromBitstream::end_of_container()
 {
     ParentInfo *info = _curr_parent;
     _parent_stack.pop_front();
@@ -178,7 +178,7 @@ void FromFile::end_of_container()
     check_end_of_container();
 }
 
-NodeHandle FromFile::read_next() {
+NodeHandle FromBitstream::read_next() {
     if (_curr_parent == nullptr) {
         // printf("bitstream: state suggests end-of-stream, won't read further\n");
 	return NodeHandle();
@@ -242,7 +242,7 @@ NodeHandle FromFile::read_next() {
     return new_node;
 }
 
-void FromFile::read_all()
+void FromBitstream::read_all()
 {
     NodeHandle node;
     do {

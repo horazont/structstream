@@ -29,8 +29,7 @@ authors named in the AUTHORS file.
 #include "structstream/node_primitive.hpp"
 #include "structstream/node_container.hpp"
 #include "structstream/node_blob.hpp"
-#include "structstream/streaming_tree.hpp"
-#include "structstream/streaming_bitstream.hpp"
+#include "structstream/streaming.hpp"
 
 using namespace StructStream;
 
@@ -38,13 +37,7 @@ inline ContainerHandle blob_to_tree(const uint8_t *data, intptr_t data_len)
 {
     RegistryHandle registry = RegistryHandle(new Registry());
     IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, data_len));
-    ToTree *tree = new ToTree();
-
-    StreamSink sink_h(tree);
-    FromFile reader(io, registry, sink_h);
-    reader.read_all();
-
-    return tree->root();
+    return bitstream_to_tree(io, registry);
 }
 
 inline intptr_t tree_to_blob(uint8_t *output, intptr_t output_len, std::initializer_list<NodeHandle> children, bool armor = true)
