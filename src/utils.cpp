@@ -29,7 +29,6 @@ authors named in the AUTHORS file.
 #include <cstdlib>
 #include <cstdio>
 
-#include "structstream/io.hpp"
 
 namespace StructStream { namespace Utils {
 
