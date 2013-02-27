@@ -125,7 +125,7 @@ void subtree_to_sink(StreamSink sink, NodeHandle subtree)
         }
         ContainerFooter foot;
         foot.validated = false;
-        foot.hash_function = HT_INVALID;
+        foot.hash_function = HT_NONE;
         sink->end_container(&foot);
     } else {
         sink->push_node(subtree);

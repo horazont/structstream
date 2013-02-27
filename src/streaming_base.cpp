@@ -64,7 +64,7 @@ ContainerMeta* ContainerMeta::copy() const
 
 ContainerFooter::ContainerFooter():
     validated(false),
-    hash_function(HT_INVALID)
+    hash_function(HT_NONE)
 {
 
 }

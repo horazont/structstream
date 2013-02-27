@@ -147,7 +147,7 @@ void FromBitstream::start_of_container(ContainerHandle cont_h)
 void FromBitstream::proc_container_flags(VarUInt &flags_int, FromBitstream::ParentInfo *info)
 {
     info->meta->child_count = -1;
-    info->footer->hash_function = HT_INVALID;
+    info->footer->hash_function = HT_NONE;
     info->armored = false;
 
     if ((flags_int & CF_WITH_SIZE) != 0) {
@@ -165,17 +165,19 @@ void FromBitstream::proc_container_flags(VarUInt &flags_int, FromBitstream::Pare
     }
 
     if ((flags_int & CF_HASHED) != 0) {
-        HashType hash_function = static_cast<HashType>(Utils::read_varint(_source));;
+        HashType hash_function = static_cast<HashType>(Utils::read_varuint(_source));;
 
 	flags_int ^= CF_HASHED;
         info->meta->has_hash = true;
-        info->footer->hash_function =  hash_function;
+        info->footer->hash_function = hash_function;
     }
 }
 
 void FromBitstream::end_of_container_header(ParentInfo *info)
 {
-    if (info->footer->hash_function != HT_INVALID) {
+    if (info->footer->hash_function != HT_NONE) {
+        // printf("bitstream: container with hash %x\n", info->footer->hash_function);
+
         IncrementalHash *hashfun = hashes.get_hash(info->footer->hash_function);
         if ((hashfun == nullptr) && ((_forgiveness & UnknownHashFunction) == 0)) {
             throw UnsupportedHashFunction("Unsupported hash function.");
@@ -186,13 +188,16 @@ void FromBitstream::end_of_container_header(ParentInfo *info)
             info->pipe_h = IOIntfHandle(info->pipe);
             _source_h = info->pipe_h;
             _source = info->pipe;
+        } else {
+            // printf("bitstream: no hash function for %x\n", info->footer->hash_function);
         }
     }
 }
 
 void FromBitstream::end_of_container_body(ParentInfo *info)
 {
-    if (info->footer->hash_function != HT_INVALID) {
+    if (info->footer->hash_function != HT_NONE) {
+        // printf("bitstream: eoc with hash %x\n", info->footer->hash_function);
         if (info->pipe) {
             _source_h = info->pipe->underlying_io();
             _source = _source_h.get();
@@ -393,7 +398,7 @@ VarUInt ToBitstream::get_container_flags(ToBitstream::ParentInfo *info)
     if (info->child_count >= 0) {
         flags |= CF_WITH_SIZE;
     }
-    if (info->hash_function != HT_INVALID) {
+    if (info->hash_function != HT_NONE) {
         flags |= CF_HASHED;
     }
 
@@ -405,7 +410,7 @@ void ToBitstream::setup_container(ToBitstream::ParentInfo *info, ContainerHandle
     info->cont = cont;
     info->child_count = meta->child_count;
     info->armored = _default_armor || (meta->child_count < 0);
-    info->hash_function = HT_INVALID;
+    info->hash_function = HT_NONE;
 }
 
 void ToBitstream::write_container_header(VarUInt flags, ParentInfo *info)
@@ -420,11 +425,11 @@ void ToBitstream::write_container_header(VarUInt flags, ParentInfo *info)
     }
 
     if ((flags & CF_HASHED) != 0) {
-        assert(info->hash_function != HT_INVALID);
+        assert(info->hash_function != HT_NONE);
         Utils::write_varuint(_dest, static_cast<VarUInt>(info->hash_function));
     }
 
-    if (info->hash_function != HT_INVALID) {
+    if (info->hash_function != HT_NONE) {
         IncrementalHash *hashfun = hashes.get_hash(info->hash_function);
         if (hashfun == nullptr) {
             throw UnsupportedHashFunction("Unsupported hash function passed to ToBitstream.");
@@ -441,7 +446,7 @@ void ToBitstream::write_container_footer(ParentInfo *info)
         Utils::write_record_type(_dest, RT_END_OF_CHILDREN);
     }
 
-    if (info->hash_function != HT_INVALID) {
+    if (info->hash_function != HT_NONE) {
         HashPipe<HP_WRITE> *pipe = dynamic_cast<HashPipe<HP_WRITE>*>(_dest);
         assert(pipe != nullptr);
 
@@ -540,13 +545,13 @@ HashType ToBitstreamHashing::get_hash_function(RecordType rt, ID id) const
     if (it != _hash_functions.end()) {
         return (*it).second;
     } else {
-        return HT_INVALID;
+        return HT_NONE;
     }
 }
 
 void ToBitstreamHashing::set_hash_function(RecordType rt, ID id, HashType ht)
 {
-    if (ht != HT_INVALID) {
+    if (ht != HT_NONE) {
         _hash_functions[std::pair<RecordType, ID>(rt, id)] = ht;
     } else {
         _hash_functions.erase(_hash_functions.find(std::pair<RecordType, ID>(rt, id)));

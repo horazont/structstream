@@ -36,7 +36,7 @@ namespace StructStream {
 Container::Container(ID id):
     Node::Node(id),
     _validated(false),
-    _hash_function(HT_INVALID),
+    _hash_function(HT_NONE),
     _children(),
     _id_lut()
 {
@@ -173,10 +173,10 @@ NodeHandle Container::first_child_by_id(const ID id) const
 
 void Container::set_hashed(bool validated, HashType hash_function)
 {
-    assert(!validated || hash_function != HT_INVALID);
+    assert(!validated || hash_function != HT_NONE);
 
     _validated = validated;
-    _hash_function = (validated ? hash_function : HT_INVALID);
+    _hash_function = (validated ? hash_function : HT_NONE);
 }
 
 NodeHandle Container::copy() const

@@ -147,7 +147,7 @@ public:
 
     idpath_find_most_shallow idpath_most_shallow(const ID id) const;
 
-    void set_hashed(bool validated, HashType hash_function = HT_INVALID);
+    void set_hashed(bool validated, HashType hash_function = HT_NONE);
 
     inline HashType get_hashed() const {
         return  _hash_function;
