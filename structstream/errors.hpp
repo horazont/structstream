@@ -72,6 +72,16 @@ public:
 };
 
 /**
+ * A hash check failed.
+ */
+class HashCheckError: public IllegalData {
+public:
+    HashCheckError(const std::string& what_arg): IllegalData(what_arg) {};
+    HashCheckError(const char *what_arg): IllegalData(what_arg) {};
+    HashCheckError(const HashCheckError &ref) = default;
+};
+
+/**
  * There was an illegal (per spec) combination of container flags.
  */
 class IllegalCombinationOfFlags: public IllegalData {
@@ -154,6 +164,20 @@ public:
     UnsupportedHashFunction(const char *what_arg): UnsupportedInput(what_arg) {};
     UnsupportedHashFunction(const UnsupportedHashFunction &ref) = default;
 };
+
+/**
+ * The input data violated a limit set by the application or
+ * defaults.
+ */
+class LimitError: public std::runtime_error {
+public:
+    LimitError(const std::string& what_arg): std::runtime_error(what_arg) {};
+    LimitError(const char *what_arg): std::runtime_error(what_arg) {};
+    LimitError(const LimitError &ref) = default;
+
+};
+
+
 
 }
 

@@ -196,10 +196,10 @@ void FromBitstream::end_of_container_body(ParentInfo *info)
         VarUInt hash_length = Utils::read_varuint(_source);
         // checking this first allows us to safely downcast to intptr_t
         if (hash_length > 1024) {
-            throw std::exception();
+            throw LimitError("hash length is larger than 1024.");
         }
         if ((intptr_t)hash_length != hashfun->len()) {
-            throw std::exception();
+            throw IllegalData("hash length does not match with what we know about the hash function.");
         }
 
         uint8_t *hash_from_stream = (uint8_t*)malloc(hash_length);
@@ -209,7 +209,7 @@ void FromBitstream::end_of_container_body(ParentInfo *info)
             hashfun->finish(hash_calculated);
 
             if (memcmp(hash_from_stream, hash_calculated, hash_length) != 0) {
-                throw std::exception();
+                throw HashCheckError("calculated and bitstream checksum do not match.");
             }
         } catch (...) {
             delete hash_from_stream;
