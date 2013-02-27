@@ -55,11 +55,14 @@ protected:
             footer(new ContainerFooter()),
             pipe_h(),
             pipe(nullptr),
+            read_child_count(0),
+            armored(false)
         {
 
         };
 
-        virtual ~ParentInfo() {
+        virtual ~ParentInfo()
+        {
             if (meta) {
                 delete meta;
             }

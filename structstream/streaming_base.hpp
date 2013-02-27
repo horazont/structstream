@@ -71,7 +71,7 @@ public:
      * metadata of the container is required; it not neccessary or
      * supported to feed all children here at once.
      *
-     * Some endpoints may support subclasses of ``container_meta``
+     * Some endpoints may support subclasses of ``ContainerMeta``
      * which offer more information, but all sinks *MUST* be able to
      * work with only this set of data and all sources *MUST* at least
      * emit this set of data.
