@@ -25,6 +25,8 @@ authors named in the AUTHORS file.
 **********************************************************************/
 #include "structstream/node_container.hpp"
 
+#include <cassert>
+
 #include "structstream/errors.hpp"
 
 namespace StructStream {
@@ -33,6 +35,8 @@ namespace StructStream {
 
 Container::Container(ID id):
     Node::Node(id),
+    _validated(false),
+    _hash_function(HT_INVALID),
     _children(),
     _id_lut()
 {
@@ -41,6 +45,8 @@ Container::Container(ID id):
 
 Container::Container(const Container &ref):
     Node::Node(ref),
+    _validated(ref._validated),
+    _hash_function(ref._hash_function),
     _children(),
     _id_lut()
 {
@@ -163,6 +169,14 @@ NodeHandle Container::first_child_by_id(const ID id) const
         return NodeHandle();
     }
     return (*range.first).second;
+}
+
+void Container::set_hashed(bool validated, HashType hash_function)
+{
+    assert(!validated || hash_function != HT_INVALID);
+
+    _validated = validated;
+    _hash_function = (validated ? hash_function : HT_INVALID);
 }
 
 NodeHandle Container::copy() const

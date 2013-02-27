@@ -54,6 +54,9 @@ protected:
     Container(const Container &ref);
 public:
     virtual ~Container();
+private:
+    bool _validated;
+    HashType _hash_function;
 protected:
     NodeVector _children;
     std::multimap<ID, NodeHandle> _id_lut;
@@ -143,6 +146,12 @@ public:
     NodeHandle first_child_by_id(const ID id) const;
 
     idpath_find_most_shallow idpath_most_shallow(const ID id) const;
+
+    void set_hashed(bool validated, HashType hash_function = HT_INVALID);
+
+    inline HashType get_hashed() const {
+        return  _hash_function;
+    };
 
     /**
      * Create and return a deep copy of the container.
