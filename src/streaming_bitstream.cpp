@@ -132,9 +132,8 @@ void FromBitstream::start_of_container(ContainerHandle cont_h)
     _parent_stack.push_front(info);
     _curr_parent = info;
     _sink->start_container(info->cont, info->meta);
-    info->cont = ContainerHandle();
 
-    // printf("bitstream: push %lx\n", (uint64_t)_curr_parent->cont.get());
+    printf("bitstream: push %lx\n", (uint64_t)_curr_parent->cont.get());
 }
 
 void FromBitstream::proc_container_flags(VarUInt &flags_int, FromBitstream::ParentInfo *info)
@@ -239,7 +238,7 @@ void FromBitstream::end_of_container()
     }
 
     if (_curr_parent) {
-        // printf("bitstream: pop %lx\n", (intptr_t)(info->cont.get()));
+        printf("bitstream: pop %lx\n", (intptr_t)(info->cont.get()));
 
         // Do not call this virtual method for the root node
         end_of_container_body(info);
@@ -370,17 +369,12 @@ VarUInt ToBitstream::get_container_flags(ToBitstream::ParentInfo *info)
     return flags;
 }
 
-ToBitstream::ParentInfo *ToBitstream::setup_container(ContainerHandle cont, const ContainerMeta *meta)
+void ToBitstream::setup_container(ToBitstream::ParentInfo *info, ContainerHandle cont, const ContainerMeta *meta)
 {
-    // TODO: support for configuring hashes etc.
-
-    ParentInfo *info = new_parent_info();
     info->cont = cont;
     info->child_count = meta->child_count;
     info->armored = _default_armor || (meta->child_count < 0);
     info->hash_function = HT_INVALID;
-
-    return info;
 }
 
 void ToBitstream::write_container_header(VarUInt flags, ParentInfo *info)
@@ -398,12 +392,40 @@ void ToBitstream::write_container_header(VarUInt flags, ParentInfo *info)
         assert(info->hash_function != HT_INVALID);
         Utils::write_varuint(_dest, static_cast<VarUInt>(info->hash_function));
     }
+
+    if (info->hash_function != HT_INVALID) {
+        IncrementalHash *hashfun = hashes.get_hash(info->hash_function);
+        if (hashfun == nullptr) {
+            throw UnsupportedHashFunction("Unsupported hash function passed to ToBitstream.");
+        }
+        HashPipe<HP_WRITE> *pipe = new HashPipe<HP_WRITE>(hashfun, _dest_h);
+        _dest = pipe;
+        _dest_h = IOIntfHandle(pipe);
+    }
 }
 
 void ToBitstream::write_container_footer(ParentInfo *info)
 {
     if (info->armored) {
         Utils::write_record_type(_dest, RT_END_OF_CHILDREN);
+    }
+
+    if (info->hash_function != HT_INVALID) {
+        HashPipe<HP_WRITE> *pipe = dynamic_cast<HashPipe<HP_WRITE>*>(_dest);
+        assert(pipe != nullptr);
+
+        IncrementalHash *hashfun = pipe->reclaim_hash();
+
+        _dest_h = pipe->underlying_io();
+        _dest = _dest_h.get();
+
+        intptr_t hash_length = hashfun->len();
+        assert(hash_length > 0);
+        Utils::write_varuint(_dest, hash_length);
+
+        uint8_t *hash_buffer = (uint8_t*)malloc(hash_length);
+        hashfun->finish(hash_buffer);
+        swrite(_dest, hash_buffer, hash_length);
     }
 }
 
@@ -416,7 +438,8 @@ void ToBitstream::start_container(ContainerHandle cont, const ContainerMeta *met
 {
     require_open();
 
-    ParentInfo *info = setup_container(cont, meta);
+    ParentInfo *info = new_parent_info();
+    setup_container(info, cont, meta);
 
     VarUInt flags = get_container_flags(info);
 
@@ -460,6 +483,43 @@ void ToBitstream::close()
     write_footer();
     _dest = nullptr;
     _dest_h = IOIntfHandle();
+}
+
+/* StructStream::ToBitstreamHashing */
+
+ToBitstreamHashing::ToBitstreamHashing(IOIntfHandle dest):
+    ToBitstream::ToBitstream(dest),
+    _hash_functions()
+{
+
+}
+
+void ToBitstreamHashing::setup_container(ToBitstream::ParentInfo *info,
+                                         ContainerHandle cont,
+                                         const ContainerMeta *meta)
+{
+    ToBitstream::setup_container(info, cont, meta);
+    HashType hash_function = get_hash_function(cont->record_type(), cont->id());
+    info->hash_function = hash_function;
+}
+
+HashType ToBitstreamHashing::get_hash_function(RecordType rt, ID id) const
+{
+    auto it = _hash_functions.find(std::pair<RecordType, ID>(rt, id));
+    if (it != _hash_functions.end()) {
+        return (*it).second;
+    } else {
+        return HT_INVALID;
+    }
+}
+
+void ToBitstreamHashing::set_hash_function(RecordType rt, ID id, HashType ht)
+{
+    if (ht != HT_INVALID) {
+        _hash_functions[std::pair<RecordType, ID>(rt, id)] = ht;
+    } else {
+        _hash_functions.erase(_hash_functions.find(std::pair<RecordType, ID>(rt, id)));
+    }
 }
 
 }

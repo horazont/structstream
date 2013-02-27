@@ -49,6 +49,9 @@ typedef serialize_block<
 int main()
 {
     PersonRecord person;
+
+    load_all_hashes();
+
     {
         /* We check whether this program ran before and whether it
          * created an info file. */
@@ -60,7 +63,7 @@ int main()
             IOIntfHandle io(new StandardInputStream(infile));
 
             /* Parse the input */
-            ContainerHandle root = bitstream_to_tree(io, RegistryHandle(new Registry()));
+            ContainerHandle root = bitstream_to_tree(io);
 
             /* Extract the first element from the document */
             Container *child = std::dynamic_pointer_cast<Container>(*root->children_begin()).get();
@@ -73,6 +76,10 @@ int main()
                 std::cout << "Name: " << person.name << std::endl;
                 std::cout << "Age: " << person.age << std::endl;
                 std::cout << std::endl;
+
+                if (child->get_hashed() != HT_INVALID) {
+                    std::cout << "The data was checksum'd and validated successfully." << std::endl;
+                }
             } else {
                 /* Otherwise, we better stop. */
                 std::cout << "Hmm, that input doesn't look ok to me. I better ignore it." << std::endl;
@@ -105,8 +112,29 @@ int main()
         /* Create a node tree using the serializer */
         NodeHandle tree = PersonSerializer::serialize(&person);
 
-        /* Write the node tree to the file */
+        /* There are two options here, one simple and one complex. The
+         * simple is sufficient for most cases, but we'll do the
+         * complex one here for demonstration purposes, as it allows
+         * to set hash functions for containers.
+         *
+         * For reference, the simple one would be just one line:
+         *
+         *     tree_to_bitstream({tree}, io);
+         */
+
+#ifdef WITH_GNUTLS
+        /* Write the node tree to the file: first get a bitstream
+         * writer */
+        ToBitstreamHashing *outstream = new ToBitstreamHashing(io);
+        outstream->set_armor_default(true);
+        outstream->set_hash_function(RT_CONTAINER, 0x01, HT_SHA256);
+
+        FromTree(StreamSink(outstream), {tree});
+#else
+        /* Hashing requires GnuTLS. If no GnuTLS can be used, we have
+         * to skip hashing. */
         tree_to_bitstream({tree}, io);
+#endif
     }
 
     return 0;

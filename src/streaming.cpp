@@ -32,6 +32,10 @@ ContainerHandle bitstream_to_tree(IOIntfHandle in, RegistryHandle registry)
     ToTree *sink = new ToTree();
     StreamSink sink_h(sink);
 
+    if (registry.get() == nullptr) {
+        registry = RegistryHandle(new Registry());
+    }
+
     FromBitstream reader(in, registry, sink_h);
     reader.read_all();
     return sink->root();

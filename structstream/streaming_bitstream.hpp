@@ -32,6 +32,18 @@ authors named in the AUTHORS file.
 #include "structstream/io.hpp"
 #include "structstream/registry.hpp"
 
+namespace std {
+
+template<>
+struct hash<std::pair<StructStream::RecordType, StructStream::ID> > {
+public:
+    size_t operator()(const std::pair<StructStream::RecordType, StructStream::ID> &obj) const {
+        return hash<unsigned long>()(obj.first) ^ hash<unsigned long>()(obj.second);
+    };
+};
+
+}
+
 namespace StructStream {
 
 class FromBitstream {
@@ -125,7 +137,7 @@ protected:
 public:
     ToBitstream(IOIntfHandle dest);
     virtual ~ToBitstream();
-private:
+protected:
     IOIntfHandle _dest_h;
     IOIntf *_dest;
 
@@ -138,7 +150,7 @@ protected:
 protected:
     virtual ParentInfo *new_parent_info() const;
     virtual VarUInt get_container_flags(ParentInfo *info);
-    virtual ParentInfo *setup_container(ContainerHandle cont, const ContainerMeta *meta);
+    virtual void setup_container(ParentInfo *info, ContainerHandle cont, const ContainerMeta *meta);
     virtual void write_container_header(VarUInt flags, ParentInfo *info);
     virtual void write_container_footer(ParentInfo *info);
     virtual void write_footer();
@@ -156,6 +168,21 @@ public:
     void set_armor_default(bool armor) {
         _default_armor = armor;
     };
+};
+
+class ToBitstreamHashing: public ToBitstream {
+public:
+    ToBitstreamHashing(IOIntfHandle dest);
+    virtual ~ToBitstreamHashing() = default;
+private:
+    std::unordered_map<std::pair<RecordType, ID>, HashType> _hash_functions;
+protected:
+    virtual void setup_container(ParentInfo *info,
+                                 ContainerHandle cont,
+                                 const ContainerMeta *meta);
+public:
+    HashType get_hash_function(RecordType rt, ID id) const;
+    void set_hash_function(RecordType rt, ID id, HashType ht);
 };
 
 }
