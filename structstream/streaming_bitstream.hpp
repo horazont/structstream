@@ -35,12 +35,30 @@ authors named in the AUTHORS file.
 namespace StructStream {
 
 class FromBitstream {
+public:
+    struct ContainerMeta: public ::StructStream::ContainerMeta {
+    public:
+        ContainerMeta();
+        ContainerMeta(const Container &ref) = delete;
+        ContainerMeta(const ContainerMeta &ref);
+        virtual ~ContainerMeta() = default;
+    public:
+        bool has_hash;
+    public:
+        virtual ::StructStream::ContainerMeta *copy() const;
+    };
 protected:
     struct ParentInfo {
         ParentInfo():
             cont(),
             meta(new ContainerMeta()),
-            footer(new ContainerFooter()) {};
+            footer(new ContainerFooter()),
+            pipe_h(),
+            pipe(nullptr),
+        {
+
+        };
+
         virtual ~ParentInfo() {
             if (meta) {
                 delete meta;
@@ -53,6 +71,8 @@ protected:
         ContainerHandle cont;
         ContainerMeta *meta;
         ContainerFooter *footer;
+        IOIntfHandle pipe_h;
+        HashPipe<HP_READ> *pipe;
 
         int32_t read_child_count;
         bool armored;
@@ -83,7 +103,7 @@ protected:
     virtual void proc_container_flags(VarUInt &flags_int,
                                       ParentInfo *info);
     virtual void end_of_container_header(ParentInfo *info);
-    virtual void end_of_container_body(ContainerFooter *foot);
+    virtual void end_of_container_body(ParentInfo *info);
     void end_of_container();
 protected:
     NodeHandle read_next();

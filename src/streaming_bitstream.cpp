@@ -26,12 +26,34 @@ authors named in the AUTHORS file.
 #include "structstream/streaming_bitstream.hpp"
 
 #include <cassert>
+#include <cstring>
 
 #include "structstream/utils.hpp"
 #include "structstream/errors.hpp"
 #include "structstream/node_container.hpp"
 
 namespace StructStream {
+
+/* StructStream::FromBitstream::ContainerMeta */
+
+FromBitstream::ContainerMeta::ContainerMeta():
+    ::StructStream::ContainerMeta(),
+    has_hash(false)
+{
+
+}
+
+FromBitstream::ContainerMeta::ContainerMeta(const FromBitstream::ContainerMeta &ref):
+    ::StructStream::ContainerMeta(ref),
+    has_hash(ref.has_hash)
+{
+
+}
+
+ContainerMeta *FromBitstream::ContainerMeta::copy() const
+{
+    return new ContainerMeta(*this);
+}
 
 /* StructStream::FromBitstream */
 
@@ -125,29 +147,85 @@ void FromBitstream::proc_container_flags(VarUInt &flags_int, FromBitstream::Pare
         flags_int ^= CF_WITH_SIZE;
         info->meta->child_count = Utils::read_varint(_source);
     }
+
     if ((flags_int & CF_ARMORED) != 0) {
         flags_int ^= CF_ARMORED;
         info->armored = true;
     }
+
     if (!info->armored && (info->meta->child_count == -1)) {
         throw IllegalCombinationOfFlags("Illegal combination of container flags: no CF_WITH_SIZE, but no CF_ARMORED either -- how am I supposed to find out the length?");
     }
+
     if ((flags_int & CF_HASHED) != 0) {
+        HashType hash_function = static_cast<HashType>(Utils::read_varint(_source));;
+
 	flags_int ^= CF_HASHED;
-        info->footer->hash_function = static_cast<HashType>(Utils::read_varint(_source));
+        info->meta->has_hash = true;
+        info->footer->hash_function =  hash_function;
     }
 }
 
 void FromBitstream::end_of_container_header(ParentInfo *info)
 {
     if (info->footer->hash_function != HT_INVALID) {
-        throw UnsupportedHashFunction("Unsupported hash function.");
+        IncrementalHash *hashfun = hashes.get_hash(info->footer->hash_function);
+        if (hashfun == nullptr) {
+            throw UnsupportedHashFunction("Unsupported hash function.");
+        }
+
+        info->pipe = new HashPipe<HP_READ>(hashfun, _source_h);
+        info->pipe_h = IOIntfHandle(info->pipe);
+        _source_h = info->pipe_h;
+        _source = info->pipe;
     }
 }
 
-void FromBitstream::end_of_container_body(ContainerFooter *foot)
+void FromBitstream::end_of_container_body(ParentInfo *info)
 {
+    if (info->pipe) {
+        _source_h = info->pipe->underlying_io();
+        _source = _source_h.get();
 
+        IncrementalHash *hashfun = info->pipe->reclaim_hash();
+
+        info->pipe = nullptr;
+        info->pipe_h = IOIntfHandle();
+
+        // the pipe should delete itself right now
+
+        VarUInt hash_length = Utils::read_varuint(_source);
+        // checking this first allows us to safely downcast to intptr_t
+        if (hash_length > 1024) {
+            throw std::exception();
+        }
+        if ((intptr_t)hash_length != hashfun->len()) {
+            throw std::exception();
+        }
+
+        uint8_t *hash_from_stream = (uint8_t*)malloc(hash_length);
+        uint8_t *hash_calculated = (uint8_t*)malloc(hash_length);
+        try {
+            sread(_source, hash_from_stream, hash_length);
+            hashfun->finish(hash_calculated);
+
+            if (memcmp(hash_from_stream, hash_calculated, hash_length) != 0) {
+                throw std::exception();
+            }
+        } catch (...) {
+            delete hash_from_stream;
+            delete hash_calculated;
+            throw;
+        }
+        delete hash_from_stream;
+        delete hash_calculated;
+
+        info->footer->validated = true;
+    }
+    info->cont->set_hashed(
+        info->footer->validated,
+        info->footer->hash_function
+    );
 }
 
 void FromBitstream::end_of_container()
@@ -164,7 +242,7 @@ void FromBitstream::end_of_container()
         // printf("bitstream: pop %lx\n", (intptr_t)(info->cont.get()));
 
         // Do not call this virtual method for the root node
-        end_of_container_body(info->footer);
+        end_of_container_body(info);
         _sink->end_container(info->footer);
 
         _curr_parent->read_child_count += 1;
