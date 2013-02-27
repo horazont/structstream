@@ -106,7 +106,7 @@ protected:
         _data(ref._data) {}
 public:
     virtual ~PrimitiveDataRecord() {}
-public:
+protected:
     _T _data;
 public:
     virtual NodeHandle copy() const {
