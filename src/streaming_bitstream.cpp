@@ -335,7 +335,25 @@ NodeHandle FromBitstream::read_next() {
 
     NodeHandle new_node = _node_factory->node_from_record_type(rt, id);
     if (!new_node.get()) {
-	throw UnsupportedRecordType("Unsupported record type.");
+        if ((rt >= RT_APPBLOB_MIN) && (rt <= RT_APPBLOB_MAX) &&
+            ((_forgiveness & UnknownAppblobs) != 0))
+        {
+            // Appblobs are required to store their size in a varuint
+            // right after the ID.
+
+            // In this mode, we skip over the appblob as if it didn't
+            // exist, except that we also increase the counter for the
+            // surrounding container.
+
+            VarUInt blob_size = Utils::read_varuint(_source);
+            sskip(_source, blob_size);
+            _curr_parent->read_child_count++;
+            check_end_of_container();
+
+            return read_next();
+        } else {
+            throw UnsupportedRecordType("Unsupported record type.");
+        }
     }
 
     ContainerHandle new_parent = std::dynamic_pointer_cast<Container>(new_node);

@@ -92,3 +92,22 @@ TEST_CASE ("decode/forgiving/unknown_container_flags", "Allow forgiving unknown 
     REQUIRE(root.get() != 0);
     REQUIRE((*root->children_begin()).get() != 0);
 }
+
+TEST_CASE ("decode/forgiving/unknown_appblob", "Allow forgiving unknown appblobs")
+{
+    static const uint8_t data[] = {
+        (uint8_t)(RT_CONTAINER) | 0x80, uint8_t(0x01) | 0x80,
+        uint8_t(CF_WITH_SIZE | CF_ARMORED) | 0x80,
+        uint8_t(0x01) | 0x80, // length
+        uint8_t(RT_APPBLOB_MIN) | 0x80, uint8_t(0x02) | 0x80, uint8_t(0x04) | 0x80, 0x00, 0x00, 0x00, 0x00,
+        uint8_t(RT_END_OF_CHILDREN) | 0x80,
+        uint8_t(RT_END_OF_CHILDREN) | 0x80
+    };
+
+    ContainerHandle root = blob_to_tree(
+        data,
+        sizeof(data),
+        FromBitstream::UnknownAppblobs);
+    REQUIRE(root.get() != 0);
+    REQUIRE((*root->children_begin()).get() != 0);
+}

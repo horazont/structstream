@@ -163,3 +163,13 @@ TEST_CASE ("decode/records/bool", "Test decode of boolean records")
     REQUIRE(rec != 0);
     CHECK(rec->get() == false);
 }
+
+TEST_CASE ("decode/records/unknown_appblob", "Abort on unknown app blobs")
+{
+    static const uint8_t data[] = {
+        (uint8_t)(RT_APPBLOB_MIN) | 0x80, uint8_t(0x01) | 0x80,
+        (uint8_t)(RT_END_OF_CHILDREN) | 0x80,
+    };
+
+    REQUIRE_THROWS_AS(blob_to_tree(data, sizeof(data)), UnsupportedRecordType);
+}
