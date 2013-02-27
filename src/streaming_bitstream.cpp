@@ -96,7 +96,7 @@ void FromBitstream::check_end_of_container()
 void FromBitstream::check_hash_length(VarUInt len)
 {
     if (len > 1024) {
-        throw LimitError(std::string("Max hash length violated: ") + to_string(len));
+        throw LimitError(std::string("Max hash length violated: ") + std::to_string(len));
     }
 }
 
