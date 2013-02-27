@@ -46,7 +46,16 @@ public:
 
 namespace StructStream {
 
+
 class FromBitstream {
+public:
+    enum Forgiveness {
+        ChecksumErrors = 1,
+        UnknownAppblobs = 2,
+        PrematureEndOfContainer = 4,
+        UnknownContainerFlags = 8,
+        UnknownHashFunction = 16
+    };
 public:
     struct ContainerMeta: public ::StructStream::ContainerMeta {
     public:
@@ -109,7 +118,10 @@ private:
 
     std::forward_list<ParentInfo*> _parent_stack;
     ParentInfo *_curr_parent;
+
+    uint32_t _forgiveness;
 protected:
+    void check_hash_length(VarUInt len);
     void check_end_of_container();
     void push_root();
 protected:
@@ -124,6 +136,7 @@ protected:
     NodeHandle read_next();
 public:
     void read_all();
+    void set_forgiving_for(uint32_t forgiveness, bool forgiving = true);
 };
 
 class ToBitstream: public StreamSinkIntf {

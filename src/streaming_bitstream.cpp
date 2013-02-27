@@ -66,7 +66,8 @@ FromBitstream::FromBitstream(IOIntfHandle source, const RegistryHandle nodetypes
     _sink_h(sink),
     _sink(sink.get()),
     _parent_stack(),
-    _curr_parent()
+    _curr_parent(),
+    _forgiveness(0)
 {
     push_root();
 }
@@ -89,6 +90,13 @@ void FromBitstream::check_end_of_container()
         && _curr_parent->meta->child_count == _curr_parent->read_child_count)
     {
         end_of_container();
+    }
+}
+
+void FromBitstream::check_hash_length(VarUInt len)
+{
+    if (len > 1024) {
+        throw LimitError(std::string("Max hash length violated: ") + to_string(len));
     }
 }
 
@@ -169,57 +177,67 @@ void FromBitstream::end_of_container_header(ParentInfo *info)
 {
     if (info->footer->hash_function != HT_INVALID) {
         IncrementalHash *hashfun = hashes.get_hash(info->footer->hash_function);
-        if (hashfun == nullptr) {
+        if ((hashfun == nullptr) && ((_forgiveness & UnknownHashFunction) == 0)) {
             throw UnsupportedHashFunction("Unsupported hash function.");
         }
 
-        info->pipe = new HashPipe<HP_READ>(hashfun, _source_h);
-        info->pipe_h = IOIntfHandle(info->pipe);
-        _source_h = info->pipe_h;
-        _source = info->pipe;
+        if (hashfun != nullptr) {
+            info->pipe = new HashPipe<HP_READ>(hashfun, _source_h);
+            info->pipe_h = IOIntfHandle(info->pipe);
+            _source_h = info->pipe_h;
+            _source = info->pipe;
+        }
     }
 }
 
 void FromBitstream::end_of_container_body(ParentInfo *info)
 {
-    if (info->pipe) {
-        _source_h = info->pipe->underlying_io();
-        _source = _source_h.get();
+    if (info->footer->hash_function != HT_INVALID) {
+        if (info->pipe) {
+            _source_h = info->pipe->underlying_io();
+            _source = _source_h.get();
 
-        IncrementalHash *hashfun = info->pipe->reclaim_hash();
+            IncrementalHash *hashfun = info->pipe->reclaim_hash();
 
-        info->pipe = nullptr;
-        info->pipe_h = IOIntfHandle();
+            info->pipe = nullptr;
+            info->pipe_h = IOIntfHandle();
 
-        // the pipe should delete itself right now
+            // the pipe should delete itself right now
 
-        VarUInt hash_length = Utils::read_varuint(_source);
-        // checking this first allows us to safely downcast to intptr_t
-        if (hash_length > 1024) {
-            throw LimitError("hash length is larger than 1024.");
-        }
-        if ((intptr_t)hash_length != hashfun->len()) {
-            throw IllegalData("hash length does not match with what we know about the hash function.");
-        }
-
-        uint8_t *hash_from_stream = (uint8_t*)malloc(hash_length);
-        uint8_t *hash_calculated = (uint8_t*)malloc(hash_length);
-        try {
-            sread(_source, hash_from_stream, hash_length);
-            hashfun->finish(hash_calculated);
-
-            if (memcmp(hash_from_stream, hash_calculated, hash_length) != 0) {
-                throw HashCheckError("calculated and bitstream checksum do not match.");
+            VarUInt hash_length = Utils::read_varuint(_source);
+            // checking this first allows us to safely downcast to
+            // intptr_t
+            check_hash_length(hash_length);
+            if ((intptr_t)hash_length != hashfun->len()) {
+                throw IllegalData("hash length does not match with what we know about the hash function.");
             }
-        } catch (...) {
-            delete hash_from_stream;
-            delete hash_calculated;
-            throw;
-        }
-        delete hash_from_stream;
-        delete hash_calculated;
 
-        info->footer->validated = true;
+            uint8_t *hash_from_stream = (uint8_t*)malloc(hash_length);
+            uint8_t *hash_calculated = (uint8_t*)malloc(hash_length);
+            try {
+                sread(_source, hash_from_stream, hash_length);
+                hashfun->finish(hash_calculated);
+
+                if (memcmp(hash_from_stream, hash_calculated, hash_length) != 0) {
+                    throw HashCheckError("calculated and bitstream checksum do not match.");
+                }
+            } catch (...) {
+                free(hash_from_stream);
+                free(hash_calculated);
+                throw;
+            }
+            free(hash_from_stream);
+            free(hash_calculated);
+
+            info->footer->validated = true;
+        } else {
+            // hash checking has been disabled for this container for
+            // some reason (e.g. forgiving mode)
+            VarUInt hash_length = Utils::read_varuint(_source);
+            check_hash_length(hash_length);
+            _source->skip(hash_length);
+        }
+
     }
     info->cont->set_hashed(
         info->footer->validated,
@@ -276,7 +294,11 @@ NodeHandle FromBitstream::read_next() {
             end_of_container();
         } else {
             if (_curr_parent->armored) {
-                throw UnexpectedEndOfChildren("Armored container ended unexpectedly (not all announced children found).");
+                if ((_forgiveness & PrematureEndOfContainer) == 0) {
+                    throw UnexpectedEndOfChildren("Armored container ended unexpectedly (not all announced children found).");
+                } else {
+                    end_of_container();
+                }
             } else {
                 throw UnexpectedEndOfChildren("Non-armored container closed by End-Of-Children tag. This may also imply that some children are missing.");
             }
@@ -325,6 +347,15 @@ void FromBitstream::read_all()
     do {
         node = read_next();
     } while (node.get() != nullptr);
+}
+
+void FromBitstream::set_forgiving_for(uint32_t forgiveness, bool forgiving)
+{
+    if (forgiving) {
+        _forgiveness |= forgiveness;
+    } else {
+        _forgiveness &= ~forgiveness;
+    }
 }
 
 /* StructStream::ToBitstream */
