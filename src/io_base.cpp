@@ -1,5 +1,5 @@
 /**********************************************************************
-File name: io.cpp
+File name: io_base.cpp
 This file is part of: structstream++
 
 LICENSE
@@ -23,36 +23,4 @@ FEEDBACK & QUESTIONS
 For feedback and questions about structstream++ please e-mail one of the
 authors named in the AUTHORS file.
 **********************************************************************/
-#include "structstream/io.hpp"
-
-#include <cassert>
-
-namespace StructStream {
-
-void sread(IOIntf *io, void *buf, const intptr_t len)
-{
-    intptr_t read_bytes = io->read(buf, len);
-    if (read_bytes < len) {
-	// FIXME: throw an error
-	assert(false);
-    }
-}
-
-void swrite(IOIntf *io, const void *buf, const intptr_t len)
-{
-    // printf("writing:");
-    // for (const uint8_t *item = (const uint8_t*)buf;
-    //      item < (const uint8_t*)buf + len;
-    //      item++)
-    // {
-    //     printf(" 0x%x", *item);
-    // }
-    // printf("\n");
-    intptr_t written_bytes = io->write(buf, len);
-    if (written_bytes < len) {
-	// FIXME: throw an error
-	assert(false);
-    }
-}
-
-}
+#include "structstream/io_base.hpp"

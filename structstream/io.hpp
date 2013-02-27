@@ -26,90 +26,11 @@ authors named in the AUTHORS file.
 #ifndef _STRUCTSTREAM_IO_H
 #define _STRUCTSTREAM_IO_H
 
-#include <memory>
-#include <iostream>
-
-#include <cstdint>
+#include "structstream/io_base.hpp"
+#include "structstream/io_memory.hpp"
+#include "structstream/io_std.hpp"
 
 namespace StructStream {
-
-struct IOIntf {
-public:
-    virtual ~IOIntf() {};
-    virtual intptr_t read(void *buf, const intptr_t len) = 0;
-    virtual intptr_t write(const void *buf, const intptr_t len) = 0;
-};
-
-typedef std::shared_ptr<IOIntf> IOIntfHandle;
-
-struct WritableMemory;
-
-struct ReadableMemory: public IOIntf {
-public:
-    ReadableMemory(const void *srcbuf, const intptr_t len);
-    ReadableMemory(const ReadableMemory &ref);
-    ReadableMemory(const WritableMemory &ref);
-    virtual ~ReadableMemory();
-private:
-    void* _buf;
-    intptr_t _len;
-    intptr_t _offs;
-public:
-    ReadableMemory& operator=(const ReadableMemory &ref);
-
-    inline const void *buffer() const { return _buf; };
-    inline const intptr_t size() const { return _len; };
-
-    virtual intptr_t read(void *buf, const intptr_t len);
-    virtual intptr_t write(const void *buf, const intptr_t len);
-};
-
-struct WritableMemory: public IOIntf {
-public:
-    WritableMemory();
-    WritableMemory(void *buf, const intptr_t len);
-    WritableMemory(const uint32_t blank_pattern);
-    WritableMemory(const ReadableMemory &ref);
-    WritableMemory(const WritableMemory &ref);
-    virtual ~WritableMemory();
-private:
-    void *_buf;
-    intptr_t _buf_size;
-    intptr_t _outward_size;
-    intptr_t _offs;
-    uint32_t _blank_pattern;
-    bool _may_grow;
-private:
-    void grow();
-public:
-    WritableMemory& operator=(const WritableMemory &ref);
-
-    inline const void *buffer() const { return _buf; };
-    inline const intptr_t size() const { return _outward_size; };
-
-    virtual intptr_t read(void *buf, const intptr_t len);
-    virtual intptr_t write(const void *buf, const intptr_t len);
-};
-
-struct StandardInputStream: public IOIntf {
-public:
-    StandardInputStream(std::istream &in);
-private:
-    std::istream &_in;
-public:
-    virtual intptr_t read(void *buf, const intptr_t len);
-    virtual intptr_t write(const void *buf, const intptr_t len);
-};
-
-struct StandardOutputStream: public IOIntf {
-public:
-    StandardOutputStream(std::ostream &out);
-private:
-    std::ostream &_out;
-public:
-    virtual intptr_t read(void *buf, const intptr_t len);
-    virtual intptr_t write(const void *buf, const intptr_t len);
-};
 
 void sread(IOIntf *io, void *buf, const intptr_t len);
 void swrite(IOIntf *io, const void *buf, const intptr_t len);

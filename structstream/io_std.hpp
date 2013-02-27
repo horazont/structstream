@@ -1,5 +1,5 @@
 /**********************************************************************
-File name: io.cpp
+File name: io_std.hpp
 This file is part of: structstream++
 
 LICENSE
@@ -23,36 +23,35 @@ FEEDBACK & QUESTIONS
 For feedback and questions about structstream++ please e-mail one of the
 authors named in the AUTHORS file.
 **********************************************************************/
-#include "structstream/io.hpp"
+#ifndef _STRUCTSTREAM_IO_STD_H
+#define _STRUCTSTREAM_IO_STD_H
 
-#include <cassert>
+#include <iostream>
+
+#include "io_base.hpp"
 
 namespace StructStream {
 
-void sread(IOIntf *io, void *buf, const intptr_t len)
-{
-    intptr_t read_bytes = io->read(buf, len);
-    if (read_bytes < len) {
-	// FIXME: throw an error
-	assert(false);
-    }
-}
+struct StandardInputStream: public IOIntf {
+public:
+    StandardInputStream(std::istream &in);
+private:
+    std::istream &_in;
+public:
+    virtual intptr_t read(void *buf, const intptr_t len);
+    virtual intptr_t write(const void *buf, const intptr_t len);
+};
 
-void swrite(IOIntf *io, const void *buf, const intptr_t len)
-{
-    // printf("writing:");
-    // for (const uint8_t *item = (const uint8_t*)buf;
-    //      item < (const uint8_t*)buf + len;
-    //      item++)
-    // {
-    //     printf(" 0x%x", *item);
-    // }
-    // printf("\n");
-    intptr_t written_bytes = io->write(buf, len);
-    if (written_bytes < len) {
-	// FIXME: throw an error
-	assert(false);
-    }
-}
+struct StandardOutputStream: public IOIntf {
+public:
+    StandardOutputStream(std::ostream &out);
+private:
+    std::ostream &_out;
+public:
+    virtual intptr_t read(void *buf, const intptr_t len);
+    virtual intptr_t write(const void *buf, const intptr_t len);
+};
 
 }
+
+#endif

@@ -1,5 +1,5 @@
 /**********************************************************************
-File name: io.cpp
+File name: io_std.cpp
 This file is part of: structstream++
 
 LICENSE
@@ -23,35 +23,53 @@ FEEDBACK & QUESTIONS
 For feedback and questions about structstream++ please e-mail one of the
 authors named in the AUTHORS file.
 **********************************************************************/
-#include "structstream/io.hpp"
-
-#include <cassert>
+#include "structstream/io_std.hpp"
 
 namespace StructStream {
 
-void sread(IOIntf *io, void *buf, const intptr_t len)
+/* StructStream::StandardInputStream */
+
+StandardInputStream::StandardInputStream(std::istream &in):
+    _in(in)
 {
-    intptr_t read_bytes = io->read(buf, len);
-    if (read_bytes < len) {
-	// FIXME: throw an error
-	assert(false);
+
+}
+
+intptr_t StandardInputStream::read(void *buf, const intptr_t len)
+{
+    _in.read((char*)buf, len);
+    if (!_in.good()) {
+        return 0;
+    } else {
+        return len;
     }
 }
 
-void swrite(IOIntf *io, const void *buf, const intptr_t len)
+intptr_t StandardInputStream::write(const void*, const intptr_t)
 {
-    // printf("writing:");
-    // for (const uint8_t *item = (const uint8_t*)buf;
-    //      item < (const uint8_t*)buf + len;
-    //      item++)
-    // {
-    //     printf(" 0x%x", *item);
-    // }
-    // printf("\n");
-    intptr_t written_bytes = io->write(buf, len);
-    if (written_bytes < len) {
-	// FIXME: throw an error
-	assert(false);
+    return 0;
+}
+
+/* StructStream::StandardOutputStream */
+
+StandardOutputStream::StandardOutputStream(std::ostream &out):
+    _out(out)
+{
+
+}
+
+intptr_t StandardOutputStream::read(void*, const intptr_t)
+{
+    return 0;
+}
+
+intptr_t StandardOutputStream::write(const void *buf, const intptr_t len)
+{
+    _out.write((const char*)buf, len);
+    if (!_out.good()) {
+        return 0;
+    } else {
+        return len;
     }
 }
 
