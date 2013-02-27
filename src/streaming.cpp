@@ -37,14 +37,14 @@ ContainerHandle bitstream_to_tree(IOIntfHandle in, RegistryHandle registry)
     return sink->root();
 }
 
-void tree_to_bitstream(ContainerHandle root, IOIntfHandle out, bool armor)
+void tree_to_bitstream(const ContainerHandle root, IOIntfHandle out, bool armor)
 {
     ToBitstream *outstream = new ToBitstream(out);
     outstream->set_armor_default(armor);
     FromTree(StreamSink(outstream), root);
 }
 
-void tree_to_bitstream(std::initializer_list<NodeHandle> nodes, IOIntfHandle out,
+void tree_to_bitstream(std::initializer_list<const NodeHandle> nodes, IOIntfHandle out,
     bool armor)
 {
     ToBitstream *outstream = new ToBitstream(out);
