@@ -58,7 +58,7 @@ class FormatError: public std::runtime_error {
 public:
     FormatError(const std::string& what_arg): std::runtime_error(what_arg) {};
     FormatError(const char *what_arg): std::runtime_error(what_arg) {};
-    FormatError(const FormatError &ref): std::runtime_error(ref) {};
+    FormatError(const FormatError &ref) = default;
 };
 
 /**
@@ -68,7 +68,7 @@ class IllegalData: public FormatError {
 public:
     IllegalData(const std::string& what_arg): FormatError(what_arg) {};
     IllegalData(const char *what_arg): FormatError(what_arg) {};
-    IllegalData(const IllegalData &ref): FormatError(ref) {};
+    IllegalData(const IllegalData &ref) = default;
 };
 
 /**
@@ -78,7 +78,7 @@ class IllegalCombinationOfFlags: public IllegalData {
 public:
     IllegalCombinationOfFlags(const std::string& what_arg): IllegalData(what_arg) {};
     IllegalCombinationOfFlags(const char *what_arg): IllegalData(what_arg) {};
-    IllegalCombinationOfFlags(const IllegalCombinationOfFlags &ref): IllegalData(ref) {};
+    IllegalCombinationOfFlags(const IllegalCombinationOfFlags &ref) = default;
 };
 
 /**
@@ -88,7 +88,7 @@ class InvalidIDError: public IllegalData {
 public:
     InvalidIDError(const std::string& what_arg): IllegalData(what_arg) {};
     InvalidIDError(const char *what_arg): IllegalData(what_arg) {};
-    InvalidIDError(const InvalidIDError &ref): IllegalData(ref) {};
+    InvalidIDError(const InvalidIDError &ref) = default;
 };
 
 /**
@@ -99,7 +99,7 @@ class MissingEndOfChildren: public FormatError {
 public:
     MissingEndOfChildren(const std::string& what_arg): FormatError(what_arg) {};
     MissingEndOfChildren(const char *what_arg): FormatError(what_arg) {};
-    MissingEndOfChildren(const MissingEndOfChildren &ref): FormatError(ref) {};
+    MissingEndOfChildren(const MissingEndOfChildren &ref) = default;
 };
 
 /**
@@ -111,7 +111,7 @@ class UnexpectedEndOfChildren: public FormatError {
 public:
     UnexpectedEndOfChildren(const std::string& what_arg): FormatError(what_arg) {};
     UnexpectedEndOfChildren(const char *what_arg): FormatError(what_arg) {};
-    UnexpectedEndOfChildren(const UnexpectedEndOfChildren &ref): FormatError(ref) {};
+    UnexpectedEndOfChildren(const UnexpectedEndOfChildren &ref) = default;
 };
 
 /**
@@ -122,7 +122,7 @@ class UnsupportedInput: public std::runtime_error {
 public:
     UnsupportedInput(const std::string& what_arg): std::runtime_error(what_arg) {};
     UnsupportedInput(const char *what_arg): std::runtime_error(what_arg) {};
-    UnsupportedInput(const UnsupportedInput &ref): std::runtime_error(ref) {};
+    UnsupportedInput(const UnsupportedInput &ref) = default;
 };
 
 /**
@@ -132,7 +132,7 @@ class UnsupportedContainerFlags: public UnsupportedInput {
 public:
     UnsupportedContainerFlags(const std::string& what_arg): UnsupportedInput(what_arg) {};
     UnsupportedContainerFlags(const char *what_arg): UnsupportedInput(what_arg) {};
-    UnsupportedContainerFlags(const UnsupportedContainerFlags &ref): UnsupportedInput(ref) {};
+    UnsupportedContainerFlags(const UnsupportedContainerFlags &ref) = default;
 };
 
 /**
@@ -142,7 +142,7 @@ class UnsupportedRecordType: public UnsupportedInput {
 public:
     UnsupportedRecordType(const std::string& what_arg): UnsupportedInput(what_arg) {};
     UnsupportedRecordType(const char *what_arg): UnsupportedInput(what_arg) {};
-    UnsupportedRecordType(const UnsupportedRecordType &ref): UnsupportedInput(ref) {};
+    UnsupportedRecordType(const UnsupportedRecordType &ref) = default;
 };
 
 /**
@@ -152,7 +152,7 @@ class UnsupportedHashFunction: public UnsupportedInput {
 public:
     UnsupportedHashFunction(const std::string& what_arg): UnsupportedInput(what_arg) {};
     UnsupportedHashFunction(const char *what_arg): UnsupportedInput(what_arg) {};
-    UnsupportedHashFunction(const UnsupportedHashFunction &ref): UnsupportedInput(ref) {};
+    UnsupportedHashFunction(const UnsupportedHashFunction &ref) = default;
 };
 
 }
