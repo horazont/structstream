@@ -50,6 +50,7 @@ set(TEST_SOURCES
   "tests/decode_record.cpp"
   "tests/decode_container.cpp"
   "tests/decode_forgiving.cpp"
+  "tests/decode_failures.cpp"
   "tests/deserialize.cpp"
   "tests/serialize.cpp"
   "tests/hashing.cpp"
