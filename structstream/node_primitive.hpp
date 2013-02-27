@@ -29,6 +29,9 @@ authors named in the AUTHORS file.
 #include "structstream/node_base.hpp"
 
 #include <cstring>
+#include <cassert>
+
+#include "structstream/utils.hpp"
 
 namespace StructStream {
 
@@ -88,6 +91,12 @@ public:
  */
 template <class _T, RecordType rt>
 class PrimitiveDataRecord: public DataRecord {
+    static_assert(
+        (sizeof(_T) == 1) ||
+        (sizeof(_T) == 4) ||
+        (sizeof(_T) == 8),
+        "PrimitiveDataRecord only supports 1, 4 or 8 byte wide types.");
+
 protected:
     PrimitiveDataRecord(ID id):
         DataRecord::DataRecord(id),
@@ -97,7 +106,7 @@ protected:
         _data(ref._data) {}
 public:
     virtual ~PrimitiveDataRecord() {}
-protected:
+public:
     _T _data;
 public:
     virtual NodeHandle copy() const {
@@ -117,12 +126,45 @@ public:
     };
 
     virtual void read(IOIntf *stream) {
-	sread(stream, &_data, sizeof(_T));
+        if (Utils::is_big_endian && (sizeof(_T) > 1)) {
+            uint8_t buf[sizeof(_T)];
+            sread(stream, buf, sizeof(_T));
+
+            switch (sizeof(_T)) {
+            case 4:
+                _data = (_T)(__builtin_bswap32(*reinterpret_cast<uint32_t*>(buf)));
+                break;
+            case 8:
+                _data = (_T)(__builtin_bswap64(*reinterpret_cast<uint64_t*>(buf)));
+                break;
+            default:
+                assert(false);
+            };
+        } else {
+            sreadv<_T>(stream, &_data);
+        }
     };
 
     virtual void write(IOIntf *stream) const {
         write_header(stream);
-        swrite(stream, &_data, sizeof(_T));
+        if (Utils::is_big_endian) {
+            uint8_t buf[sizeof(_T)];
+
+            switch (sizeof(_T)) {
+            case 4:
+                *((_T*)buf) = (_T)(__builtin_bswap32(*reinterpret_cast<const uint32_t*>(&_data)));
+                break;
+            case 8:
+                *((_T*)buf) = (_T)(__builtin_bswap64(*reinterpret_cast<const uint64_t*>(&_data)));
+                break;
+            default:
+                assert(false);
+            };
+
+            swrite(stream, buf, sizeof(_T));
+        } else {
+            swritev<_T>(stream, _data);
+        }
     };
 
     virtual RecordType record_type() const {

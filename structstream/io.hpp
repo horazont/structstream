@@ -43,6 +43,12 @@ inline void swritev(IOIntf *io, const _T value)
     swrite(io, &value, sizeof(_T));
 }
 
+template <class _T>
+inline void sreadv(IOIntf *io, _T *value)
+{
+    sread(io, value, sizeof(_T));
+}
+
 }
 
 #endif

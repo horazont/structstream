@@ -77,6 +77,14 @@ void write_id(StructStream::IOIntf *stream, StructStream::ID value);
  */
 void write_record_type(StructStream::IOIntf *stream, StructStream::RecordType value);
 
+namespace {
+
+static const uint32_t intofant = 0xdeadbeef;
+
+}
+
+static const bool is_big_endian = *((uint8_t*)&intofant) == 0xde;
+
 }
 }
 
