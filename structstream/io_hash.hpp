@@ -92,6 +92,10 @@ public:
         _hash = nullptr;
         return hash;
     };
+
+    IOIntfHandle underlying_io() const {
+        return _io_h;
+    };
 };
 
 }
