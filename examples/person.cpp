@@ -46,6 +46,55 @@ typedef serialize_block<
     serialize_custom<0x03, UInt32Record, PersonRecord, uint32_t, &PersonRecord::get_age>
     > PersonSerializer;
 
+void read_and_show_input(std::istream &infile)
+{
+    PersonRecord person;
+
+    /* Make the ifstream readable to structstream */
+    IOIntfHandle io(new StandardInputStream(infile));
+
+    ContainerHandle root;
+    /* Parse the input */
+    try {
+        root = bitstream_to_tree(io);
+    } catch (FormatError &e) {
+        std::cerr << "Input file was invalid: Format violation" << std::endl;
+        std::cerr << e.what() << std::endl << std::endl;
+    } catch (UnsupportedInput &e) {
+        std::cerr << "Input file was invalid: Unsupported input" << std::endl;
+        std::cerr << e.what() << std::endl << std::endl;
+    } catch (LimitError &e) {
+        std::cerr << "Input file was invalid!" << std::endl;
+        std::cerr << e.what() << std::endl << std::endl;
+    }
+
+    // Exception occured, so nothing to work with.
+    if (!root) {
+        return;
+    }
+
+    /* Extract the first element from the document */
+    Container *child = std::dynamic_pointer_cast<Container>(*root->children_begin()).get();
+
+    if (child != nullptr) {
+        /* If it (a) exists and (b) is actually a container,
+         * we can go on with deserializing it */
+        PersonDeserializer::deserialize(child, &person);
+        std::cout << "Look what I found:" << std::endl;
+        std::cout << "Name: " << person.name << std::endl;
+        std::cout << "Age: " << person.age << std::endl;
+        std::cout << std::endl;
+
+        if (child->get_hashed() != HT_INVALID) {
+            std::cout << "The data was checksum'd and validated successfully." << std::endl;
+        }
+    } else {
+        /* Otherwise, we better stop. */
+        std::cout << "Hmm, that input doesn't look ok to me. I better ignore it." << std::endl;
+    }
+
+}
+
 int main()
 {
     PersonRecord person;
@@ -59,31 +108,7 @@ int main()
         if (!infile.good()) {
             std::cerr << "No input data file ... " << std::endl;
         } else {
-            /* Make the ifstream readable to structstream */
-            IOIntfHandle io(new StandardInputStream(infile));
-
-            /* Parse the input */
-            ContainerHandle root = bitstream_to_tree(io);
-
-            /* Extract the first element from the document */
-            Container *child = std::dynamic_pointer_cast<Container>(*root->children_begin()).get();
-
-            if (child != nullptr) {
-                /* If it (a) exists and (b) is actually a container,
-                 * we can go on with deserializing it */
-                PersonDeserializer::deserialize(child, &person);
-                std::cout << "Look what I found:" << std::endl;
-                std::cout << "Name: " << person.name << std::endl;
-                std::cout << "Age: " << person.age << std::endl;
-                std::cout << std::endl;
-
-                if (child->get_hashed() != HT_INVALID) {
-                    std::cout << "The data was checksum'd and validated successfully." << std::endl;
-                }
-            } else {
-                /* Otherwise, we better stop. */
-                std::cout << "Hmm, that input doesn't look ok to me. I better ignore it." << std::endl;
-            }
+            read_and_show_input(infile);
         }
     }
 
