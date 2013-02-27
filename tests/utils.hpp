@@ -40,17 +40,14 @@ inline ContainerHandle blob_to_tree(const uint8_t *data, intptr_t data_len)
     return bitstream_to_tree(io, registry);
 }
 
-inline intptr_t tree_to_blob(uint8_t *output, intptr_t output_len,
-                             std::initializer_list<const NodeHandle> children,
-                             bool armor = true)
+inline intptr_t tree_to_blob(uint8_t *output, intptr_t output_len, std::initializer_list<NodeHandle> children, bool armor = true)
 {
     IOIntfHandle io = IOIntfHandle(new WritableMemory(output, output_len));
     tree_to_bitstream(children, io, armor);
     return static_cast<WritableMemory*>(io.get())->size();
 }
 
-inline intptr_t tree_to_blob(uint8_t *output, intptr_t output_len,
-                             const ContainerHandle root, bool armor = true)
+inline intptr_t tree_to_blob(uint8_t *output, intptr_t output_len, ContainerHandle root, bool armor = true)
 {
     IOIntfHandle io = IOIntfHandle(new WritableMemory(output, output_len));
     tree_to_bitstream(root, io, armor);

@@ -33,9 +33,9 @@ namespace StructStream {
 
 ContainerHandle bitstream_to_tree(IOIntfHandle in, RegistryHandle registry);
 
-void tree_to_bitstream(const ContainerHandle root, IOIntfHandle out,
+void tree_to_bitstream(ContainerHandle root, IOIntfHandle out,
                        bool armor = true);
-void tree_to_bitstream(std::initializer_list<const NodeHandle> nodes, IOIntfHandle out,
+void tree_to_bitstream(std::initializer_list<NodeHandle> nodes, IOIntfHandle out,
                        bool armor = true);
 
 }
