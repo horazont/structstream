@@ -97,6 +97,8 @@ enum HashType {
     HT_SHA1 = 0x01,
     HT_SHA256 = 0x02,
     HT_SHA512 = 0x03,
+    HT_CRC32 = 0x04,
+    HT_MD5 = 0x05,
     HT_APP0 = 0x40,
     HT_INVALID = 0x7f,
 };
