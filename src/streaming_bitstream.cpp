@@ -247,7 +247,7 @@ void FromBitstream::end_of_container_body(ParentInfo *info)
             // some reason (e.g. forgiving mode)
             VarUInt hash_length = Utils::read_varuint(_source);
             check_hash_length(hash_length);
-            _source->skip(hash_length);
+            sskip(_source, hash_length);
         }
 
     }

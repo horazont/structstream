@@ -55,4 +55,12 @@ void swrite(IOIntf *io, const void *buf, const intptr_t len)
     }
 }
 
+void sskip(IOIntf *io, const intptr_t len)
+{
+    intptr_t skipped_bytes = io->skip(len);
+    if (skipped_bytes < len) {
+        throw EndOfStreamError("Premature end-of-stream while skipping (reading).");
+    }
+}
+
 }
