@@ -37,6 +37,7 @@ public:
     virtual ~IOIntf() {};
     virtual intptr_t read(void *buf, const intptr_t len) = 0;
     virtual intptr_t write(const void *buf, const intptr_t len) = 0;
+    virtual intptr_t skip(const intptr_t len);
 };
 
 typedef std::shared_ptr<IOIntf> IOIntfHandle;
