@@ -27,14 +27,15 @@ authors named in the AUTHORS file.
 
 #include <cassert>
 
+#include "structstream/errors.hpp"
+
 namespace StructStream {
 
 void sread(IOIntf *io, void *buf, const intptr_t len)
 {
     intptr_t read_bytes = io->read(buf, len);
     if (read_bytes < len) {
-	// FIXME: throw an error
-	assert(false);
+        throw EndOfStreamError("Premature end-of-stream while reading.");
     }
 }
 
@@ -50,8 +51,7 @@ void swrite(IOIntf *io, const void *buf, const intptr_t len)
     // printf("\n");
     intptr_t written_bytes = io->write(buf, len);
     if (written_bytes < len) {
-	// FIXME: throw an error
-	assert(false);
+        throw EndOfStreamError("Premature end-of-stream while writing.");
     }
 }
 

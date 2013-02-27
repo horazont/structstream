@@ -62,6 +62,16 @@ public:
 };
 
 /**
+ * Premature end-of-stream.
+ */
+class EndOfStreamError: public FormatError {
+public:
+    EndOfStreamError(const std::string& what_arg): FormatError(what_arg) {};
+    EndOfStreamError(const char *what_arg): FormatError(what_arg) {};
+    EndOfStreamError(const EndOfStreamError &ref) = default;
+};
+
+/**
  * An illegal value for a field was encountered.
  */
 class IllegalData: public FormatError {
