@@ -27,7 +27,8 @@ authors named in the AUTHORS file.
 
 namespace StructStream {
 
-ContainerHandle bitstream_to_tree(IOIntfHandle in, RegistryHandle registry)
+ContainerHandle bitstream_to_tree(IOIntfHandle in, RegistryHandle registry,
+                                  uint32_t forgivingness)
 {
     ToTree *sink = new ToTree();
     StreamSink sink_h(sink);
@@ -37,6 +38,7 @@ ContainerHandle bitstream_to_tree(IOIntfHandle in, RegistryHandle registry)
     }
 
     FromBitstream reader(in, registry, sink_h);
+    reader.set_forgiving_for(forgivingness);
     reader.read_all();
     return sink->root();
 }

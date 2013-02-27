@@ -32,7 +32,8 @@ authors named in the AUTHORS file.
 namespace StructStream {
 
 ContainerHandle bitstream_to_tree(IOIntfHandle in,
-                                  RegistryHandle registry = RegistryHandle());
+                                  RegistryHandle registry = RegistryHandle(),
+                                  uint32_t forgivingness = 0);
 
 void tree_to_bitstream(ContainerHandle root, IOIntfHandle out,
                        bool armor = true);
