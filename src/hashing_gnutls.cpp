@@ -99,6 +99,7 @@ public:
             throw std::logic_error("finish() cannot be called on finish'd hash.");
         }
         gnutls_hash_deinit(_hash_hd, digest);
+        _ready = false;
     };
 };
 

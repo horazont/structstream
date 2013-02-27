@@ -11,6 +11,7 @@ set(STRUCTSTREAM_SOURCES
   "src/io_base.cpp"
   "src/io_memory.cpp"
   "src/io_std.cpp"
+  "src/io_hash.cpp"
   "src/io.cpp"
   "src/registry.cpp"
   "src/utils.cpp"
@@ -50,6 +51,7 @@ set(TEST_SOURCES
   "tests/decode_container.cpp"
   "tests/deserialize.cpp"
   "tests/serialize.cpp"
+  "tests/hashing.cpp"
 )
 
 include_directories(${CATCH_INCLUDE_DIRS})

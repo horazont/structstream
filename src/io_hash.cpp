@@ -1,5 +1,5 @@
 /**********************************************************************
-File name: io.hpp
+File name: io_hash.cpp
 This file is part of: structstream++
 
 LICENSE
@@ -23,25 +23,4 @@ FEEDBACK & QUESTIONS
 For feedback and questions about structstream++ please e-mail one of the
 authors named in the AUTHORS file.
 **********************************************************************/
-#ifndef _STRUCTSTREAM_IO_H
-#define _STRUCTSTREAM_IO_H
-
-#include "structstream/io_base.hpp"
-#include "structstream/io_memory.hpp"
-#include "structstream/io_std.hpp"
 #include "structstream/io_hash.hpp"
-
-namespace StructStream {
-
-void sread(IOIntf *io, void *buf, const intptr_t len);
-void swrite(IOIntf *io, const void *buf, const intptr_t len);
-
-template <class _T>
-inline void swritev(IOIntf *io, const _T value)
-{
-    swrite(io, &value, sizeof(_T));
-}
-
-}
-
-#endif
