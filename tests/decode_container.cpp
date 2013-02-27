@@ -192,3 +192,16 @@ TEST_CASE ("decode/container/missing_eoc", "Detect too many children / missing E
 
     REQUIRE_THROWS_AS(blob_to_tree(data, sizeof(data)), MissingEndOfChildren);
 }
+
+TEST_CASE ("decode/container/unknown_flags", "Detect unknown container flags")
+{
+    static const uint8_t data[] = {
+        (uint8_t)(RT_CONTAINER) | 0x80, uint8_t(0x01) | 0x80,
+        uint8_t(CF_WITH_SIZE | CF_ARMORED | CF_APP0) | 0x80,
+        uint8_t(0x00) | 0x80, // length
+        uint8_t(RT_END_OF_CHILDREN) | 0x80,
+        uint8_t(RT_END_OF_CHILDREN) | 0x80
+    };
+
+    REQUIRE_THROWS_AS(blob_to_tree(data, sizeof(data)), UnsupportedContainerFlags);
+}

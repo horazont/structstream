@@ -126,8 +126,10 @@ void FromBitstream::start_of_container(ContainerHandle cont_h)
     proc_container_flags(flags_int, info);
 
     if (flags_int != 0) {
-        delete info;
-        throw UnsupportedContainerFlags("Unsupported container flags encountered.");
+        if ((_forgiveness & UnknownContainerFlags) == 0) {
+            delete info;
+            throw UnsupportedContainerFlags("Unsupported container flags encountered.");
+        }
     }
 
     try {
@@ -224,7 +226,11 @@ void FromBitstream::end_of_container_body(ParentInfo *info)
                 hashfun->finish(hash_calculated);
 
                 if (memcmp(hash_from_stream, hash_calculated, hash_length) != 0) {
-                    throw HashCheckError("calculated and bitstream checksum do not match.");
+                    if ((_forgiveness & ChecksumErrors) == 0) {
+                        throw HashCheckError("calculated and bitstream checksum do not match.");
+                    }
+                } else {
+                    info->footer->validated = true;
                 }
             } catch (...) {
                 free(hash_from_stream);
@@ -233,9 +239,10 @@ void FromBitstream::end_of_container_body(ParentInfo *info)
             }
             free(hash_from_stream);
             free(hash_calculated);
-
-            info->footer->validated = true;
         } else {
+
+            // printf("bitstream: eoc with hash %x, but no checking\n", info->footer->hash_function);
+
             // hash checking has been disabled for this container for
             // some reason (e.g. forgiving mode)
             VarUInt hash_length = Utils::read_varuint(_source);

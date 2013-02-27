@@ -121,8 +121,8 @@ private:
 
     uint32_t _forgiveness;
 protected:
-    void check_hash_length(VarUInt len);
     void check_end_of_container();
+    void check_hash_length(VarUInt len);
     void push_root();
 protected:
     virtual ParentInfo *new_parent_info() const;
