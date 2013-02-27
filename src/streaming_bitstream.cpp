@@ -250,33 +250,33 @@ void FromBitstream::read_all()
     } while (node.get() != nullptr);
 }
 
-/* StructStream::ToFile */
+/* StructStream::ToBitstream */
 
-ToFile::ToFile(IOIntfHandle dest):
+ToBitstream::ToBitstream(IOIntfHandle dest):
     _dest_h(dest),
     _dest(dest.get())
 {
 
 }
 
-ToFile::~ToFile()
+ToBitstream::~ToBitstream()
 {
 
 }
 
-void ToFile::require_open() const
+void ToBitstream::require_open() const
 {
     if (!_dest) {
         throw AlreadyClosed("This operation is not allowed on a closed writer.");
     }
 }
 
-ToFile::ParentInfo *ToFile::new_parent_info() const
+ToBitstream::ParentInfo *ToBitstream::new_parent_info() const
 {
     return new ParentInfo();
 }
 
-VarUInt ToFile::get_container_flags(ToFile::ParentInfo *info)
+VarUInt ToBitstream::get_container_flags(ToBitstream::ParentInfo *info)
 {
     VarUInt flags = 0;
     if (info->armored) {
@@ -292,7 +292,7 @@ VarUInt ToFile::get_container_flags(ToFile::ParentInfo *info)
     return flags;
 }
 
-ToFile::ParentInfo *ToFile::setup_container(ContainerHandle cont, const ContainerMeta *meta)
+ToBitstream::ParentInfo *ToBitstream::setup_container(ContainerHandle cont, const ContainerMeta *meta)
 {
     // TODO: support for configuring hashes etc.
 
@@ -305,7 +305,7 @@ ToFile::ParentInfo *ToFile::setup_container(ContainerHandle cont, const Containe
     return info;
 }
 
-void ToFile::write_container_header(VarUInt flags, ParentInfo *info)
+void ToBitstream::write_container_header(VarUInt flags, ParentInfo *info)
 {
     Utils::write_record_type(_dest, info->cont->record_type());
     Utils::write_id(_dest, info->cont->id());
@@ -322,19 +322,19 @@ void ToFile::write_container_header(VarUInt flags, ParentInfo *info)
     }
 }
 
-void ToFile::write_container_footer(ParentInfo *info)
+void ToBitstream::write_container_footer(ParentInfo *info)
 {
     if (info->armored) {
         Utils::write_record_type(_dest, RT_END_OF_CHILDREN);
     }
 }
 
-void ToFile::write_footer()
+void ToBitstream::write_footer()
 {
     Utils::write_record_type(_dest, RT_END_OF_CHILDREN);
 }
 
-void ToFile::start_container(ContainerHandle cont, const ContainerMeta *meta)
+void ToBitstream::start_container(ContainerHandle cont, const ContainerMeta *meta)
 {
     require_open();
 
@@ -348,14 +348,14 @@ void ToFile::start_container(ContainerHandle cont, const ContainerMeta *meta)
     _curr_parent = info;
 }
 
-void ToFile::push_node(NodeHandle node)
+void ToBitstream::push_node(NodeHandle node)
 {
     require_open();
 
     node->write(_dest);
 }
 
-void ToFile::end_container(const ContainerFooter *foot)
+void ToBitstream::end_container(const ContainerFooter *foot)
 {
     require_open();
 
@@ -370,12 +370,12 @@ void ToFile::end_container(const ContainerFooter *foot)
     write_container_footer(old);
 }
 
-void ToFile::end_of_stream()
+void ToBitstream::end_of_stream()
 {
     close();
 }
 
-void ToFile::close()
+void ToBitstream::close()
 {
     require_open();
 

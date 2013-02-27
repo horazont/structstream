@@ -91,7 +91,7 @@ public:
     void read_all();
 };
 
-class ToFile: public StreamSinkIntf {
+class ToBitstream: public StreamSinkIntf {
 protected:
     struct ParentInfo {
         ContainerHandle cont;
@@ -100,8 +100,8 @@ protected:
         HashType hash_function;
     };
 public:
-    ToFile(IOIntfHandle dest);
-    virtual ~ToFile();
+    ToBitstream(IOIntfHandle dest);
+    virtual ~ToBitstream();
 private:
     IOIntfHandle _dest_h;
     IOIntf *_dest;

@@ -43,18 +43,14 @@ inline ContainerHandle blob_to_tree(const uint8_t *data, intptr_t data_len)
 inline intptr_t tree_to_blob(uint8_t *output, intptr_t output_len, std::initializer_list<NodeHandle> children, bool armor = true)
 {
     IOIntfHandle io = IOIntfHandle(new WritableMemory(output, output_len));
-    ToFile *out = new ToFile(io);
-    out->set_armor_default(armor);
-    FromTree(StreamSink(out), children);
+    tree_to_bitstream(children, io, armor);
     return static_cast<WritableMemory*>(io.get())->size();
 }
 
 inline intptr_t tree_to_blob(uint8_t *output, intptr_t output_len, ContainerHandle root, bool armor = true)
 {
     IOIntfHandle io = IOIntfHandle(new WritableMemory(output, output_len));
-    ToFile *out = new ToFile(io);
-    out->set_armor_default(armor);
-    FromTree(StreamSink(out), root);
+    tree_to_bitstream(root, io, armor);
     return static_cast<WritableMemory*>(io.get())->size();
 }
 
