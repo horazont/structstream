@@ -38,17 +38,25 @@ typedef std::weak_ptr<Node> NodeWeakHandle;
 
 template <class NodeT>
 struct NodeHandleFactory {
-    inline static NodeHandle create(ID id) {
-        NodeT *node = new NodeT(id);
-        NodeHandle handle = NodeHandle(node);
-        node->_self = NodeWeakHandle(handle);
+    typedef std::shared_ptr<NodeT> NodeTHandle;
+    typedef std::weak_ptr<NodeT> NodeTWeakHandle;
+
+    template <typename ... ArgTs>
+    inline static NodeTHandle createv(ID id, ArgTs... args) {
+        NodeT *node = new NodeT(id, args...);
+        NodeTHandle handle = NodeTHandle(node);
+        node->_self = NodeTWeakHandle(handle);
         return handle;
     };
 
-    inline static NodeHandle copy(const NodeT &ref) {
+    inline static NodeTHandle create(ID id) {
+        return createv<>(id);
+    };
+
+    inline static NodeTHandle copy(const NodeT &ref) {
         NodeT *node = new NodeT(ref);
-        NodeHandle handle = NodeHandle(node);
-        node->_self = NodeWeakHandle(handle);
+        NodeTHandle handle = NodeTHandle(node);
+        node->_self = NodeTWeakHandle(handle);
         return handle;
     };
 private:
