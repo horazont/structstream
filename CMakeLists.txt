@@ -54,6 +54,7 @@ set(TEST_SOURCES
   "tests/deserialize.cpp"
   "tests/serialize.cpp"
   "tests/hashing.cpp"
+  "tests/idpath_find_most_shallow.cpp"
 )
 
 include_directories(${CATCH_INCLUDE_DIRS})
