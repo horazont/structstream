@@ -51,6 +51,7 @@ public:
     typedef std::pair<NodeByIDConstIterator, NodeByIDConstIterator> NodeRangeByID;
 protected:
     Container(ID id);
+    Container(ID id, std::initializer_list<NodeHandle> children);
     Container(const Container &ref);
 public:
     virtual ~Container();

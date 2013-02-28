@@ -43,6 +43,18 @@ Container::Container(ID id):
 
 }
 
+Container::Container(ID id, std::initializer_list<NodeHandle> children):
+    Node::Node(id),
+    _validated(false),
+    _hash_function(HT_NONE),
+    _children(),
+    _id_lut()
+{
+    for (auto node: children) {
+	child_add(node);
+    }
+}
+
 Container::Container(const Container &ref):
     Node::Node(ref),
     _validated(ref._validated),
