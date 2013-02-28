@@ -31,12 +31,12 @@ set(DEPS)
 
 find_package(GnuTLS)
 
-if (DEFINED GNUTLS_FOUND)
+if (GNUTLS_FOUND)
   add_definitions(-DWITH_GNUTLS)
   add_definitions(${GNUTLS_DEFINITIONS})
   include_directories(${GNUTLS_INCLUDE_DIR})
   list(APPEND DEPS ${GNUTLS_LIBRARIES})
-endif (DEFINED GNUTLS_FOUND)
+endif (GNUTLS_FOUND)
 
 add_library(structstream++ ${STRUCTSTREAM_SOURCES})
 target_link_libraries(structstream++ ${DEPS})
