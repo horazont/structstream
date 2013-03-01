@@ -53,6 +53,13 @@ struct NodeHandleFactory {
         return createv<>(id);
     };
 
+    inline static NodeTHandle create_with_children(
+        ID id,
+        std::initializer_list<NodeHandle> children)
+    {
+        return createv(id, children);
+    };
+
     inline static NodeTHandle copy(const NodeT &ref) {
         NodeT *node = new NodeT(ref);
         NodeTHandle handle = NodeTHandle(node);
