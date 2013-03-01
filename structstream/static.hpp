@@ -59,6 +59,8 @@ enum RecordType {
     RT_UTF8STRING = 0x0A,
     RT_BLOB = 0x0B,
     RT_END_OF_CHILDREN = 0x0C,
+    RT_VARUINT = 0x0D,
+    RT_VARINT = 0x0E,
 
     RT_APPBLOB_MIN = 0x40,
     RT_APPBLOB_MAX = 0x5f,

@@ -29,6 +29,7 @@ authors named in the AUTHORS file.
 #include "structstream/node_base.hpp"
 #include "structstream/node_container.hpp"
 #include "structstream/node_primitive.hpp"
+#include "structstream/node_varint.hpp"
 #include "structstream/node_blob.hpp"
 
 #endif

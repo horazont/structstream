@@ -7,6 +7,7 @@ set(STRUCTSTREAM_SOURCES
   "src/node_base.cpp"
   "src/node_container.cpp"
   "src/node_primitive.cpp"
+  "src/node_varint.cpp"
   "src/node_blob.cpp"
   "src/io_base.cpp"
   "src/io_memory.cpp"
