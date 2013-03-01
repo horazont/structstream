@@ -26,6 +26,7 @@ authors named in the AUTHORS file.
 #include "catch.hpp"
 
 #include "tests/utils.hpp"
+#include "structstream/node_varint.hpp"
 
 #define COMMON_HEADER
 #define COMMON_FOOTER (uint8_t)(RT_END_OF_CHILDREN) | 0x80
@@ -153,6 +154,46 @@ TEST_CASE ("encode/record/utf8", "Encode a utf8 string")
     NodeHandle tree = NodeHandleFactory<BlobRecord>::create(0x01);
     BlobRecord *rec = static_cast<BlobRecord*>(tree.get());
     rec->set(reference, strlen(reference));
+
+    uint8_t output[sizeof(expected)];
+
+    intptr_t size = tree_to_blob(output, sizeof(output), {tree});
+    REQUIRE(size == sizeof(expected));
+
+    REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
+}
+
+TEST_CASE ("encode/record/varint", "Encode a varint record")
+{
+    static const uint8_t expected[] = {
+        COMMON_HEADER
+        (uint8_t)(RT_VARINT) | 0x80, uint8_t(0x01) | 0x80, 0x61, 0x00,
+        COMMON_FOOTER
+    };
+
+    NodeHandle tree = NodeHandleFactory<VarIntRecord>::create(0x01);
+    VarIntRecord *rec = static_cast<VarIntRecord*>(tree.get());
+    rec->set(-0x100);
+
+    uint8_t output[sizeof(expected)];
+
+    intptr_t size = tree_to_blob(output, sizeof(output), {tree});
+    REQUIRE(size == sizeof(expected));
+
+    REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
+}
+
+TEST_CASE ("encode/record/varuint", "Encode a varuint record")
+{
+    static const uint8_t expected[] = {
+        COMMON_HEADER
+        (uint8_t)(RT_VARUINT) | 0x80, uint8_t(0x01) | 0x80, 0x61, 0x00,
+        COMMON_FOOTER
+    };
+
+    NodeHandle tree = NodeHandleFactory<VarUIntRecord>::create(0x01);
+    VarUIntRecord *rec = static_cast<VarUIntRecord*>(tree.get());
+    rec->set(0x2100);
 
     uint8_t output[sizeof(expected)];
 
