@@ -64,3 +64,17 @@ target_link_libraries(run_tests structstream++)
 
 add_executable(examples/person EXCLUDE_FROM_ALL examples/person.cpp)
 target_link_libraries(examples/person structstream++)
+
+add_custom_target(
+  docs
+  COMMAND make html
+  WORKING_DIRECTORY docs
+  COMMENT "Build HTML documentation"
+)
+
+add_custom_target(
+  view-docs
+  COMMAND xdg-open docs/sphinx/build/html/index.html
+  COMMENT "View HTML documentation in favourite HTML viewer"
+  DEPENDS docs
+)
