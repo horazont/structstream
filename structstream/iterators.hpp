@@ -72,20 +72,20 @@ public:
     typedef NodeHandle value_type;
     typedef NodeHandle* pointer;
     typedef NodeHandle& reference;
+public:
+    FindMostShallow();
+    FindMostShallow(ContainerHandle cont, NodeFilter filter);
+    virtual ~FindMostShallow();
 private:
     NodeTreeIterator _iter;
     NodeFilter _filter;
 protected:
     void advance();
 public:
-    FindMostShallow();
-    FindMostShallow(ContainerHandle cont, NodeFilter filter);
     FindMostShallow &operator++();
-    virtual ~FindMostShallow();
-    bool operator==(const FindMostShallow &other) const;
 public:
-    inline bool operator!=(const FindMostShallow &other) const {
-        return !this->operator==(other);
+    inline NodeHandle const& operator*() const {
+        return *_iter;
     };
     inline NodeHandle const& operator*() const {
         return *_iter;
