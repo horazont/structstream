@@ -40,7 +40,7 @@ namespace StructStream {
  */
 class DataRecord: public Node {
 protected:
-    DataRecord(ID id);
+    explicit DataRecord(ID id);
     DataRecord(const DataRecord &ref);
 public:
     virtual ~DataRecord();
@@ -98,7 +98,7 @@ class PrimitiveDataRecord: public DataRecord {
         "PrimitiveDataRecord only supports 1, 4 or 8 byte wide types.");
 
 protected:
-    PrimitiveDataRecord(ID id):
+    explicit PrimitiveDataRecord(ID id):
         DataRecord::DataRecord(id),
         _data() {}
     PrimitiveDataRecord(const PrimitiveDataRecord<_T, rt> &ref):
@@ -193,7 +193,7 @@ typedef PrimitiveDataRecord<bool, RT_BOOL_FALSE> BoolRecordBase;
 class BoolRecord: public BoolRecordBase
 {
 protected:
-    BoolRecord(ID id);
+    explicit BoolRecord(ID id);
     BoolRecord(const BoolRecord &ref);
 public:
     virtual void read(IOIntf *stream);

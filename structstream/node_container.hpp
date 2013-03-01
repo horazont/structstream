@@ -50,7 +50,7 @@ public:
     typedef std::multimap<ID, NodeHandle>::const_iterator NodeByIDConstIterator;
     typedef std::pair<NodeByIDConstIterator, NodeByIDConstIterator> NodeRangeByID;
 protected:
-    Container(ID id);
+    explicit Container(ID id);
     Container(ID id, std::initializer_list<NodeHandle> children);
     Container(const Container &ref);
 public:

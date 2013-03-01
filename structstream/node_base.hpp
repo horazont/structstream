@@ -48,7 +48,7 @@ typedef std::weak_ptr<Container> ContainerWeakHandle;
  */
 class Node {
 protected:
-    Node(ID id);
+    explicit Node(ID id);
     Node(const Node &ref);
 public:
     virtual ~Node();

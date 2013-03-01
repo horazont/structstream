@@ -46,7 +46,7 @@ namespace StructStream {
 template <class _IntfT>
 class BlobDataRecord: public DataRecord {
 protected:
-    BlobDataRecord(ID id):
+    explicit BlobDataRecord(ID id):
         DataRecord::DataRecord(id),
         _buf(),
         _len(0) {};
@@ -131,7 +131,7 @@ public:
  */
 class UTF8Record: public BlobDataRecord<char> {
 protected:
-    UTF8Record(ID id):
+    explicit UTF8Record(ID id):
         BlobDataRecord<char>::BlobDataRecord(id) {};
     UTF8Record(const UTF8Record &ref):
         BlobDataRecord<char>::BlobDataRecord(ref) {};
@@ -159,7 +159,7 @@ public:
  */
 class BlobRecord: public BlobDataRecord<char> {
 protected:
-    BlobRecord(ID id):
+    explicit BlobRecord(ID id):
         BlobDataRecord<char>::BlobDataRecord(id) {};
     BlobRecord(const BlobRecord &ref):
         BlobDataRecord<char>::BlobDataRecord(ref) {};
