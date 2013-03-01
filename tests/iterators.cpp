@@ -31,7 +31,8 @@ authors named in the AUTHORS file.
 
 using namespace StructStream;
 
-TEST_CASE ("iter/nodetree/all", "Check that a NodeTreeIterator catches all nodes")
+TEST_CASE ("iter/nodetree/all",
+           "Check that a NodeTreeIterator catches all nodes")
 {
     NodeHandle items[6];
 
@@ -58,7 +59,8 @@ TEST_CASE ("iter/nodetree/all", "Check that a NodeTreeIterator catches all nodes
     CHECK(!iter.valid());
 }
 
-TEST_CASE ("idpath/most_shallow/empty", "An empty finder is immediately invalid")
+TEST_CASE ("iter/find_most_shallow/empty",
+           "An empty finder is immediately invalid")
 {
     ContainerHandle tree = NodeHandleFactory<Container>::create(0x00);
     FindByID filter(0x01);
@@ -66,9 +68,10 @@ TEST_CASE ("idpath/most_shallow/empty", "An empty finder is immediately invalid"
     CHECK(!iter.valid());
 }
 
-TEST_CASE ("idpath/most_shallow/non-matching", "A finder without matching elements is immediately invalid")
+TEST_CASE ("iter/find_most_shallow/non-matching",
+           "A finder without matching elements is immediately invalid")
 {
-    ContainerHandle tree = NodeHandleFactory<Container>::createv<std::initializer_list<NodeHandle>>(
+    ContainerHandle tree = NodeHandleFactory<Container>::create_with_children(
         0x00,
         {
             NodeHandleFactory<UInt32Record>::create(0x02),
@@ -81,16 +84,17 @@ TEST_CASE ("idpath/most_shallow/non-matching", "A finder without matching elemen
     CHECK(!iter.valid());
 }
 
-TEST_CASE ("idpath/most_shallow/simple", "Foo")
+TEST_CASE ("iter/find_most_shallow/simple",
+           "Some more or less simple tree")
 {
     NodeHandle c1, c2, c3;
 
-    ContainerHandle tree = NodeHandleFactory<Container>::createv<std::initializer_list<NodeHandle>>(
+    ContainerHandle tree = NodeHandleFactory<Container>::create_with_children(
 	0x00,
 	{
 	    c1 = NodeHandleFactory<UInt32Record>::create(0x01),
 	    c2 = NodeHandleFactory<UInt32Record>::create(0x01),
-	    NodeHandleFactory<Container>::createv<std::initializer_list<NodeHandle>>(0x02, {
+	    NodeHandleFactory<Container>::create_with_children(0x02, {
                 c3 = NodeHandleFactory<Container>::create(0x01),
 	    })
 	}
@@ -110,16 +114,17 @@ TEST_CASE ("idpath/most_shallow/simple", "Foo")
     CHECK(!foo.valid());
 }
 
-TEST_CASE ("idpath/most_shallow/more_herings", "Foo")
+TEST_CASE ("iter/find_most_shallow/more_herings",
+           "A more complex tree with a lot of possible false-positives")
 {
     ContainerHandle c1, c2, c3;
 
-    ContainerHandle tree = NodeHandleFactory<Container>::createv<std::initializer_list<NodeHandle>>(
+    ContainerHandle tree = NodeHandleFactory<Container>::create_with_children(
 	0x00,
 	{
 	    c1 = NodeHandleFactory<Container>::create(0x01),
 	    c2 = NodeHandleFactory<Container>::create(0x01),
-	    NodeHandleFactory<Container>::createv<std::initializer_list<NodeHandle>>(0x02, {
+	    NodeHandleFactory<Container>::create_with_children(0x02, {
                 NodeHandleFactory<UInt32Record>::create(0x02),
                 c3 = NodeHandleFactory<Container>::create(0x01),
                 NodeHandleFactory<UInt32Record>::create(0x02),
@@ -143,18 +148,19 @@ TEST_CASE ("idpath/most_shallow/more_herings", "Foo")
     }
 }
 
-TEST_CASE ("idpath/most_shallow/even_more_herings", "Foo")
+TEST_CASE ("iter/find_most_shallow/even_more_herings",
+           "A complex tree with even more possible false-positives")
 {
     NodeHandle c1, c2, c3;
 
-    ContainerHandle tree = NodeHandleFactory<Container>::createv<std::initializer_list<NodeHandle>>(
+    ContainerHandle tree = NodeHandleFactory<Container>::create_with_children(
 	0x00,
 	{
 	    c1 = NodeHandleFactory<UInt32Record>::create(0x01),
 	    c2 = NodeHandleFactory<UInt32Record>::create(0x01),
-	    NodeHandleFactory<Container>::createv<std::initializer_list<NodeHandle>>(0x02, {
+	    NodeHandleFactory<Container>::create_with_children(0x02, {
                 NodeHandleFactory<UInt32Record>::create(0x02),
-                c3 = NodeHandleFactory<Container>::createv<std::initializer_list<NodeHandle>>(0x01, {
+                c3 = NodeHandleFactory<Container>::create_with_children(0x01, {
                     NodeHandleFactory<UInt32Record>::create(0x01)
                 }),
                 NodeHandleFactory<UInt32Record>::create(0x02),
