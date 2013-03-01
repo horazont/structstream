@@ -87,6 +87,29 @@ public:
     inline NodeHandle const& operator*() const {
         return *_iter;
     };
+    inline bool valid() const {
+        return _iter.valid();
+    };
+};
+
+class FindAll {
+public:
+    typedef std::forward_iterator_tag category;
+    typedef NodeHandle value_type;
+    typedef NodeHandle* pointer;
+    typedef NodeHandle& reference;
+public:
+    FindAll();
+    FindAll(ContainerHandle cont, NodeFilter filter);
+    virtual ~FindAll();
+private:
+    NodeTreeIterator _iter;
+    NodeFilter _filter;
+protected:
+    void advance();
+public:
+    FindAll &operator++();
+public:
     inline NodeHandle const& operator*() const {
         return *_iter;
     };

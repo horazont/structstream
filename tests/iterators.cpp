@@ -180,3 +180,38 @@ TEST_CASE ("iter/find_most_shallow/even_more_herings",
     ++foo;
     CHECK(!foo.valid());
 }
+
+TEST_CASE ("iter/find_all/even_more_herings",
+           "A complex tree with several matches")
+{
+    NodeHandle c1, c2, c3, c4;
+
+    ContainerHandle tree = NodeHandleFactory<Container>::create_with_children(
+	0x00,
+	{
+	    c1 = NodeHandleFactory<UInt32Record>::create(0x01),
+	    c2 = NodeHandleFactory<UInt32Record>::create(0x01),
+	    NodeHandleFactory<Container>::create_with_children(0x02, {
+                NodeHandleFactory<UInt32Record>::create(0x02),
+                c3 = NodeHandleFactory<Container>::create_with_children(0x01, {
+                    c4 = NodeHandleFactory<UInt32Record>::create(0x01)
+                }),
+                NodeHandleFactory<UInt32Record>::create(0x02),
+	    }),
+            NodeHandleFactory<UInt32Record>::create(0x02)
+	}
+	);
+
+    FindByID filter(0x01);
+    FindAll foo(tree, filter);
+
+    CHECK((*foo).get() == c1.get());
+    ++foo;
+    CHECK((*foo).get() == c2.get());
+    ++foo;
+    CHECK((*foo).get() == c3.get());
+    ++foo;
+    CHECK((*foo).get() == c4.get());
+    ++foo;
+    CHECK(!foo.valid());
+}

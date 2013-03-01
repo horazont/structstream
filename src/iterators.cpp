@@ -186,6 +186,45 @@ FindMostShallow& FindMostShallow::operator++()
     return *this;
 }
 
+/* StructStream::FindAll */
+
+FindAll::FindAll():
+    _iter(),
+    _filter()
+{
+
+}
+
+FindAll::FindAll(ContainerHandle cont, NodeFilter filter):
+    _iter(cont),
+    _filter(filter)
+{
+    advance();
+}
+
+FindAll::~FindAll()
+{
+
+}
+
+void FindAll::advance()
+{
+    while (_iter.valid()) {
+        NodeHandle node = *_iter;
+        if (_filter(*node.get())) {
+            return;
+        }
+        ++_iter;
+    }
+}
+
+FindAll& FindAll::operator++()
+{
+    ++_iter;
+    advance();
+    return *this;
+}
+
 /* StructStream::FindByID */
 
 FindByID::FindByID(const ID id):
