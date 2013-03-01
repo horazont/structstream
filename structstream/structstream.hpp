@@ -31,5 +31,6 @@ authors named in the AUTHORS file.
 #include "structstream/hashing.hpp"
 #include "structstream/serializer.hpp"
 #include "structstream/deserializer.hpp"
+#include "structstream/iterators.hpp"
 
 #endif
