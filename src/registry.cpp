@@ -28,6 +28,7 @@ authors named in the AUTHORS file.
 #include "structstream/node_container.hpp"
 #include "structstream/node_primitive.hpp"
 #include "structstream/node_blob.hpp"
+#include "structstream/node_varint.hpp"
 
 namespace StructStream {
 
@@ -68,6 +69,8 @@ void Registry::register_defaults() {
     _record_types[RT_BOOL_FALSE] = create_boolean<false>;
     _record_types[RT_BOOL_TRUE] = create_boolean<true>;
     _record_types[RT_CONTAINER] = NodeHandleFactory<Container>::create;
+    _record_types[RT_VARINT] = NodeHandleFactory<VarIntRecord>::create;
+    _record_types[RT_VARUINT] = NodeHandleFactory<VarUIntRecord>::create;
 }
 
 NodeHandle Registry::node_from_record_type(RecordType rt, ID id) const
