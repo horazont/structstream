@@ -26,6 +26,7 @@ authors named in the AUTHORS file.
 #include "catch.hpp"
 
 #include "tests/utils.hpp"
+#include "structstream/node_varint.hpp"
 
 using namespace StructStream;
 
@@ -162,4 +163,34 @@ TEST_CASE ("decode/records/bool", "Test decode of boolean records")
     rec = dynamic_cast<BoolRecord*>((*children).get());
     REQUIRE(rec != 0);
     CHECK(rec->get() == false);
+}
+
+TEST_CASE ("decode/records/varint", "Test decode of a varint record")
+{
+    static const uint8_t data[] = {
+        (uint8_t)(RT_VARINT) | 0x80, uint8_t(0x01) | 0x80, 0x61, 0x00,
+        (uint8_t)(RT_END_OF_CHILDREN) | 0x80
+    };
+
+    NodeHandle node = *(blob_to_tree(data, sizeof(data))->children_begin());
+    REQUIRE(node.get() != 0);
+
+    VarIntRecord *rec = dynamic_cast<VarIntRecord*>(node.get());
+    REQUIRE(rec != 0);
+    REQUIRE(rec->get() == -0x100);
+}
+
+TEST_CASE ("decode/records/varuint", "Test decode of a varuint record")
+{
+    static const uint8_t data[] = {
+        (uint8_t)(RT_VARUINT) | 0x80, uint8_t(0x01) | 0x80, 0x61, 0x00,
+        (uint8_t)(RT_END_OF_CHILDREN) | 0x80
+    };
+
+    NodeHandle node = *(blob_to_tree(data, sizeof(data))->children_begin());
+    REQUIRE(node.get() != 0);
+
+    VarUIntRecord *rec = dynamic_cast<VarUIntRecord*>(node.get());
+    REQUIRE(rec != 0);
+    REQUIRE(rec->get() == 0x2100);
 }
