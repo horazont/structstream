@@ -1,5 +1,5 @@
 /**********************************************************************
-File name: idpath_find_most_shallow.cpp
+File name: iterators.cpp
 This file is part of: structstream++
 
 LICENSE
@@ -26,7 +26,7 @@ authors named in the AUTHORS file.
 #include "catch.hpp"
 
 #include "structstream/node_container.hpp"
-#include "structstream/idpath.hpp"
+#include "structstream/iterators.hpp"
 #include "structstream/node_primitive.hpp"
 
 using namespace StructStream;

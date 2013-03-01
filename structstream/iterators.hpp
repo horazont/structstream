@@ -1,5 +1,5 @@
 /**********************************************************************
-File name: idpath.hpp
+File name: iterators.hpp
 This file is part of: structstream++
 
 LICENSE

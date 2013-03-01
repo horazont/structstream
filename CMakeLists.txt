@@ -25,7 +25,7 @@ set(STRUCTSTREAM_SOURCES
   "src/hashing_base.cpp"
   "src/hashing_gnutls.cpp"
   "src/hashing.cpp"
-  "src/idpath.cpp"
+  "src/iterators.cpp"
 )
 
 set(DEPS)
@@ -55,7 +55,7 @@ set(TEST_SOURCES
   "tests/deserialize.cpp"
   "tests/serialize.cpp"
   "tests/hashing.cpp"
-  "tests/idpath_find_most_shallow.cpp"
+  "tests/iterators.cpp"
 )
 
 include_directories(${CATCH_INCLUDE_DIRS})

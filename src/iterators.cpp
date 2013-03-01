@@ -1,5 +1,5 @@
 /**********************************************************************
-File name: idpath.cpp
+File name: iterators.cpp
 This file is part of: structstream++
 
 LICENSE
@@ -23,7 +23,7 @@ FEEDBACK & QUESTIONS
 For feedback and questions about structstream++ please e-mail one of the
 authors named in the AUTHORS file.
 **********************************************************************/
-#include "structstream/idpath.hpp"
+#include "structstream/iterators.hpp"
 
 #include <cassert>
 
