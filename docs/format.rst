@@ -144,6 +144,8 @@ RecordType enum name value    content format
                               are to be taken as raw binary data.
 ``END_OF_CHILDREN``  ``0x0C`` *no contents*, marks the end of an
                               armored container.
+``VARINT``           ``0x0D`` a signed variable-length integer
+``VARUINT``          ``0x0E`` an unsigned variable-length integer
 ==================== ======== =======================================
 
 Furthermore, the following ranges of RecordTypes are reserved and have
