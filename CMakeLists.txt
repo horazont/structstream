@@ -25,6 +25,7 @@ set(STRUCTSTREAM_SOURCES
   "src/hashing_base.cpp"
   "src/hashing_gnutls.cpp"
   "src/hashing.cpp"
+  "src/idpath.cpp"
 )
 
 set(DEPS)

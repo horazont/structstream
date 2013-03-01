@@ -31,26 +31,77 @@ authors named in the AUTHORS file.
 
 using namespace StructStream;
 
+TEST_CASE ("iter/nodetree/all", "Check that a NodeTreeIterator catches all nodes")
+{
+    NodeHandle items[6];
+
+    ContainerHandle tree = NodeHandleFactory<Container>::create_with_children(
+        0x00,
+        {
+            items[0] = NodeHandleFactory<UInt32Record>::create(0x01),
+            items[1] = NodeHandleFactory<UInt32Record>::create(0x01),
+            items[2] = NodeHandleFactory<Container>::create_with_children(
+                0x01,
+                {
+                    items[3] = NodeHandleFactory<UInt32Record>::create(0x01),
+                    items[4] = NodeHandleFactory<UInt32Record>::create(0x01),
+                }),
+            items[5] = NodeHandleFactory<UInt32Record>::create(0x01),
+        });
+
+    NodeTreeIterator iter(tree);
+    for (NodeHandle item: items) {
+        REQUIRE(iter.valid());
+        CHECK(*iter == item);
+        ++iter;
+    }
+    CHECK(!iter.valid());
+}
+
+TEST_CASE ("idpath/most_shallow/empty", "An empty finder is immediately invalid")
+{
+    ContainerHandle tree = NodeHandleFactory<Container>::create(0x00);
+    FindByID filter(0x01);
+    FindMostShallow iter(tree, filter);
+    CHECK(!iter.valid());
+}
+
+TEST_CASE ("idpath/most_shallow/non-matching", "A finder without matching elements is immediately invalid")
+{
+    ContainerHandle tree = NodeHandleFactory<Container>::createv<std::initializer_list<NodeHandle>>(
+        0x00,
+        {
+            NodeHandleFactory<UInt32Record>::create(0x02),
+            NodeHandleFactory<UInt32Record>::create(0x02),
+            NodeHandleFactory<UInt32Record>::create(0x02)
+        }
+        );
+    FindByID filter(0x01);
+    FindMostShallow iter(tree, filter);
+    CHECK(!iter.valid());
+}
+
 TEST_CASE ("idpath/most_shallow/simple", "Foo")
 {
-    ContainerHandle c1, c2, c3;
+    NodeHandle c1, c2, c3;
 
     ContainerHandle tree = NodeHandleFactory<Container>::createv<std::initializer_list<NodeHandle>>(
 	0x00,
 	{
-	    c1 = NodeHandleFactory<Container>::create(0x01),
-	    c2 = NodeHandleFactory<Container>::create(0x01),
+	    c1 = NodeHandleFactory<UInt32Record>::create(0x01),
+	    c2 = NodeHandleFactory<UInt32Record>::create(0x01),
 	    NodeHandleFactory<Container>::createv<std::initializer_list<NodeHandle>>(0x02, {
                 c3 = NodeHandleFactory<Container>::create(0x01),
 	    })
 	}
 	);
 
-    idpath_find_most_shallow foo(0x01, tree);
+    FindByID filter(0x01);
+    FindMostShallow foo(tree, filter);
 
     NodeHandle c = *foo;
     CHECK(foo.valid());
-    CHECK(c.get() == c1.get());
+    CHECK((*foo).get() == c1.get());
     ++foo;
     CHECK((*foo).get() == c2.get());
     ++foo;
@@ -77,27 +128,30 @@ TEST_CASE ("idpath/most_shallow/more_herings", "Foo")
 	}
 	);
 
-    idpath_find_most_shallow foo(0x01, tree);
+    FindByID filter(0x01);
+    FindMostShallow foo(tree, filter);
 
-    NodeHandle c = *foo;
-    CHECK(c.get() == c1.get());
+    CHECK((*foo).get() == c1.get());
     ++foo;
     CHECK((*foo).get() == c2.get());
     ++foo;
     CHECK((*foo).get() == c3.get());
     ++foo;
     CHECK(!foo.valid());
+    if (foo.valid()) {
+        printf("hint: (*foo).get() == 0x%lx\n", (intptr_t)(*foo).get());
+    }
 }
 
 TEST_CASE ("idpath/most_shallow/even_more_herings", "Foo")
 {
-    ContainerHandle c1, c2, c3;
+    NodeHandle c1, c2, c3;
 
     ContainerHandle tree = NodeHandleFactory<Container>::createv<std::initializer_list<NodeHandle>>(
 	0x00,
 	{
-	    c1 = NodeHandleFactory<Container>::create(0x01),
-	    c2 = NodeHandleFactory<Container>::create(0x01),
+	    c1 = NodeHandleFactory<UInt32Record>::create(0x01),
+	    c2 = NodeHandleFactory<UInt32Record>::create(0x01),
 	    NodeHandleFactory<Container>::createv<std::initializer_list<NodeHandle>>(0x02, {
                 NodeHandleFactory<UInt32Record>::create(0x02),
                 c3 = NodeHandleFactory<Container>::createv<std::initializer_list<NodeHandle>>(0x01, {
@@ -109,10 +163,10 @@ TEST_CASE ("idpath/most_shallow/even_more_herings", "Foo")
 	}
 	);
 
-    idpath_find_most_shallow foo(0x01, tree);
+    FindByID filter(0x01);
+    FindMostShallow foo(tree, filter);
 
-    NodeHandle c = *foo;
-    CHECK(c.get() == c1.get());
+    CHECK((*foo).get() == c1.get());
     ++foo;
     CHECK((*foo).get() == c2.get());
     ++foo;
