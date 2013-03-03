@@ -5,7 +5,7 @@ The structstream file format is designed to be simple and yet
 extensible. Still, it is supposed to be not too large, so we don't
 want to waste space in places where we don't have to.
 
-structstream is loosly based on the EBML format, but it has some
+structstream is loosely based on the EBML format, but it has some
 strong simplifications. As an EBML relative, it also uses varints as
 described in the EBML RFC to store (expectedly) small integer
 numbers in the format metadata.
