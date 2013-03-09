@@ -19,7 +19,6 @@ set(STRUCTSTREAM_SOURCES
   "src/deserializer.cpp"
   "src/serializer.cpp"
   "src/streaming_base.cpp"
-  "src/streaming_utils.cpp"
   "src/streaming_tree.cpp"
   "src/streaming_bitstream.cpp"
   "src/streaming.cpp"
