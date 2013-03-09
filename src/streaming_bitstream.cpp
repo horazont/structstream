@@ -318,7 +318,7 @@ void FromBitstream::end_of_container()
 NodeHandle FromBitstream::read_next() {
     if (_curr_parent == nullptr) {
         // printf("bitstream: state suggests end-of-stream, won't read further\n");
-	return NodeHandle();
+        return NodeHandle();
     }
 
     RecordType rt = Utils::read_record_type(_source);
