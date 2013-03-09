@@ -80,6 +80,7 @@ TEST_CASE ("hashing/stream", "Using a HashPipe to feed a hash buffer")
     REQUIRE(hash != 0);
     REQUIRE(hash->len() == sizeof(hash_buf));
     hash->finish(hash_buf);
+    delete hash;
 
     CHECK(memcmp(hash_buf, ref_hash, sizeof(hash_buf)) == 0);
     CHECK(pipe.write(ref_message, strlen(ref_message)) == 0);

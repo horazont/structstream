@@ -52,7 +52,10 @@ ToTree::ToTree(ContainerHandle root):
 
 ToTree::~ToTree()
 {
-
+    for (auto it: _stack) {
+        delete it;
+    }
+    _stack.clear();
 }
 
 void ToTree::init_root()
@@ -74,6 +77,7 @@ void ToTree::push_parent(ParentInfo *info)
 void ToTree::pop_parent()
 {
     _stack.pop_front();
+    delete _curr_parent;
     _curr_parent = _stack.front();
 }
 

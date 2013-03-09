@@ -114,6 +114,8 @@ TEST_CASE ("decode/records/blob", "Test decode of a blob record")
 
     REQUIRE(strlen(reference) == rec->raw_size()-1);
     REQUIRE(strcmp(buf, reference) == 0);
+
+    free(buf);
 }
 
 TEST_CASE ("decode/records/utf8", "Test decode of a utf8 record")
@@ -141,6 +143,8 @@ TEST_CASE ("decode/records/utf8", "Test decode of a utf8 record")
     REQUIRE(strlen(reference) == rec->raw_size()-1);
     CHECK(rec->datalen() == rec->raw_size());
     REQUIRE(strcmp(buf, reference) == 0);
+
+    free(buf);
 }
 
 TEST_CASE ("decode/records/bool", "Test decode of boolean records")

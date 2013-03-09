@@ -35,7 +35,7 @@ intptr_t IOIntf::skip(const intptr_t len) {
     void *buf = malloc(len);
     intptr_t skipped = 0;
     try {
-        return read(buf, len);
+        skipped = read(buf, len);
     } catch(...) {
         free(buf);
         throw;

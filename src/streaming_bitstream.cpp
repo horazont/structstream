@@ -143,16 +143,15 @@ void FromBitstream::start_of_container(ContainerHandle cont_h)
     info->cont = cont_h;
     info->read_child_count = 0;
 
-    proc_container_flags(flags_int, info);
-
-    if (flags_int != 0) {
-        if ((_forgiveness & UnknownContainerFlags) == 0) {
-            delete info;
-            throw UnsupportedContainerFlags("Unsupported container flags encountered.");
-        }
-    }
-
     try {
+        proc_container_flags(flags_int, info);
+
+        if (flags_int != 0) {
+            if ((_forgiveness & UnknownContainerFlags) == 0) {
+                throw UnsupportedContainerFlags("Unsupported container flags encountered.");
+            }
+        }
+
         end_of_container_header(info);
     } catch (...) {
         delete info;
@@ -238,14 +237,17 @@ void FromBitstream::end_of_container_body(ParentInfo *info)
             // intptr_t
             check_hash_length(hash_length);
             if ((intptr_t)hash_length != hashfun->len()) {
+                delete hashfun;
                 throw IllegalData("hash length does not match with what we know about the hash function.");
             }
 
-            uint8_t *hash_from_stream = (uint8_t*)malloc(hash_length);
             uint8_t *hash_calculated = (uint8_t*)malloc(hash_length);
+            hashfun->finish(hash_calculated);
+            delete hashfun;
+
+            uint8_t *hash_from_stream = (uint8_t*)malloc(hash_length);
             try {
                 sread(_source, hash_from_stream, hash_length);
-                hashfun->finish(hash_calculated);
 
                 if (memcmp(hash_from_stream, hash_calculated, hash_length) != 0) {
                     if ((_forgiveness & ChecksumErrors) == 0) {
@@ -289,21 +291,25 @@ void FromBitstream::end_of_container()
         _curr_parent = _parent_stack.front();
     }
 
-    if (_curr_parent) {
-        // printf("bitstream: pop %lx\n", (intptr_t)(info->cont.get()));
+    try {
+        if (_curr_parent) {
+            // printf("bitstream: pop %lx\n", (intptr_t)(info->cont.get()));
 
-        // Do not call this virtual method for the root node
-        end_of_container_body(info);
-        if (!_sink->end_container(info->footer)) {
-            throw SinkClosed();
-        };
+            // Do not call this virtual method for the root node
+            end_of_container_body(info);
+            if (!_sink->end_container(info->footer)) {
+                throw SinkClosed();
+            };
 
-        _curr_parent->read_child_count += 1;
-    } else {
-        // printf("bitstream: end-of-stream reached\n");
-        _sink->end_of_stream();
+            _curr_parent->read_child_count += 1;
+        } else {
+            // printf("bitstream: end-of-stream reached\n");
+            _sink->end_of_stream();
+        }
+    } catch (...) {
+        delete info;
+        throw;
     }
-
     delete info;
 
     check_end_of_container();
@@ -521,6 +527,8 @@ void ToBitstream::write_container_footer(ParentInfo *info)
         uint8_t *hash_buffer = (uint8_t*)malloc(hash_length);
         hashfun->finish(hash_buffer);
         swrite(_dest, hash_buffer, hash_length);
+
+        delete hashfun;
     }
 }
 
@@ -566,6 +574,8 @@ bool ToBitstream::end_container(const ContainerFooter *foot)
     }
 
     write_container_footer(old);
+
+    delete old;
 
     return true;
 }
