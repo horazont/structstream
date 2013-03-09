@@ -80,7 +80,7 @@ public:
      * and as such will be deleted after the call. If an
      * implementation needs a copy, it shall create one.
      */
-    virtual void start_container(ContainerHandle cont, const ContainerMeta *meta) = 0;
+    virtual bool start_container(ContainerHandle cont, const ContainerMeta *meta) = 0;
 
     /**
      * Push a node to the current container. This requires the full node,
@@ -91,13 +91,13 @@ public:
      * to it. Although users may use the streaming API differently,
      * they have to care about the possible side effects.
      */
-    virtual void push_node(NodeHandle node) = 0;
+    virtual bool push_node(NodeHandle node) = 0;
 
     /**
      * End the current innermost container and return to the upper
      * context.
      */
-    virtual void end_container(const ContainerFooter *foot) = 0;
+    virtual bool end_container(const ContainerFooter *foot) = 0;
 
     /**
      * Mark the end of the stream. Not all sinks may need this.
@@ -124,9 +124,9 @@ protected:
     virtual void _end_container(const ContainerFooter *foot) = 0;
     virtual void _end_of_stream() = 0;
 public:
-    virtual void start_container(ContainerHandle cont, const ContainerMeta *meta);
-    virtual void push_node(NodeHandle node);
-    virtual void end_container(const ContainerFooter *foot);
+    virtual bool start_container(ContainerHandle cont, const ContainerMeta *meta);
+    virtual bool push_node(NodeHandle node);
+    virtual bool end_container(const ContainerFooter *foot);
     virtual void end_of_stream();
 };
 
@@ -137,9 +137,9 @@ public:
     virtual ~ThrowOnAll() = default;
     ThrowOnAll &operator= (const ThrowOnAll &ref) = default;
 public:
-    virtual void start_container(ContainerHandle cont, const ContainerMeta *meta);
-    virtual void push_node(NodeHandle node);
-    virtual void end_container(const ContainerFooter *foot);
+    virtual bool start_container(ContainerHandle cont, const ContainerMeta *meta);
+    virtual bool push_node(NodeHandle node);
+    virtual bool end_container(const ContainerFooter *foot);
     virtual void end_of_stream();
 };
 

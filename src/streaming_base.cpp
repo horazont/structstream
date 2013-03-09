@@ -119,7 +119,7 @@ void SinkTree::nest(StreamSink &other)
     _depth = 1;
 }
 
-void SinkTree::start_container(ContainerHandle cont, const ContainerMeta *meta)
+bool SinkTree::start_container(ContainerHandle cont, const ContainerMeta *meta)
 {
     if (_nested.get() != nullptr) {
         _depth += 1;
@@ -129,18 +129,20 @@ void SinkTree::start_container(ContainerHandle cont, const ContainerMeta *meta)
         _start_container(cont, meta);
         _handling_container = false;
     }
+    return true;
 }
 
-void SinkTree::push_node(NodeHandle node)
+bool SinkTree::push_node(NodeHandle node)
 {
     if (_nested.get() != nullptr) {
         _nested->push_node(node);
     } else {
         _push_node(node);
     }
+    return true;
 }
 
-void SinkTree::end_container(const ContainerFooter *foot)
+bool SinkTree::end_container(const ContainerFooter *foot)
 {
     if (_nested.get() != nullptr) {
         _depth -= 1;
@@ -153,6 +155,7 @@ void SinkTree::end_container(const ContainerFooter *foot)
     } else {
         _end_container(foot);
     }
+    return true;
 }
 
 void SinkTree::end_of_stream()
@@ -163,17 +166,17 @@ void SinkTree::end_of_stream()
 
 /* StructStream::ThrowOnAll */
 
-void ThrowOnAll::start_container(ContainerHandle cont, const ContainerMeta *meta)
+bool ThrowOnAll::start_container(ContainerHandle cont, const ContainerMeta *meta)
 {
     throw std::logic_error("This sink should not recieve start_container().");
 }
 
-void ThrowOnAll::push_node(NodeHandle node)
+bool ThrowOnAll::push_node(NodeHandle node)
 {
     throw std::logic_error("This sink should not recieve push_node().");
 }
 
-void ThrowOnAll::end_container(const ContainerFooter *foot)
+bool ThrowOnAll::end_container(const ContainerFooter *foot)
 {
     throw std::logic_error("This sink should not recieve end_container().");
 }

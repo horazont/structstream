@@ -30,6 +30,14 @@ authors named in the AUTHORS file.
 
 namespace StructStream {
 
+class SinkClosed: public std::exception
+{
+public:
+    SinkClosed() = default;
+    SinkClosed(const SinkClosed &ref) = default;
+    virtual ~SinkClosed() noexcept {};
+};
+
 template<class Ancestor>
 class DefaultException: public Ancestor
 {

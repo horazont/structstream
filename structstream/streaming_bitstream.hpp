@@ -168,9 +168,9 @@ protected:
     virtual void write_container_footer(ParentInfo *info);
     virtual void write_footer();
 public:
-    virtual void start_container(ContainerHandle cont, const ContainerMeta *meta);
-    virtual void push_node(NodeHandle node);
-    virtual void end_container(const ContainerFooter *foot);
+    virtual bool start_container(ContainerHandle cont, const ContainerMeta *meta);
+    virtual bool push_node(NodeHandle node);
+    virtual bool end_container(const ContainerFooter *foot);
     virtual void end_of_stream();
 public:
     void close();

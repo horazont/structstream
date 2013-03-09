@@ -77,7 +77,7 @@ void ToTree::pop_parent()
     _curr_parent = _stack.front();
 }
 
-void ToTree::start_container(ContainerHandle cont, const ContainerMeta *meta)
+bool ToTree::start_container(ContainerHandle cont, const ContainerMeta *meta)
 {
     assert(_curr_parent != nullptr);
 
@@ -85,50 +85,58 @@ void ToTree::start_container(ContainerHandle cont, const ContainerMeta *meta)
 
     _curr_parent->parent->child_add(cont);
     push_parent(new ParentInfo(meta->copy(), cont));
+    return true;
 }
 
-void ToTree::push_node(NodeHandle node)
+bool ToTree::push_node(NodeHandle node)
 {
     assert(_curr_parent != nullptr);
 
     // printf("tree: new child with id 0x%lx\n", node->id());
 
     _curr_parent->parent->child_add(node);
+    return true;
 }
 
-void ToTree::end_container(const ContainerFooter *foot)
+bool ToTree::end_container(const ContainerFooter *foot)
 {
     assert(_curr_parent != nullptr);
 
     // printf("tree: finish container with id 0x%lx\n", _curr_parent->parent_h->id());
 
     pop_parent();
+    return true;
 }
 
 /* StructStream::FromTree */
 
-void subtree_to_sink(StreamSink sink, NodeHandle subtree)
+bool subtree_to_sink(StreamSink sink, NodeHandle subtree)
 {
     Container *cont = dynamic_cast<Container*>(subtree.get());
     if (cont != nullptr) {
         ContainerMeta meta;
         meta.child_count = cont->child_count();
-        sink->start_container(
-            std::static_pointer_cast<Container>(subtree),
-            &meta
-            );
+        if (!sink->start_container(
+                std::static_pointer_cast<Container>(subtree),
+                &meta
+                ))
+        {
+            return false;
+        }
         for (auto it = cont->children_begin();
              it != cont->children_end();
              it++)
         {
-            subtree_to_sink(sink, *it);
+            if (!subtree_to_sink(sink, *it)) {
+                return false;
+            }
         }
         ContainerFooter foot;
         foot.validated = false;
         foot.hash_function = HT_NONE;
-        sink->end_container(&foot);
+        return sink->end_container(&foot);
     } else {
-        sink->push_node(subtree);
+        return sink->push_node(subtree);
     }
 }
 
@@ -138,7 +146,9 @@ void FromTree(StreamSink sink, ContainerHandle root)
          it != root->children_end();
          it++)
     {
-        subtree_to_sink(sink, *it);
+        if (!subtree_to_sink(sink, *it)) {
+            break;
+        };
     }
     sink->end_of_stream();
 }
@@ -146,7 +156,9 @@ void FromTree(StreamSink sink, ContainerHandle root)
 void FromTree(StreamSink sink, std::initializer_list<NodeHandle> children)
 {
     for (auto child: children) {
-        subtree_to_sink(sink, child);
+        if (!subtree_to_sink(sink, child)) {
+            break;
+        };
     }
     sink->end_of_stream();
 }

@@ -141,7 +141,9 @@ void FromBitstream::start_of_container(ContainerHandle cont_h)
 
     _parent_stack.push_front(info);
     _curr_parent = info;
-    _sink->start_container(info->cont, info->meta);
+    if (!_sink->start_container(info->cont, info->meta)) {
+        throw SinkClosed();
+    };
 
     // printf("bitstream: push %lx\n", (uint64_t)_curr_parent->cont.get());
 }
@@ -272,7 +274,9 @@ void FromBitstream::end_of_container()
 
         // Do not call this virtual method for the root node
         end_of_container_body(info);
-        _sink->end_container(info->footer);
+        if (!_sink->end_container(info->footer)) {
+            throw SinkClosed();
+        };
 
         _curr_parent->read_child_count += 1;
     } else {
@@ -361,7 +365,9 @@ NodeHandle FromBitstream::read_next() {
         start_of_container(new_parent);
     } else {
 	new_node->read(_source);
-        _sink->push_node(new_node);
+        if (!_sink->push_node(new_node)) {
+            throw SinkClosed();
+        };
 
         _curr_parent->read_child_count++;
     }
@@ -495,7 +501,7 @@ void ToBitstream::write_footer()
     Utils::write_record_type(_dest, RT_END_OF_CHILDREN);
 }
 
-void ToBitstream::start_container(ContainerHandle cont, const ContainerMeta *meta)
+bool ToBitstream::start_container(ContainerHandle cont, const ContainerMeta *meta)
 {
     require_open();
 
@@ -508,16 +514,18 @@ void ToBitstream::start_container(ContainerHandle cont, const ContainerMeta *met
 
     _parent_stack.push_front(info);
     _curr_parent = info;
+    return true;
 }
 
-void ToBitstream::push_node(NodeHandle node)
+bool ToBitstream::push_node(NodeHandle node)
 {
     require_open();
 
     node->write(_dest);
+    return true;
 }
 
-void ToBitstream::end_container(const ContainerFooter *foot)
+bool ToBitstream::end_container(const ContainerFooter *foot)
 {
     require_open();
 
@@ -530,6 +538,8 @@ void ToBitstream::end_container(const ContainerFooter *foot)
     }
 
     write_container_footer(old);
+
+    return true;
 }
 
 void ToBitstream::end_of_stream()

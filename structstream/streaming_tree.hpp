@@ -62,9 +62,9 @@ protected:
     void push_parent(ParentInfo *info);
     void pop_parent();
 public:
-    virtual void start_container(ContainerHandle cont, const ContainerMeta *meta);
-    virtual void push_node(NodeHandle node);
-    virtual void end_container(const ContainerFooter *foot);
+    virtual bool start_container(ContainerHandle cont, const ContainerMeta *meta);
+    virtual bool push_node(NodeHandle node);
+    virtual bool end_container(const ContainerFooter *foot);
 public:
     inline ContainerHandle root() { return _root; };
 };
