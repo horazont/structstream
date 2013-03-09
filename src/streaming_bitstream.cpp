@@ -59,6 +59,7 @@ ContainerMeta *FromBitstream::ContainerMeta::copy() const
 
 FromBitstream::FromBitstream(IOIntfHandle source, const RegistryHandle nodetypes,
                    StreamSink sink):
+    _original_source_h(source),
     _source_h(source),
     _source(source.get()),
     _node_factory_h(nodetypes),
@@ -75,6 +76,25 @@ FromBitstream::FromBitstream(IOIntfHandle source, const RegistryHandle nodetypes
 FromBitstream::~FromBitstream()
 {
 
+}
+
+void FromBitstream::cleanup_state()
+{
+    // drop all parent info
+    for (auto it: _parent_stack) {
+        delete it;
+    }
+    _parent_stack.clear();
+    _curr_parent = nullptr;
+    _sink = nullptr;
+    _sink_h = StreamSink();
+
+    // kill all hash pipes
+    while (_source_h != _original_source_h) {
+        HashPipe<HP_READ> *pipe = static_cast<HashPipe<HP_READ>*>(_source);
+        _source_h = pipe->underlying_io();
+        _source = _source_h.get();
+    }
 }
 
 void FromBitstream::check_end_of_container()
@@ -379,10 +399,18 @@ NodeHandle FromBitstream::read_next() {
 
 void FromBitstream::read_all()
 {
-    NodeHandle node;
-    do {
-        node = read_next();
-    } while (node.get() != nullptr);
+    try {
+        NodeHandle node;
+        do {
+            node = read_next();
+        } while (node.get() != nullptr);
+    } catch (SinkClosed &foo) {
+        cleanup_state();
+        return;
+    } catch (...) {
+        cleanup_state();
+        throw;
+    }
 }
 
 void FromBitstream::set_forgiving_for(uint32_t forgiveness, bool forgiving)

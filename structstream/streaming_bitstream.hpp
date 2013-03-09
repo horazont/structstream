@@ -107,6 +107,7 @@ public:
              StreamSink sink);
     virtual ~FromBitstream();
 private:
+    IOIntfHandle _original_source_h;
     IOIntfHandle _source_h;
     IOIntf *_source;
 
@@ -121,6 +122,7 @@ private:
 
     uint32_t _forgiveness;
 protected:
+    void cleanup_state();
     void check_end_of_container();
     void check_hash_length(VarUInt len);
     void push_root();
