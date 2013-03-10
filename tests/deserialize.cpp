@@ -210,10 +210,10 @@ TEST_CASE ("deserialize/container/simple", "Deserialization of an integer array"
 
     std::vector<uint32_t> dest;
 
-    typedef deserialize_container<
+    typedef deserialize_only<deserialize_container<
         typename deserialize_value<UInt32Record, 0x02, uint32_t>::deserializer,
         std::back_insert_iterator<decltype(dest)>
-        > deserializer;
+        >> deserializer;
 
     FromTree(StreamSink(new deserializer(dest)),
              std::dynamic_pointer_cast<Container>(pod_root_node));

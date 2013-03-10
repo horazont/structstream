@@ -467,6 +467,55 @@ public:
     };
 };
 
+template <typename deserializer>
+struct deserialize_only: public SinkTree
+{
+    typedef typename deserializer::dest_t dest_t;
+    typedef typename deserializer::record_t record_t;
+    static constexpr ID id = deserializer::id;
+public:
+    deserialize_only(dest_t &dest):
+        _deserializer(new deserializer(dest))
+    {
+
+    };
+    virtual ~deserialize_only() = default;
+private:
+    StreamSink _deserializer;
+public:
+    virtual bool _start_container(ContainerHandle cont, const ContainerMeta *meta)
+    {
+        if (cont->id() == id) {
+            record_t *rec = dynamic_cast<record_t*>(cont.get());
+            if (rec != nullptr) {
+                nest(_deserializer);
+            }
+        }
+        return true;
+    };
+
+    virtual bool _push_node(NodeHandle node)
+    {
+        if (node->id() == id) {
+            record_t *rec = dynamic_cast<record_t*>(node.get());
+            if (rec != nullptr) {
+                _deserializer->push_node(node);
+            }
+        }
+        return true;
+    };
+
+    virtual bool _end_container(const ContainerFooter *foot)
+    {
+        return true;
+    };
+
+    virtual void _end_of_stream()
+    {
+
+    };
+};
+
 }
 
 #endif
