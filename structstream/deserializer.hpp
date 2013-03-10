@@ -380,6 +380,29 @@ protected:
     };
 };
 
+template <typename deserialize_item,
+          typename output_iterator>
+struct deserialize_container: deserialize_iterator<
+    deserialize_item,
+    output_iterator,
+    typename output_iterator::container_type::value_type
+    >
+{
+private:
+    typedef typename output_iterator::container_type::value_type element_t;
+public:
+    typedef typename output_iterator::container_type dest_t;
+    typedef typename deserialize_item::record_t record_t;
+    static constexpr ID id = deserialize_item::id;
+public:
+    deserialize_container(dest_t &dest):
+        deserialize_iterator<deserialize_item, output_iterator, element_t>::deserialize_iterator(output_iterator(dest))
+    {
+
+    }
+    virtual ~deserialize_container() = default;
+};
+
 template <typename record_t, ID id, typename value_t>
 struct deserialize_value
 {

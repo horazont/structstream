@@ -156,7 +156,6 @@ TEST_CASE ("deserialize/blob/callback", "Deserialization of a blob")
     CHECK(strcmp(block.get_str(), text) == 0);
 }
 
-
 TEST_CASE ("deserialize/iterator/simple", "Deserialization of an integer array")
 {
     static const uint32_t values[] = {1, 2, 3, 4, 5};
@@ -181,6 +180,42 @@ TEST_CASE ("deserialize/iterator/simple", "Deserialization of an integer array")
         > deserializer;
 
     FromTree(StreamSink(new deserializer(std::back_inserter(dest))),
+             std::dynamic_pointer_cast<Container>(pod_root_node));
+
+    REQUIRE((sizeof(values) / sizeof(uint32_t)) == dest.size());
+
+    int value_idx = 0;
+    for (auto it = dest.begin();
+         it != dest.end();
+         it++, value_idx++)
+    {
+        CHECK(values[value_idx] == *it);
+    }
+}
+
+TEST_CASE ("deserialize/container/simple", "Deserialization of an integer array")
+{
+    static const uint32_t values[] = {1, 2, 3, 4, 5};
+
+    NodeHandle pod_root_node = NodeHandleFactory<Container>::create(0x01);
+    Container *pod_root = static_cast<Container*>(pod_root_node.get());
+
+    for (auto &value: values)
+    {
+        NodeHandle rec_node = NodeHandleFactory<UInt32Record>::create(0x02);
+        UInt32Record *rec = static_cast<UInt32Record*>(rec_node.get());
+        rec->set(value);
+        pod_root->child_add(rec_node);
+    }
+
+    std::vector<uint32_t> dest;
+
+    typedef deserialize_container<
+        typename deserialize_value<UInt32Record, 0x02, uint32_t>::deserializer,
+        std::back_insert_iterator<decltype(dest)>
+        > deserializer;
+
+    FromTree(StreamSink(new deserializer(dest)),
              std::dynamic_pointer_cast<Container>(pod_root_node));
 
     REQUIRE((sizeof(values) / sizeof(uint32_t)) == dest.size());
