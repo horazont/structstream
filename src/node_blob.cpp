@@ -73,7 +73,7 @@ void BlobRecord::read(IOIntf *stream) {
     VarInt length = read_and_check_length(stream);
     allocate_length(length);
     sread(stream, _buf, size());
-};
+}
 
 void BlobRecord::write(IOIntf *stream) const
 {

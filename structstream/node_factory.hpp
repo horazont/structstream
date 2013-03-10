@@ -47,7 +47,7 @@ struct NodeHandleFactory {
         NodeTHandle handle = NodeTHandle(node);
         node->_self = NodeTWeakHandle(handle);
         return handle;
-    };
+    }
 
     inline static NodeTHandle create(ID id) {
         return createv<>(id);

@@ -121,7 +121,7 @@ bool load_gnutls_hashes_into(HashRegistry &registry)
 #else
     return false;
 #endif
-};
+}
 
 bool load_gnutls_hashes()
 {

@@ -63,18 +63,22 @@ VarUInt read_varuint_ex(IOIntf *stream, intptr_t *overlen, uint_fast8_t *bytecou
         *overlen += 1;
     }
 
-    uint8_t buffer[count];
-    sread(stream, buffer, count);
+    uint8_t *buffer = (uint8_t*)malloc(count);
+    try {
+        sread(stream, buffer, count);
 
-    for (int idx = 0; idx < count; idx++) {
-        if (overlen) {
-            if (buffer[idx] == 0) {
-                *overlen += 1;
-            } else {
-                *overlen = 0;
+        for (int idx = 0; idx < count; idx++) {
+            if (overlen) {
+                if (buffer[idx] == 0) {
+                    *overlen += 1;
+                } else {
+                    *overlen = 0;
+                }
             }
+            result |= ((uint64_t)(buffer[idx]) << ((count-idx)-1)*8);
         }
-        result |= ((uint64_t)(buffer[idx]) << ((count-idx)-1)*8);
+    } catch (...) {
+        free(buffer);
     }
 
     return result;
