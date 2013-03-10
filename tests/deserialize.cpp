@@ -64,7 +64,7 @@ TEST_CASE ("deserialize/pod", "Deserialization of a plain-old-data type")
         0x01,
         struct_members<
             deserialize_member_raw<UInt32Record, 0x02, pod_t, uint32_t, offsetof(pod_t, v1)>,
-            deserialize_member_raw<UInt32Record, 0x04, pod_t, uint8_t, offsetof(pod_t, v3)>,
+            deserialize_member<UInt32Record, 0x04, pod_t, uint8_t, &pod_t::v3>,
             deserialize_member_raw<Float64Record, 0x03, pod_t, double, offsetof(pod_t, v2)>
             >
         > deserializer;
