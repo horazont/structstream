@@ -221,24 +221,42 @@ private:
     StreamSink member_sinks[members::member_count];
     dest_t &dest;
 protected:
-    virtual void _start_container(ContainerHandle cont, const ContainerMeta *meta) {
+    virtual bool _start_container(ContainerHandle cont, const ContainerMeta *meta) {
         Container *node = cont.get();
         StreamSink sink_to_use = members::dispatch_node(member_sinks, node);
         if (sink_to_use) {
+            // printf("struct: found a way to deserialize rt %x, id %lx\n",
+            //        node->record_type(),
+            //        node->id());
             nest(sink_to_use);
+        } else {
+            // printf("struct: found NO way to deserialize rt %x, id %lx; skipping container\n",
+            //        node->record_type(),
+            //        node->id());
+            nest(StreamSink(new NullSink()));
         }
+        return true;
     };
 
-    virtual void _push_node(NodeHandle node_h) {
+    virtual bool _push_node(NodeHandle node_h) {
         Node *node = node_h.get();
         StreamSink sink_to_use = members::dispatch_node(member_sinks, node);
         if (sink_to_use) {
+            // printf("struct: found a way to deserialize rt %x, id %lx\n",
+            //        node->record_type(),
+            //        node->id());
             sink_to_use->push_node(node_h);
+        } else {
+            // printf("struct: found NO way to deserialize rt %x, id %lx\n",
+            //        node->record_type(),
+            //        node->id());
         }
+        return true;
     };
 
-    virtual void _end_container(const ContainerFooter *foot) {
+    virtual bool _end_container(const ContainerFooter *foot) {
         // nothing to do here.
+        return true;
     };
 
     virtual void _end_of_stream() {
@@ -331,26 +349,29 @@ private:
         *dest++ = std::move(curr_el);
     };
 protected:
-    virtual void _start_container(ContainerHandle cont, const ContainerMeta *meta)
+    virtual bool _start_container(ContainerHandle cont, const ContainerMeta *meta)
     {
         curr_el = helper::construct();
         dest_t *dest;
         helper::assign(&curr_el, &dest);
         nest(StreamSink(new deserialize_item(*dest)));
+        return true;
     };
 
-    virtual void _push_node(NodeHandle node)
+    virtual bool _push_node(NodeHandle node)
     {
         curr_el = helper::construct();
         dest_t *dest;
         helper::assign(&curr_el, &dest);
         deserialize_item(*dest).push_node(node);
         submit_item();
+        return true;
     };
 
-    virtual void _end_container(const ContainerFooter *foot)
+    virtual bool _end_container(const ContainerFooter *foot)
     {
         submit_item();
+        return true;
     };
 
     virtual void _end_of_stream()
@@ -369,6 +390,58 @@ struct deserialize_value
             deserialize_member_raw<record_t, id, value_t, value_t, 0>
             >
         > deserializer;
+};
+
+template <typename deserializer>
+struct deserialize_one: public SinkTree
+{
+    typedef typename deserializer::dest_t dest_t;
+    typedef typename deserializer::record_t record_t;
+    static constexpr ID id = deserializer::id;
+public:
+    deserialize_one(dest_t &dest):
+        dest(dest)
+    {
+
+    };
+    virtual ~deserialize_one() = default;
+private:
+    dest_t &dest;
+    StreamSink _deserializer;
+public:
+    virtual bool _start_container(ContainerHandle cont, const ContainerMeta *meta)
+    {
+        if (cont->id() == id) {
+            record_t *rec = dynamic_cast<record_t*>(cont.get());
+            if (rec != nullptr) {
+                _deserializer = StreamSink(new deserializer(dest));
+                nest(_deserializer);
+            }
+        }
+        return true;
+    };
+
+    virtual bool _push_node(NodeHandle node)
+    {
+        if (node->id() == id) {
+            record_t *rec = dynamic_cast<record_t*>(node.get());
+            if (rec != nullptr) {
+                deserializer(dest).push_node(node);
+                return false;
+            }
+        }
+        return true;
+    };
+
+    virtual bool _end_container(const ContainerFooter *foot)
+    {
+        return !_deserializer;
+    };
+
+    virtual void _end_of_stream()
+    {
+
+    };
 };
 
 }

@@ -116,6 +116,7 @@ void SinkTree::nest(StreamSink other)
     }
 
     _nested = other;
+    // printf("sinktree: nested %lx\n", (uint64_t)_nested.get());
     _depth = 1;
 }
 
@@ -123,23 +124,26 @@ bool SinkTree::start_container(ContainerHandle cont, const ContainerMeta *meta)
 {
     if (_nested.get() != nullptr) {
         _depth += 1;
-        _nested->start_container(cont, meta);
+        // printf("sinktree: forwarding to nested %lx\n", (uint64_t)_nested.get());
+        return _nested->start_container(cont, meta);
     } else {
         _handling_container = true;
-        _start_container(cont, meta);
+        // printf("sinktree: handling start_container\n");
+        bool result = _start_container(cont, meta);
         _handling_container = false;
+        return result;
     }
-    return true;
 }
 
 bool SinkTree::push_node(NodeHandle node)
 {
     if (_nested.get() != nullptr) {
-        _nested->push_node(node);
+        // printf("sinktree: forwarding to nested %lx\n", (uint64_t)_nested.get());
+        return _nested->push_node(node);
     } else {
-        _push_node(node);
+        // printf("sinktree: handling push_node\n");
+        return _push_node(node);
     }
-    return true;
 }
 
 bool SinkTree::end_container(const ContainerFooter *foot)
@@ -147,15 +151,17 @@ bool SinkTree::end_container(const ContainerFooter *foot)
     if (_nested.get() != nullptr) {
         _depth -= 1;
         if (_depth == 0) {
+            // printf("sinktree: ended nested %lx\n", (uint64_t)_nested.get());
             _nested = StreamSink();
-            _end_container(foot);
+            return _end_container(foot);
         } else {
-            _nested->end_container(foot);
+            // printf("sinktree: forwarding to nested %lx\n", (uint64_t)_nested.get());
+            return _nested->end_container(foot);
         }
     } else {
-        _end_container(foot);
+        // printf("sinktree: handling end_of_container\n");
+        return _end_container(foot);
     }
-    return true;
 }
 
 void SinkTree::end_of_stream()
@@ -184,6 +190,28 @@ bool ThrowOnAll::end_container(const ContainerFooter *foot)
 void ThrowOnAll::end_of_stream()
 {
     throw std::logic_error("This sink should not recieve end_of_stream().");
+}
+
+/* StructStream::NullSink */
+
+bool NullSink::start_container(ContainerHandle cont, const ContainerMeta *meta)
+{
+    return true;
+}
+
+bool NullSink::push_node(NodeHandle node)
+{
+    return true;
+}
+
+bool NullSink::end_container(const ContainerFooter *foot)
+{
+    return true;
+}
+
+void NullSink::end_of_stream()
+{
+
 }
 
 }

@@ -119,9 +119,9 @@ private:
 protected:
     void nest(StreamSink other);
 protected:
-    virtual void _start_container(ContainerHandle cont, const ContainerMeta *meta) = 0;
-    virtual void _push_node(NodeHandle node) = 0;
-    virtual void _end_container(const ContainerFooter *foot) = 0;
+    virtual bool _start_container(ContainerHandle cont, const ContainerMeta *meta) = 0;
+    virtual bool _push_node(NodeHandle node) = 0;
+    virtual bool _end_container(const ContainerFooter *foot) = 0;
     virtual void _end_of_stream() = 0;
 public:
     virtual bool start_container(ContainerHandle cont, const ContainerMeta *meta) final;
@@ -136,6 +136,19 @@ public:
     ThrowOnAll(const ThrowOnAll &ref) = default;
     virtual ~ThrowOnAll() {};
     ThrowOnAll &operator= (const ThrowOnAll &ref) = default;
+public:
+    virtual bool start_container(ContainerHandle cont, const ContainerMeta *meta);
+    virtual bool push_node(NodeHandle node);
+    virtual bool end_container(const ContainerFooter *foot);
+    virtual void end_of_stream();
+};
+
+class NullSink: public StreamSinkIntf {
+public:
+    NullSink() = default;
+    NullSink(const NullSink &ref) = default;
+    virtual ~NullSink() {};
+    NullSink &operator= (const NullSink &ref) = default;
 public:
     virtual bool start_container(ContainerHandle cont, const ContainerMeta *meta);
     virtual bool push_node(NodeHandle node);

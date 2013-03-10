@@ -30,12 +30,14 @@ struct PersonRecord {
 
 /* Here we define a class which will handle deserialization of our
  * struct. */
-typedef deserialize_block<
+typedef deserialize_one<deserialize_struct<
+    Container,
     0x01,
-    PersonRecord,
-    deserialize_string<0x02, UTF8Record, PersonRecord, &PersonRecord::set_name>,
-    deserialize_custom<0x03, UInt32Record, PersonRecord, uint32_t, &PersonRecord::set_age>
-    > PersonDeserializer;
+    struct_members<
+        deserialize_member_string_cb<UTF8Record, 0x02, PersonRecord, &PersonRecord::set_name>,
+        deserialize_member_cb<UInt32Record, 0x03, PersonRecord, uint32_t, &PersonRecord::set_age>
+        >
+    >> PersonDeserializer;
 
 /* And similarily, a serializer, which converts the struct in a
  * structstream node tree. */
@@ -53,46 +55,31 @@ void read_and_show_input(std::istream &infile)
     /* Make the ifstream readable to structstream */
     IOIntfHandle io(new StandardInputStream(infile));
 
-    ContainerHandle root;
     /* Parse the input */
     try {
-        root = bitstream_to_tree(io);
+        FromBitstream(
+            io,
+            RegistryHandle(new Registry()),
+            StreamSink(new PersonDeserializer(person))
+            ).read_all();
     } catch (FormatError &e) {
         std::cerr << "Input file was invalid: Format violation" << std::endl;
         std::cerr << e.what() << std::endl << std::endl;
+        return;
     } catch (UnsupportedInput &e) {
         std::cerr << "Input file was invalid: Unsupported input" << std::endl;
         std::cerr << e.what() << std::endl << std::endl;
+        return;
     } catch (LimitError &e) {
         std::cerr << "Input file was invalid!" << std::endl;
         std::cerr << e.what() << std::endl << std::endl;
-    }
-
-    // Exception occured, so nothing to work with.
-    if (!root) {
         return;
     }
 
-    /* Extract the first element from the document */
-    Container *child = std::dynamic_pointer_cast<Container>(*root->children_begin()).get();
-
-    if (child != nullptr) {
-        /* If it (a) exists and (b) is actually a container,
-         * we can go on with deserializing it */
-        PersonDeserializer::deserialize(child, &person);
-        std::cout << "Look what I found:" << std::endl;
-        std::cout << "Name: " << person.name << std::endl;
-        std::cout << "Age: " << person.age << std::endl;
-        std::cout << std::endl;
-
-        if (child->get_hashed() != HT_INVALID) {
-            std::cout << "The data was checksum'd and validated successfully." << std::endl;
-        }
-    } else {
-        /* Otherwise, we better stop. */
-        std::cout << "Hmm, that input doesn't look ok to me. I better ignore it." << std::endl;
-    }
-
+    std::cout << "Look what I found:" << std::endl;
+    std::cout << "Name: " << person.name << std::endl;
+    std::cout << "Age: " << person.age << std::endl;
+    std::cout << std::endl;
 }
 
 int main()
