@@ -28,164 +28,347 @@ authors named in the AUTHORS file.
 
 #include "structstream/static.hpp"
 #include "structstream/node_container.hpp"
-
-#include <cassert>
+#include "structstream/streaming_base.hpp"
 
 namespace StructStream {
 
-typedef std::function< void (Node *rec) > SetFunc;
-
-template <ID _record_id, class _record_t, typename _dest_t, intptr_t _dest_offs=0, bool _required=false>
-struct deserialize_primitive {
-    static_assert(std::is_standard_layout<_dest_t>::value, "primitive serialization target must be standard layout type.");
-
-    static constexpr bool required = _required;
-    static constexpr ID record_id = _record_id;
-    static constexpr intptr_t dest_offs = _dest_offs;
-    typedef _dest_t dest_t;
-    typedef _record_t record_t;
-
-    static inline void deserialize(const record_t *rec, void *dest)
-        {
-            *((dest_t*)((intptr_t)(dest) + dest_offs)) = rec->get();
-        }
-};
-
-template <ID _record_id, class _record_t, typename _dest_t, typename value_t, void (_dest_t::*setfunc)(const value_t), bool _required=false>
-struct deserialize_custom {
-    static constexpr ID record_id = _record_id;
-    static constexpr bool required = _required;
-    typedef _record_t record_t;
-
-    typedef _dest_t dest_t;
-
-    static inline void deserialize(const record_t *rec, dest_t *dest)
-        {
-            (dest->*setfunc)(rec->get());
-        }
-};
-
-template <ID _record_id, class _record_t, typename _dest_t, typename buf_t, void (_dest_t::*setfunc)(const buf_t*, const intptr_t), bool _required=false>
-struct deserialize_buffer
+template <typename A, typename B>
+struct most_subclassed
 {
-    static constexpr ID record_id = _record_id;
-    static constexpr bool required = _required;
+    static_assert(std::is_class<A>::value && std::is_class<B>::value, "most_subclassed requires classes as arguments.");
+
+    typedef typename std::conditional<
+        std::is_base_of<A, B>::value,
+        B,
+        A>::type type;
+};
+
+template <typename A, typename B>
+struct common_struct_type
+{
+    typedef typename most_subclassed<A, B>::type type;
+    static_assert(std::is_base_of<A, type>::value, "A and B do not share a common descendant.");
+    static_assert(std::is_base_of<B, type>::value, "A and B do not share a common descendant.");
+};
+
+template <typename A>
+struct common_struct_type<A, void>
+{
+    typedef A type;
+};
+
+template <typename A>
+struct common_struct_type<void, A>
+{
+    typedef A type;
+};
+
+
+template <typename _record_t, ID _id, typename _dest_t, typename member_t, intptr_t offset>
+struct deserialize_member_raw: public ThrowOnAll
+{
     typedef _record_t record_t;
-
     typedef _dest_t dest_t;
+    static constexpr ID id = _id;
 
-    static inline void deserialize(const record_t *rec, dest_t *dest)
+public:
+    deserialize_member_raw(dest_t &dest): _dest(dest) {};
+    virtual ~deserialize_member_raw() = default;
+private:
+    dest_t& _dest;
+public:
+    virtual bool push_node(NodeHandle node) {
+        record_t *rec = static_cast<record_t*>(node.get());
+        dest_t *dest_ptr = &_dest;
+        *reinterpret_cast<member_t*>(reinterpret_cast<uint8_t*>(dest_ptr) + offset) = rec->get();
+        return true;
+    };
+};
+
+template <typename _record_t, ID _id, typename _dest_t, typename member_t, void (_dest_t::*setfunc)(member_t)>
+struct deserialize_member_cb: public ThrowOnAll
+{
+    typedef _record_t record_t;
+    typedef _dest_t dest_t;
+    static constexpr ID id = _id;
+public:
+    deserialize_member_cb(dest_t &dest): _dest(dest) {};
+    virtual ~deserialize_member_cb() = default;
+private:
+    dest_t& _dest;
+public:
+    virtual bool push_node(NodeHandle node) {
+        record_t *rec = static_cast<record_t*>(node.get());
+        ((&_dest)->*setfunc)(rec->get());
+        return true;
+    };
+};
+
+template <typename _record_t, ID _id, typename _dest_t, void (_dest_t::*setfunc)(const char*, const intptr_t)>
+struct deserialize_member_cb_len: public ThrowOnAll
+{
+    typedef _record_t record_t;
+    typedef _dest_t dest_t;
+    static constexpr ID id = _id;
+public:
+    deserialize_member_cb_len(dest_t &dest): _dest(dest) {};
+    virtual ~deserialize_member_cb_len() = default;
+private:
+    dest_t& _dest;
+public:
+    virtual bool push_node(NodeHandle node) {
+        record_t *rec = static_cast<record_t*>(node.get());
+        ((&_dest)->*setfunc)(rec->dataptr(), rec->datalen());
+        return true;
+    };
+};
+
+template <typename _record_t, ID _id, typename _dest_t, void (_dest_t::*setfunc)(const std::string &ref)>
+struct deserialize_member_string_cb: public ThrowOnAll
+{
+    typedef _record_t record_t;
+    typedef _dest_t dest_t;
+    static constexpr ID id = _id;
+public:
+    deserialize_member_string_cb(dest_t &dest): _dest(dest) {};
+    virtual ~deserialize_member_string_cb() = default;
+private:
+    dest_t& _dest;
+public:
+    virtual bool push_node(NodeHandle node) {
+        record_t *rec = static_cast<record_t*>(node.get());
+        ((&_dest)->*setfunc)(rec->datastr());
+        return true;
+    };
+};
+
+template <typename... member_ts>
+struct struct_members
+{
+};
+
+template <typename member_t, typename... member_ts>
+struct struct_members<member_t, member_ts...>
+{
+private:
+    typedef typename member_t::record_t member_record_t;
+    static constexpr ID member_id = member_t::id;
+
+    typedef struct_members<member_ts...> other_members;
+
+public:
+    typedef typename common_struct_type<typename member_t::dest_t, typename other_members::dest_t>::type dest_t;
+
+    static constexpr int member_count = other_members::member_count + 1;
+
+    static inline void initialize_sinks(StreamSink members[], dest_t &dest)
     {
-        (dest->*setfunc)(rec->dataptr(), rec->datalen());
+        members[0] = std::move(initialize_my_sink(dest));
+        other_members::initialize_sinks(&members[1], dest);
+    }
+
+    static inline StreamSink dispatch_node(StreamSink members[], const Node *node)
+    {
+        if (node->id() == member_id) {
+            const member_record_t *rec = dynamic_cast<const member_record_t*>(node);
+            if (rec != nullptr) {
+                return members[0];
+            }
+        }
+
+        return other_members::dispatch_node(&members[1], node);
+    }
+private:
+    static inline StreamSink initialize_my_sink(dest_t &dest)
+    {
+        return std::move(StreamSink(new member_t(dest)));
     }
 };
 
-template <ID _record_id, class _record_t, typename _dest_t, void (_dest_t::*setfunc)(const std::string&), bool _required=false>
-struct deserialize_string
+template <>
+struct struct_members<>
 {
-    static constexpr ID record_id = _record_id;
-    static constexpr bool required = _required;
-    typedef _record_t record_t;
+    static constexpr int member_count = 0;
+    typedef void dest_t;
 
-    typedef _dest_t dest_t;
-
-    static inline void deserialize(const record_t *rec, dest_t *dest)
+    static inline StreamSink dispatch_node(StreamSink members[], const Node *node)
     {
-        (dest->*setfunc)(rec->datastr());
+        return StreamSink();
+    }
+
+    template <typename U>
+    static inline void initialize_sinks(StreamSink members[], U &ref)
+    {
+        // intentionally left blank
     }
 };
 
-template <ID _record_id, typename _dest_t, typename... field_ts>
-struct deserialize_block
+template <typename _record_t, ID _id, typename members>
+class deserialize_struct: public SinkTree
 {
-};
-
-
-template <ID _record_id, typename _dest_t, typename field_t, typename... field_ts>
-struct deserialize_block<_record_id, _dest_t, field_t, field_ts...>
-{
-    typedef _dest_t dest_t;
-    typedef typename field_t::record_t child_record_t;
-    typedef Container record_t;
-    static constexpr ID record_id = _record_id;
-
-    static inline void deserialize(Container *node, dest_t *dest)
-        {
-            const Node *child = node->first_child_by_id(field_t::record_id).get();
-            if (child == nullptr) {
-                if (field_t::required) {
-                    throw std::exception();
-                } else {
-                    goto next;
-                }
-            }
-
-            {
-                const child_record_t *rec = dynamic_cast<const child_record_t*>(child);
-                if (rec == nullptr) {
-                    if (field_t::required) {
-                        throw std::exception();
-                    } else {
-                        goto next;
-                    }
-                }
-
-                field_t::deserialize(rec, dest);
-            }
-
-        next:
-            deserialize_block<_record_id, dest_t, field_ts...>::deserialize(node, dest);
+public:
+    typedef typename members::dest_t dest_t;
+    typedef _record_t record_t;
+    static constexpr ID id = _id;
+public:
+    deserialize_struct(dest_t &dest):
+        dest(dest)
+    {
+        members::initialize_sinks(member_sinks, dest);
+    };
+    virtual ~deserialize_struct() = default;
+private:
+    StreamSink member_sinks[members::member_count];
+    dest_t &dest;
+protected:
+    virtual void _start_container(ContainerHandle cont, const ContainerMeta *meta) {
+        Container *node = cont.get();
+        StreamSink sink_to_use = members::dispatch_node(member_sinks, node);
+        if (sink_to_use) {
+            nest(sink_to_use);
         }
+    };
+
+    virtual void _push_node(NodeHandle node_h) {
+        Node *node = node_h.get();
+        StreamSink sink_to_use = members::dispatch_node(member_sinks, node);
+        if (sink_to_use) {
+            sink_to_use->push_node(node_h);
+        }
+    };
+
+    virtual void _end_container(const ContainerFooter *foot) {
+        // nothing to do here.
+    };
+
+    virtual void _end_of_stream() {
+        // nothing to do here.
+    };
 };
 
-template <ID _record_id, typename _dest_t>
-struct deserialize_block<_record_id, _dest_t>
+template <typename type, typename container>
+struct iterator_helper
 {
-    typedef _dest_t dest_t;
-    typedef Container record_t;
-    static constexpr ID record_id = _record_id;
-
-    static inline void deserialize(const Container *node, _dest_t *dest)
-        {
-
-        };
 };
 
-template <typename _serializer_t, typename... args_ts>
-struct deserialize_iterator
+template <typename type>
+struct iterator_helper<type, type*>
 {
-    typedef _serializer_t serializer_t;
-    typedef typename serializer_t::dest_t dest_t;
-    static constexpr ID record_id = serializer_t::record_id;
-    typedef typename serializer_t::record_t record_t;
+    static inline void assign(type **src, type **dest)
+    {
+        *dest = *src;
+    }
 
-    template <typename iterator_t>
-    static inline void deserialize(const Container *node, iterator_t output_iterator, args_ts... args)
-        {
-            Container::NodeRangeByID range = node->children_by_id(serializer_t::record_id);
-            dest_t *new_one = nullptr;
-            try {
-                for (auto it = range.first;
-                     it != range.second;
-                     it++)
-                {
-                    const NodeHandle curr_node = (*it).second;
-                    const record_t *rec = dynamic_cast<const record_t*>(curr_node.get());
-                    if (rec == nullptr) {
-                        continue;
-                    }
+    static inline type* construct()
+    {
+        return new type();
+    }
+};
 
-                    new_one = new dest_t(args...);
-                    serializer_t::deserialize(rec, new_one);
-                    *output_iterator++ = new_one;
-                }
-            } catch (...) {
-                if (new_one) {
-                    delete new_one;
-                }
-                throw;
-            }
-        };
+template <typename type>
+struct iterator_helper<type, type>
+{
+    static inline void assign(type *src, type **dest)
+    {
+        *dest = src;
+    }
+
+    static inline type construct()
+    {
+        return type();
+    }
+};
+
+template <typename type>
+struct iterator_helper<type, std::shared_ptr<type>>
+{
+    static inline void assign(std::shared_ptr<type> *src, type **dest)
+    {
+        *dest = src.get();
+    }
+
+    static inline std::shared_ptr<type> construct()
+    {
+        return std::shared_ptr<type>(new type());
+    }
+};
+
+template <typename type>
+struct iterator_helper<type, std::unique_ptr<type>>
+{
+    static inline void assign(std::unique_ptr<type> *src, type **dest)
+    {
+        *dest = src.get();
+    }
+
+    static inline std::unique_ptr<type> construct()
+    {
+        return std::unique_ptr<type>(new type());
+    }
+};
+
+template <typename deserialize_item, typename dest_iterator_t, typename element_type = typename dest_iterator_t::value_type>
+class deserialize_iterator: public SinkTree
+{
+public:
+    typedef typename deserialize_item::record_t record_t;
+    static constexpr ID id = deserialize_item::id;
+    typedef typename deserialize_item::dest_t dest_t;
+    typedef iterator_helper<dest_t, element_type> helper;
+public:
+    deserialize_iterator(dest_iterator_t dest):
+        dest(dest)
+    {
+
+    };
+    virtual ~deserialize_iterator() = default;
+private:
+    dest_iterator_t dest;
+    element_type curr_el;
+private:
+    inline void submit_item()
+    {
+        *dest++ = std::move(curr_el);
+    };
+protected:
+    virtual void _start_container(ContainerHandle cont, const ContainerMeta *meta)
+    {
+        curr_el = helper::construct();
+        dest_t *dest;
+        helper::assign(&curr_el, &dest);
+        nest(StreamSink(new deserialize_item(*dest)));
+    };
+
+    virtual void _push_node(NodeHandle node)
+    {
+        curr_el = helper::construct();
+        dest_t *dest;
+        helper::assign(&curr_el, &dest);
+        deserialize_item(*dest).push_node(node);
+        submit_item();
+    };
+
+    virtual void _end_container(const ContainerFooter *foot)
+    {
+        submit_item();
+    };
+
+    virtual void _end_of_stream()
+    {
+
+    };
+};
+
+template <typename record_t, ID id, typename value_t>
+struct deserialize_value
+{
+    typedef deserialize_struct<
+        record_t,
+        id,
+        struct_members<
+            deserialize_member_raw<record_t, id, value_t, value_t, 0>
+            >
+        > deserializer;
 };
 
 }

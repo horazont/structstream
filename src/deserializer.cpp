@@ -27,6 +27,27 @@ authors named in the AUTHORS file.
 
 namespace StructStream {
 
-// intentionally left blank
+// test the compile-time helpers defined in the header
+
+struct A
+{
+};
+
+struct B: public A
+{
+};
+
+static_assert(std::is_class<A>::value, "A is class");
+static_assert(!std::is_same<A, void>::value, "A != void");
+static_assert(!std::is_same<B, void>::value, "B != void");
+static_assert(!std::is_same<void*, void>::value, "void* != void");
+static_assert(!std::is_same<B, void>::value, "B != void");
+static_assert(std::is_base_of<A, B>::value, "A is base of B");
+static_assert(!std::is_base_of<B, A>::value, "B is not a base of A");
+static_assert(std::is_same<typename most_subclassed<B, B>::type, B>::value, "B is most-advanced type of B and B");
+static_assert(std::is_same<typename most_subclassed<A, B>::type, B>::value, "B is most-advanced type of A and B");
+static_assert(std::is_same<typename common_struct_type<A, B>::type, B>::value, "B is common_struct_type of A and B");
+static_assert(std::is_same<typename common_struct_type<A, void>::type, A>::value, "A is common_struct_type of A and void");
+static_assert(std::is_same<typename common_struct_type<B, void>::type, B>::value, "B is common_struct_type of B and void");
 
 }

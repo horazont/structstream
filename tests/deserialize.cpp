@@ -30,6 +30,7 @@ authors named in the AUTHORS file.
 #include "structstream/deserializer.hpp"
 #include "structstream/node_primitive.hpp"
 #include "structstream/node_blob.hpp"
+#include "structstream/streaming_tree.hpp"
 
 using namespace StructStream;
 
@@ -58,13 +59,18 @@ TEST_CASE ("deserialize/pod", "Deserialization of a plain-old-data type")
 
     pod_t pod;
 
-    deserialize_block<
+    typedef deserialize_struct<
+        Container,
         0x01,
-        pod_t,
-        deserialize_primitive<0x02, UInt32Record, uint32_t, offsetof(pod_t, v1)>,
-        deserialize_primitive<0x04, UInt32Record, uint8_t, offsetof(pod_t, v3)>,
-        deserialize_primitive<0x03, Float64Record, double, offsetof(pod_t, v2)>
-        >::deserialize(pod_root, &pod);
+        struct_members<
+            deserialize_member_raw<UInt32Record, 0x02, pod_t, uint32_t, offsetof(pod_t, v1)>,
+            deserialize_member_raw<UInt32Record, 0x04, pod_t, uint8_t, offsetof(pod_t, v3)>,
+            deserialize_member_raw<Float64Record, 0x03, pod_t, double, offsetof(pod_t, v2)>
+            >
+        > deserializer;
+
+    FromTree(StreamSink(new deserializer(pod)),
+             std::dynamic_pointer_cast<Container>(pod_root_node));
 
     CHECK(pod.v1 == 0x2342dead);
     CHECK(pod.v2 == 23.42);
@@ -90,11 +96,16 @@ TEST_CASE ("deserialize/str/callback", "Deserialization of a string")
 
     block_t block;
 
-    deserialize_block<
+    typedef deserialize_struct<
+        Container,
         0x01,
-        block_t,
-        deserialize_string<0x02, UTF8Record, block_t, &block_t::set_str>
-        >::deserialize(pod_root, &block);
+        struct_members<
+            deserialize_member_string_cb<UTF8Record, 0x02, block_t, &block_t::set_str>
+            >
+        > deserializer;
+
+    FromTree(StreamSink(new deserializer(block)),
+             std::dynamic_pointer_cast<Container>(pod_root_node));
 
     CHECK(block.value == "Hello World!");
 
@@ -131,14 +142,20 @@ TEST_CASE ("deserialize/blob/callback", "Deserialization of a blob")
 
     block_t block;
 
-    deserialize_block<
+    typedef deserialize_struct<
+        Container,
         0x01,
-        block_t,
-        deserialize_buffer<0x02, UTF8Record, block_t, char, &block_t::set_str>
-        >::deserialize(pod_root, &block);
+        struct_members<
+            deserialize_member_cb_len<UTF8Record, 0x02, block_t, &block_t::set_str>
+            >
+        > deserializer;
+
+    FromTree(StreamSink(new deserializer(block)),
+             std::dynamic_pointer_cast<Container>(pod_root_node));
 
     CHECK(strcmp(block.get_str(), text) == 0);
 }
+
 
 TEST_CASE ("deserialize/iterator/simple", "Deserialization of an integer array")
 {
@@ -155,11 +172,16 @@ TEST_CASE ("deserialize/iterator/simple", "Deserialization of an integer array")
         pod_root->child_add(rec_node);
     }
 
-    std::vector<uint32_t*> dest;
+    std::vector<uint32_t> dest;
 
-    deserialize_iterator<
-        deserialize_primitive<0x02, UInt32Record, uint32_t, 0>
-        >::deserialize(pod_root, std::back_inserter(dest));
+    typedef deserialize_iterator<
+        typename deserialize_value<UInt32Record, 0x02, uint32_t>::deserializer,
+        std::back_insert_iterator<decltype(dest)>,
+        uint32_t
+        > deserializer;
+
+    FromTree(StreamSink(new deserializer(std::back_inserter(dest))),
+             std::dynamic_pointer_cast<Container>(pod_root_node));
 
     REQUIRE((sizeof(values) / sizeof(uint32_t)) == dest.size());
 
@@ -168,22 +190,6 @@ TEST_CASE ("deserialize/iterator/simple", "Deserialization of an integer array")
          it != dest.end();
          it++, value_idx++)
     {
-        CHECK(values[value_idx] == *(*it));
-        delete *it;
+        CHECK(values[value_idx] == *it);
     }
-}
-
-TEST_CASE ("deserialize/array_blocks", "Deserialization of an array of blocks with integers")
-{
-    struct pod_t {
-
-    };
-
-    NodeHandle handle = NodeHandleFactory<Container>::create(0x01);
-
-    std::vector<pod_t*> dest;
-
-    deserialize_iterator<
-        deserialize_block<0x01, pod_t>
-        >::deserialize(static_cast<Container*>(handle.get()), std::back_inserter(dest));
 }

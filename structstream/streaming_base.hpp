@@ -117,24 +117,24 @@ private:
     bool _handling_container;
     intptr_t _depth;
 protected:
-    void nest(StreamSink &other);
+    void nest(StreamSink other);
 protected:
     virtual void _start_container(ContainerHandle cont, const ContainerMeta *meta) = 0;
     virtual void _push_node(NodeHandle node) = 0;
     virtual void _end_container(const ContainerFooter *foot) = 0;
     virtual void _end_of_stream() = 0;
 public:
-    virtual bool start_container(ContainerHandle cont, const ContainerMeta *meta);
-    virtual bool push_node(NodeHandle node);
-    virtual bool end_container(const ContainerFooter *foot);
-    virtual void end_of_stream();
+    virtual bool start_container(ContainerHandle cont, const ContainerMeta *meta) final;
+    virtual bool push_node(NodeHandle node) final;
+    virtual bool end_container(const ContainerFooter *foot) final;
+    virtual void end_of_stream() final;
 };
 
 class ThrowOnAll: public StreamSinkIntf {
 public:
     ThrowOnAll() = default;
     ThrowOnAll(const ThrowOnAll &ref) = default;
-    virtual ~ThrowOnAll() = default;
+    virtual ~ThrowOnAll() {};
     ThrowOnAll &operator= (const ThrowOnAll &ref) = default;
 public:
     virtual bool start_container(ContainerHandle cont, const ContainerMeta *meta);

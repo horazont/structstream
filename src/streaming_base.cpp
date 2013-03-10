@@ -108,7 +108,7 @@ SinkTree::~SinkTree()
 
 }
 
-void SinkTree::nest(StreamSink &other)
+void SinkTree::nest(StreamSink other)
 {
     assert(_nested.get() == nullptr);
     if (!_handling_container) {
