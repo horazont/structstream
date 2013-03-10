@@ -123,6 +123,25 @@ public:
     };
 };
 
+template <typename _record_t, ID _id, typename _dest_t, std::string _dest_t::*member_ptr>
+struct deserialize_member_string: public ThrowOnAll
+{
+    typedef _record_t record_t;
+    typedef _dest_t dest_t;
+    static constexpr ID id = _id;
+public:
+    deserialize_member_string(dest_t &dest): _dest(dest) {};
+    virtual ~deserialize_member_string() = default;
+private:
+    dest_t& _dest;
+public:
+    virtual bool push_node(NodeHandle node) {
+        record_t *rec = static_cast<record_t*>(node.get());
+        ((&_dest)->*member_ptr) = rec->datastr();
+        return true;
+    };
+};
+
 template <typename _record_t, ID _id, typename _dest_t, void (_dest_t::*setfunc)(const std::string &ref)>
 struct deserialize_member_string_cb: public ThrowOnAll
 {

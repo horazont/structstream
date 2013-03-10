@@ -77,6 +77,35 @@ TEST_CASE ("deserialize/pod", "Deserialization of a plain-old-data type")
     CHECK(pod.v3 == 0x12);
 }
 
+TEST_CASE ("deserialize/str/member_ptr", "Deserialization of a string")
+{
+    struct block_t {
+        std::string value;
+    };
+
+    NodeHandle pod_root_node = NodeHandleFactory<Container>::create(0x01);
+    Container *pod_root = static_cast<Container*>(pod_root_node.get());
+
+    NodeHandle node = NodeHandleFactory<UTF8Record>::create(0x02);
+    static_cast<UTF8Record*>(node.get())->set("Hello World!");
+    pod_root->child_add(node);
+
+    block_t block;
+
+    typedef deserialize_struct<
+        Container,
+        0x01,
+        struct_members<
+            deserialize_member_string<UTF8Record, 0x02, block_t, &block_t::value>
+            >
+        > deserializer;
+
+    FromTree(StreamSink(new deserializer(block)),
+             std::dynamic_pointer_cast<Container>(pod_root_node));
+
+    CHECK(block.value == "Hello World!");
+}
+
 TEST_CASE ("deserialize/str/callback", "Deserialization of a string")
 {
     struct block_t {
