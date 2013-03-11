@@ -145,7 +145,7 @@ struct member
             -> decltype(rec->get(), (void)0)
         {
             /* use this if a compatible get() is available */
-            ((&_dest)->*member_ptr) = rec->get();
+            (_dest.*member_ptr) = rec->get();
         };
 
         template <typename __record_t>
@@ -154,7 +154,7 @@ struct member
         {
             /* use this otherwise; will not work always, but for some
             types which do not offer string getters */
-            ((&_dest)->*member_ptr) = rec->datastr();
+            (_dest.*member_ptr) = rec->datastr();
         };
 
         virtual bool push_node(NodeHandle node)
@@ -173,13 +173,13 @@ struct member
         {
             NodeHandle node = NodeHandleFactory<record_t>::create(id);
             record_t *rec = static_cast<record_t*>(node.get());
-            rec->set((&obj)->*member_ptr);
+            rec->set(obj.*member_ptr);
             sink->push_node(node);
         }
     };
 };
 
-template <typename _record_t, ID _id, typename _dest_t, typename member_t, void (_dest_t::*setfunc)(member_t)>
+template <typename _record_t, ID _id, typename _dest_t, typename member_t, const member_t (_dest_t::*getfunc)() const, void (_dest_t::*setfunc)(member_t)>
 struct member_cb
 {
     typedef _record_t record_t;
@@ -203,9 +203,22 @@ struct member_cb
             return true;
         };
     };
+
+    struct serializer
+    {
+        typedef const dest_t& arg_t;
+
+        static inline void to_sink(arg_t obj, StreamSinkIntf *sink)
+        {
+            NodeHandle node = NodeHandleFactory<record_t>::create(id);
+            record_t *rec = static_cast<record_t*>(node.get());
+            rec->set((obj.*getfunc)());
+            sink->push_node(node);
+        }
+    };
 };
 
-template <typename record_t, ID id, typename dest_t, intptr_t (dest_t::*lenfunc)(), const char* (dest_t::*buffunc)()>
+template <typename record_t, ID id, typename dest_t, intptr_t (dest_t::*lenfunc)() const, const char* (dest_t::*buffunc)() const>
 struct serializer_member_cb_len
 {
     static inline void to_sink(dest_t &obj, StreamSinkIntf *sink)
@@ -277,6 +290,8 @@ template <typename record_t, typename dest_t, void (dest_t::*setfunc)(const std:
 class deserialize_member_string_cb: public ThrowOnAll
 {
 public:
+    typedef dest_t& arg_t;
+public:
     deserialize_member_string_cb(dest_t &dest): _dest(dest) {};
     virtual ~deserialize_member_string_cb() = default;
 private:
@@ -289,10 +304,12 @@ public:
     };
 };
 
-template <typename record_t, ID id, typename src_t, const std::string& (src_t::*getfunc)()>
+template <typename record_t, ID id, typename src_t, const std::string& (src_t::*getfunc)() const>
 struct serialize_member_string_cb
 {
-    static inline void to_sink(src_t &obj, StreamSinkIntf *sink)
+    typedef const src_t& arg_t;
+
+    static inline void to_sink(arg_t obj, StreamSinkIntf *sink)
     {
         NodeHandle node = NodeHandleFactory<record_t>::create(id);
         record_t *rec = static_cast<record_t*>(node.get());
@@ -301,11 +318,32 @@ struct serialize_member_string_cb
     }
 };
 
-template <typename _record_t, ID _id, typename _dest_t, const std::string &(_dest_t::*getfunc)(), void (_dest_t::*setfunc)(const std::string &ref), typename enabled = void>
-struct member_string_cb;
+// template <typename _record_t, ID _id, typename _dest_t, const std::string &(_dest_t::*getfunc)() const, void (_dest_t::*setfunc)(const std::string &ref), typename enabled = void>
+// struct member_string_cb;
 
-template <typename _record_t, ID _id, typename _dest_t, const std::string &(_dest_t::*getfunc)(), void (_dest_t::*setfunc)(const std::string &ref)>
-struct member_string_cb<_record_t, _id, _dest_t, getfunc, setfunc, typename std::enable_if<(setfunc != nullptr) && (getfunc == nullptr)>::type>
+// template <typename _record_t, ID _id, typename _dest_t, const std::string &(_dest_t::*getfunc)() const, void (_dest_t::*setfunc)(const std::string &ref)>
+// struct member_string_cb<_record_t, _id, _dest_t, getfunc, setfunc, typename std::enable_if<(setfunc == nullptr) && (getfunc == nullptr)>::type>
+// {
+//     typedef _record_t record_t;
+//     typedef _dest_t dest_t;
+//     typedef dest_t& arg_t;
+//     static constexpr ID id = _id;
+// };
+
+// template <typename _record_t, ID _id, typename _dest_t, const std::string &(_dest_t::*getfunc)() const, void (_dest_t::*setfunc)(const std::string &ref)>
+// struct member_string_cb<_record_t, _id, _dest_t, getfunc, setfunc, typename std::enable_if<(setfunc != nullptr) && (getfunc == nullptr)>::type>
+// {
+//     typedef _record_t record_t;
+//     typedef _dest_t dest_t;
+//     typedef dest_t& arg_t;
+//     static constexpr ID id = _id;
+
+//     typedef deserialize_member_string_cb<record_t, dest_t, setfunc> deserializer;
+// };
+
+template <typename _record_t, ID _id, typename _dest_t, const std::string &(_dest_t::*getfunc)() const, void (_dest_t::*setfunc)(const std::string &ref)>
+// struct member_string_cb<_record_t, _id, _dest_t, getfunc, setfunc, typename std::enable_if<(setfunc != nullptr) && (getfunc != nullptr)>::type>
+struct member_string_cb
 {
     typedef _record_t record_t;
     typedef _dest_t dest_t;
@@ -313,30 +351,19 @@ struct member_string_cb<_record_t, _id, _dest_t, getfunc, setfunc, typename std:
     static constexpr ID id = _id;
 
     typedef deserialize_member_string_cb<record_t, dest_t, setfunc> deserializer;
+    typedef serialize_member_string_cb<record_t, id, dest_t, getfunc> serializer;
 };
 
-template <typename _record_t, ID _id, typename _dest_t, const std::string &(_dest_t::*getfunc)(), void (_dest_t::*setfunc)(const std::string &ref)>
-struct member_string_cb<_record_t, _id, _dest_t, getfunc, setfunc, typename std::enable_if<(setfunc != nullptr) && (getfunc != nullptr)>::type>
-{
-    typedef _record_t record_t;
-    typedef _dest_t dest_t;
-    typedef dest_t& arg_t;
-    static constexpr ID id = _id;
+// template <typename _record_t, ID _id, typename _dest_t, const std::string &(_dest_t::*getfunc)() const, void (_dest_t::*setfunc)(const std::string &ref)>
+// struct member_string_cb<_record_t, _id, _dest_t, getfunc, setfunc, typename std::enable_if<(setfunc == nullptr) && (getfunc != nullptr)>::type>
+// {
+//     typedef _record_t record_t;
+//     typedef _dest_t dest_t;
+//     typedef dest_t& arg_t;
+//     static constexpr ID id = _id;
 
-    typedef deserialize_member_string_cb<record_t, dest_t, setfunc> deserializer;
-    typedef serialize_member_string_cb<record_t, id, dest_t, setfunc> serializer;
-};
-
-template <typename _record_t, ID _id, typename _dest_t, const std::string &(_dest_t::*getfunc)(), void (_dest_t::*setfunc)(const std::string &ref)>
-struct member_string_cb<_record_t, _id, _dest_t, getfunc, setfunc, typename std::enable_if<(setfunc == nullptr) && (getfunc != nullptr)>::type>
-{
-    typedef _record_t record_t;
-    typedef _dest_t dest_t;
-    typedef dest_t& arg_t;
-    static constexpr ID id = _id;
-
-    typedef serialize_member_string_cb<record_t, id, dest_t, setfunc> serializer;
-};
+//     typedef serialize_member_string_cb<record_t, id, dest_t, getfunc> serializer;
+// };
 
 template <typename... member_ts>
 struct struct_members
@@ -418,8 +445,9 @@ struct struct_decl
 {
     typedef typename members::dest_t dest_t;
     typedef _record_t record_t;
-    typedef dest_t& arg_t;
     static constexpr ID id = _id;
+
+    static_assert(std::is_base_of<Container, record_t>::value, "Struct record_t must be a container subclass.");
 
     class deserializer: public SinkTree
     {
@@ -485,7 +513,7 @@ struct struct_decl
 
         static inline void to_sink(const dest_t &obj, StreamSinkIntf *sink)
         {
-            ContainerHandle node = NodeHandleFactory<Container>::create(id);
+            ContainerHandle node = NodeHandleFactory<record_t>::create(id);
             ContainerMeta *meta = new ContainerMeta();
             try {
                 sink->start_container(node, meta);
@@ -717,13 +745,7 @@ struct value_decl
     typedef _record_t record_t;
     static constexpr ID id = _id;
 
-    typedef typename struct_decl<
-        record_t,
-        id,
-        struct_members<
-            member_raw<record_t, id, dest_t, dest_t, 0>
-            >
-        >::deserializer deserializer;
+    typedef typename member_raw<record_t, id, dest_t, dest_t, 0>::deserializer deserializer;
 
     typedef typename member_raw<record_t, id, dest_t, dest_t, 0>::serializer serializer;
 };
@@ -733,16 +755,17 @@ struct deserialize_one: public SinkTree
 {
     typedef typename deserializer::dest_t dest_t;
     typedef typename deserializer::record_t record_t;
+    typedef typename deserializer::deserializer::arg_t arg_t;
     static constexpr ID id = deserializer::id;
 public:
-    deserialize_one(dest_t &dest):
+    deserialize_one(arg_t dest):
         dest(dest)
     {
 
     };
     virtual ~deserialize_one() = default;
 private:
-    dest_t &dest;
+    arg_t dest;
     StreamSink _deserializer;
 public:
     virtual bool _start_container(ContainerHandle cont, const ContainerMeta *meta)
@@ -750,7 +773,7 @@ public:
         if (cont->id() == id) {
             record_t *rec = dynamic_cast<record_t*>(cont.get());
             if (rec != nullptr) {
-                _deserializer = StreamSink(new deserializer(dest));
+                _deserializer = deserialize<deserializer>(dest);
                 nest(_deserializer);
             }
         }
@@ -762,7 +785,7 @@ public:
         if (node->id() == id) {
             record_t *rec = dynamic_cast<record_t*>(node.get());
             if (rec != nullptr) {
-                deserializer(dest).push_node(node);
+                deserializer_obj<deserializer>(dest).push_node(node);
                 return false;
             }
         }
