@@ -121,6 +121,49 @@ struct member_raw
     };
 };
 
+template <typename _record_t, ID _id, typename _dest_t,
+          std::shared_ptr<_record_t> (_dest_t::*get_record)(ID id) const,
+          void (_dest_t::*set_record)(std::shared_ptr<_record_t>)>
+struct member_direct
+{
+    typedef _record_t record_t;
+    typedef _dest_t dest_t;
+    static constexpr ID id = _id;
+
+    static_assert(!std::is_base_of<Container, record_t>::value,
+                  "member_direct cannot be used with containers.");
+
+    class deserializer: public ThrowOnAll
+    {
+    public:
+        typedef dest_t& arg_t;
+    public:
+        deserializer(arg_t dest):
+            _dest(dest)
+        {
+
+        };
+    private:
+        arg_t _dest;
+    public:
+        virtual bool push_node(NodeHandle node) {
+            std::shared_ptr<record_t> rec = std::static_pointer_cast<record_t>(node);
+            (_dest.*set_record)(rec);
+            return true;
+        };
+    };
+
+    struct serializer
+    {
+        typedef const dest_t& arg_t;
+
+        static inline void to_sink(arg_t obj, StreamSinkIntf *sink)
+        {
+            sink->push_node((obj.*get_record)(id));
+        };
+    };
+};
+
 struct value_extractor
 {
     /* SFINAE at work to pick the best implementation */
