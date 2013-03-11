@@ -100,6 +100,17 @@ struct member_raw
             return true;
         };
     };
+
+    struct serializer
+    {
+        static inline void to_sink(dest_t &obj, StreamSinkIntf *sink)
+        {
+            NodeHandle node = NodeHandleFactory<record_t>();
+            record_t *rec = static_cast<record_t*>(node.get());
+            rec->set(*reinterpret_cast<member_t*>(reinterpret_cast<uint8_t*>(&obj) + offset));
+            sink->push_node(node);
+        }
+    };
 };
 
 template <typename _record_t, ID _id, typename _dest_t, typename member_t, member_t _dest_t::*member_ptr>
@@ -118,11 +129,42 @@ struct member
     private:
         dest_t& _dest;
     public:
-        virtual bool push_node(NodeHandle node) {
-            record_t *rec = static_cast<record_t*>(node.get());
+
+        /* SFINAE at work to pick the best implementation */
+        template <typename __record_t>
+        inline auto push_node_impl(__record_t *rec, long foo = 0)
+            -> decltype(rec->get(), (void)0)
+        {
+            /* use this if a compatible get() is available */
             ((&_dest)->*member_ptr) = rec->get();
+        };
+
+        template <typename __record_t>
+        inline auto push_node_impl(__record_t *rec, int foo = 0)
+            -> decltype(rec->datastr(), (void)0)
+        {
+            /* use this otherwise; will not work always, but for some
+            types which do not offer string getters */
+            ((&_dest)->*member_ptr) = rec->datastr();
+        };
+
+        virtual bool push_node(NodeHandle node)
+        {
+            record_t *rec = static_cast<record_t*>(node.get());
+            push_node_impl<record_t>(std::move(rec), 0L);
             return true;
         };
+    };
+
+    struct serializer
+    {
+        static inline void to_sink(dest_t &obj, StreamSinkIntf *sink)
+        {
+            NodeHandle node = NodeHandleFactory<record_t>();
+            record_t *rec = static_cast<record_t*>(node.get());
+            rec->set((&obj)->*member_ptr);
+            sink->push_node(node);
+        }
     };
 };
 
@@ -150,76 +192,137 @@ struct member_cb
     };
 };
 
-template <typename _record_t, ID _id, typename _dest_t, void (_dest_t::*setfunc)(const char*, const intptr_t)>
-struct member_cb_len
+template <typename record_t, typename dest_t, intptr_t (dest_t::*lenfunc)(), const char* (dest_t::*buffunc)()>
+struct serializer_member_cb_len
 {
-    typedef _record_t record_t;
-    typedef _dest_t dest_t;
-    typedef dest_t& arg_t;
-    static constexpr ID id = _id;
-
-    class deserializer: public ThrowOnAll
+    static inline void to_sink(dest_t &obj, StreamSinkIntf *sink)
     {
-    public:
-        deserializer(dest_t &dest): _dest(dest) {};
-        virtual ~deserializer() = default;
-    private:
-        dest_t& _dest;
-    public:
-        virtual bool push_node(NodeHandle node) {
-            record_t *rec = static_cast<record_t*>(node.get());
-            ((&_dest)->*setfunc)(rec->dataptr(), rec->datalen());
-            return true;
-        };
+        NodeHandle node = NodeHandleFactory<record_t>();
+        record_t *rec = static_cast<record_t*>(node.get());
+        rec->set((&obj)->*buffunc, (&obj)->*lenfunc);
+        sink->push_node(rec);
     };
 };
 
-template <typename _record_t, ID _id, typename _dest_t, std::string _dest_t::*member_ptr>
-struct member_string
+template <typename record_t, typename dest_t, void (dest_t::*setfunc)(const char*, const intptr_t)>
+class deserialize_member_cb_len: public ThrowOnAll
 {
-    typedef _record_t record_t;
-    typedef _dest_t dest_t;
-    typedef dest_t& arg_t;
-    static constexpr ID id = _id;
-
-    class deserializer: public ThrowOnAll
-    {
-    public:
-        deserializer(dest_t &dest): _dest(dest) {};
-        virtual ~deserializer() = default;
-    private:
-        dest_t& _dest;
-    public:
-        virtual bool push_node(NodeHandle node) {
-            record_t *rec = static_cast<record_t*>(node.get());
-            ((&_dest)->*member_ptr) = rec->datastr();
-            return true;
-        };
+public:
+    deserialize_member_cb_len(dest_t &dest): _dest(dest) {};
+    virtual ~deserialize_member_cb_len() = default;
+private:
+    dest_t& _dest;
+public:
+    virtual bool push_node(NodeHandle node) {
+        record_t *rec = static_cast<record_t*>(node.get());
+        ((&_dest)->*setfunc)(rec->dataptr(), rec->datalen());
+        return true;
     };
 };
 
-template <typename _record_t, ID _id, typename _dest_t, void (_dest_t::*setfunc)(const std::string &ref)>
-struct member_string_cb
+template <typename _record_t, ID _id, typename _dest_t, intptr_t (_dest_t::*lenfunc)(), const char* (_dest_t::*buffunc)(), void (_dest_t::*setfunc)(const char*, const intptr_t), typename enabled = void>
+struct member_cb_len;
+
+template <typename _record_t, ID _id, typename _dest_t, intptr_t (_dest_t::*lenfunc)(), const char* (_dest_t::*buffunc)(), void (_dest_t::*setfunc)(const char*, const intptr_t)>
+struct member_cb_len<_record_t, _id, _dest_t, lenfunc, buffunc, setfunc, typename std::enable_if<(lenfunc == nullptr) && (buffunc == nullptr) && (setfunc != nullptr)>::type>
 {
     typedef _record_t record_t;
     typedef _dest_t dest_t;
     typedef dest_t& arg_t;
     static constexpr ID id = _id;
 
-    class deserializer: public ThrowOnAll
-    {
-    public:
-        deserializer(dest_t &dest): _dest(dest) {};
-        virtual ~deserializer() = default;
-    private:
-        dest_t& _dest;
-    public:
-        virtual bool push_node(NodeHandle node) {
-            record_t *rec = static_cast<record_t*>(node.get());
-            ((&_dest)->*setfunc)(rec->datastr());
-            return true;
-        };
+    typedef deserialize_member_cb_len<record_t, dest_t, setfunc> deserializer;
+};
+
+template <typename _record_t, ID _id, typename _dest_t, intptr_t (_dest_t::*lenfunc)(), const char* (_dest_t::*buffunc)(), void (_dest_t::*setfunc)(const char*, const intptr_t)>
+struct member_cb_len<_record_t, _id, _dest_t, lenfunc, buffunc, setfunc, typename std::enable_if<(lenfunc != nullptr) && (buffunc != nullptr) && (setfunc != nullptr)>::type>
+{
+    typedef _record_t record_t;
+    typedef _dest_t dest_t;
+    typedef dest_t& arg_t;
+    static constexpr ID id = _id;
+
+    typedef deserialize_member_cb_len<record_t, dest_t, setfunc> deserializer;
+    typedef serializer_member_cb_len<record_t, dest_t, lenfunc, buffunc> serializer;
+};
+
+template <typename _record_t, ID _id, typename _dest_t, intptr_t (_dest_t::*lenfunc)(), const char* (_dest_t::*buffunc)(), void (_dest_t::*setfunc)(const char*, const intptr_t)>
+struct member_cb_len<_record_t, _id, _dest_t, lenfunc, buffunc, setfunc, typename std::enable_if<(lenfunc != nullptr) && (buffunc != nullptr) && (setfunc == nullptr)>::type>
+{
+    typedef _record_t record_t;
+    typedef _dest_t dest_t;
+    typedef dest_t& arg_t;
+    static constexpr ID id = _id;
+
+    typedef serializer_member_cb_len<record_t, dest_t, lenfunc, buffunc> serializer;
+};
+
+template <typename record_t, ID id, typename dest_t, std::string dest_t::*member_ptr>
+using member_string = member<record_t, id, dest_t, std::string, member_ptr>;
+
+template <typename record_t, typename dest_t, void (dest_t::*setfunc)(const std::string &ref)>
+class deserialize_member_string_cb: public ThrowOnAll
+{
+public:
+    deserialize_member_string_cb(dest_t &dest): _dest(dest) {};
+    virtual ~deserialize_member_string_cb() = default;
+private:
+    dest_t& _dest;
+public:
+    virtual bool push_node(NodeHandle node) {
+        record_t *rec = static_cast<record_t*>(node.get());
+        ((&_dest)->*setfunc)(rec->datastr());
+        return true;
     };
+};
+
+template <typename record_t, typename src_t, const std::string& (src_t::*getfunc)()>
+struct serialize_member_string_cb
+{
+    static inline void to_sink(src_t &obj, StreamSinkIntf *sink)
+    {
+        NodeHandle node = NodeHandleFactory<record_t>();
+        record_t *rec = static_cast<record_t*>(node.get());
+        rec->set(((&obj)->*getfunc)());
+        sink->push_node(node);
+    }
+};
+
+template <typename _record_t, ID _id, typename _dest_t, const std::string &(_dest_t::*getfunc)(), void (_dest_t::*setfunc)(const std::string &ref), typename enabled = void>
+struct member_string_cb;
+
+template <typename _record_t, ID _id, typename _dest_t, const std::string &(_dest_t::*getfunc)(), void (_dest_t::*setfunc)(const std::string &ref)>
+struct member_string_cb<_record_t, _id, _dest_t, getfunc, setfunc, typename std::enable_if<(setfunc != nullptr) && (getfunc == nullptr)>::type>
+{
+    typedef _record_t record_t;
+    typedef _dest_t dest_t;
+    typedef dest_t& arg_t;
+    static constexpr ID id = _id;
+
+    typedef deserialize_member_string_cb<record_t, dest_t, setfunc> deserializer;
+};
+
+template <typename _record_t, ID _id, typename _dest_t, const std::string &(_dest_t::*getfunc)(), void (_dest_t::*setfunc)(const std::string &ref)>
+struct member_string_cb<_record_t, _id, _dest_t, getfunc, setfunc, typename std::enable_if<(setfunc != nullptr) && (getfunc != nullptr)>::type>
+{
+    typedef _record_t record_t;
+    typedef _dest_t dest_t;
+    typedef dest_t& arg_t;
+    static constexpr ID id = _id;
+
+    typedef deserialize_member_string_cb<record_t, dest_t, setfunc> deserializer;
+    typedef serialize_member_string_cb<record_t, dest_t, setfunc> serializer;
+};
+
+template <typename _record_t, ID _id, typename _dest_t, const std::string &(_dest_t::*getfunc)(), void (_dest_t::*setfunc)(const std::string &ref)>
+struct member_string_cb<_record_t, _id, _dest_t, getfunc, setfunc, typename std::enable_if<(setfunc == nullptr) && (getfunc != nullptr)>::type>
+{
+    typedef _record_t record_t;
+    typedef _dest_t dest_t;
+    typedef dest_t& arg_t;
+    static constexpr ID id = _id;
+
+    typedef serialize_member_string_cb<record_t, dest_t, setfunc> serializer;
 };
 
 template <typename... member_ts>
@@ -259,6 +362,12 @@ public:
 
         return other_members::dispatch_node(&members[1], node);
     }
+
+    static inline void to_sink(dest_t &obj, StreamSinkIntf *sink)
+    {
+        member_t::to_sink(obj, sink);
+        other_members::to_sink(obj, sink);
+    }
 private:
     static inline StreamSink initialize_my_sink(dest_t &dest)
     {
@@ -280,6 +389,12 @@ struct struct_members<>
 
     template <typename U>
     static inline void initialize_sinks(StreamSink members[], U &ref)
+    {
+        // intentionally left blank
+    }
+
+    template <typename U>
+    static inline void to_sink(U &obj, StreamSinkIntf *sink)
     {
         // intentionally left blank
     }
@@ -348,6 +463,34 @@ struct struct_decl
             // nothing to do here.
         };
     };
+
+    struct serializer
+    {
+        static inline void to_sink(dest_t &obj, StreamSinkIntf *sink)
+        {
+            ContainerHandle node = NodeHandleFactory<Container>();
+            ContainerMeta *meta = new ContainerMeta();
+            try {
+                sink->start_container(node, meta);
+            } catch (...) {
+                delete meta;
+                throw;
+            }
+
+            members::to_sink(obj, sink);
+
+            ContainerFooter *foot = new ContainerFooter();
+            try {
+                sink->end_container(foot);
+            } catch (...) {
+                delete foot;
+                delete meta;
+                throw;
+            }
+            delete foot;
+            delete meta;
+        }
+    };
 };
 
 template <typename type, typename container>
@@ -412,7 +555,7 @@ struct iterator_helper<type, std::unique_ptr<type>>
 };
 
 template <typename item_decl, typename element_type>
-struct sequence
+struct deserialize_sequence
 {
     typedef typename item_decl::record_t record_t;
     static constexpr ID id = item_decl::id;
@@ -467,10 +610,11 @@ struct sequence
 
 template <typename item_decl,
           typename output_iterator,
+          typename input_iterator,
           typename element_type = typename output_iterator::container_type::value_type>
 struct iterator
 {
-    typedef sequence<item_decl, typename output_iterator::container_type::value_type> sequence_decl;
+    typedef deserialize_sequence<item_decl, typename output_iterator::container_type::value_type> sequence_decl;
     typedef typename sequence_decl::record_t record_t;
     static constexpr ID id = sequence_decl::id;
     typedef output_iterator arg_t;
@@ -492,6 +636,18 @@ struct iterator
         {
             *_iterator++ = std::move(item);
         };
+    };
+
+    struct serializer
+    {
+        static inline void to_sink(input_iterator begin,
+                                   input_iterator end,
+                                   StreamSinkIntf *sink)
+        {
+            for (; begin != end; begin++) {
+                item_decl::serializer::to_sink(*begin, sink);
+            }
+        }
     };
 };
 
@@ -519,6 +675,14 @@ struct container
         virtual ~deserializer() {};
     private:
         dest_t &_dest;
+    };
+
+    struct serializer
+    {
+        static inline void to_sink(dest_t &obj, StreamSinkIntf *sink)
+        {
+            iterator_decl::serializer::to_sink(obj.begin(), obj.end(), sink);
+        }
     };
 };
 
