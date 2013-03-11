@@ -146,7 +146,7 @@ struct member
         {
             /* use this if a compatible get() is available */
             (_dest.*member_ptr) = rec->get();
-        };
+        }
 
         template <typename __record_t>
         inline auto push_node_impl(__record_t *rec, int foo = 0)
@@ -155,7 +155,7 @@ struct member
             /* use this otherwise; will not work always, but for some
             types which do not offer string getters */
             (_dest.*member_ptr) = rec->datastr();
-        };
+        }
 
         virtual bool push_node(NodeHandle node)
         {
