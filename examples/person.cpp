@@ -23,30 +23,23 @@ struct PersonRecord {
         age = new_age;
     };
 
-    uint32_t get_age() const {
+    const uint32_t get_age() const {
         return age;
     };
 };
 
 /* Here we define a class which will handle deserialization of our
  * struct. */
-typedef deserialize_one<deserialize_struct<
+typedef struct_decl<
     Container,
     0x01,
     struct_members<
-        deserialize_member_string_cb<UTF8Record, 0x02, PersonRecord, &PersonRecord::set_name>,
-        deserialize_member_cb<UInt32Record, 0x03, PersonRecord, uint32_t, &PersonRecord::set_age>
+        member_string_cb<UTF8Record, 0x02, PersonRecord, &PersonRecord::get_name, &PersonRecord::set_name>,
+        member_cb<UInt32Record, 0x03, PersonRecord, uint32_t, &PersonRecord::get_age, &PersonRecord::set_age>
         >
-    >> PersonDeserializer;
-
-/* And similarily, a serializer, which converts the struct in a
- * structstream node tree. */
-typedef serialize_block<
-    0x01,
-    PersonRecord,
-    serialize_string<0x02, UTF8Record, PersonRecord, &PersonRecord::get_name>,
-    serialize_custom<0x03, UInt32Record, PersonRecord, uint32_t, &PersonRecord::get_age>
     > PersonSerializer;
+
+typedef deserialize_one<PersonSerializer> PersonDeserializer;
 
 void read_and_show_input(std::istream &infile)
 {
@@ -121,18 +114,13 @@ int main()
         /* Make the ofstream usable to structstream */
         IOIntfHandle io(new StandardOutputStream(outfile));
 
-        /* Create a node tree using the serializer */
-        NodeHandle tree = PersonSerializer::serialize(&person);
-
         /* There are two options here, one simple and one complex. The
          * simple is sufficient for most cases, but we'll do the
          * complex one here for demonstration purposes, as it allows
          * to set hash functions for containers.
-         *
-         * For reference, the simple one would be just one line:
-         *
-         *     tree_to_bitstream({tree}, io);
          */
+
+        StreamSink bitstream_sink;
 
 #ifdef WITH_GNUTLS
         /* Write the node tree to the file: first get a bitstream
@@ -141,12 +129,15 @@ int main()
         outstream->set_armor_default(true);
         outstream->set_hash_function(RT_CONTAINER, 0x01, HT_SHA256);
 
-        FromTree(StreamSink(outstream), {tree});
+        bitstream_sink = StreamSink(outstream);
 #else
         /* Hashing requires GnuTLS. If no GnuTLS can be used, we have
          * to skip hashing. */
-        tree_to_bitstream({tree}, io);
+        bitstream_sink = StreamSink(new ToBitstream(io));
 #endif
+        serialize_to_sink<PersonSerializer>(person, bitstream_sink);
+        bitstream_sink->end_of_stream();
+
     }
 
     return 0;

@@ -27,7 +27,7 @@ authors named in the AUTHORS file.
 
 #include <cstddef>
 
-#include "structstream/deserializer.hpp"
+#include "structstream/serialize.hpp"
 #include "structstream/node_primitive.hpp"
 #include "structstream/node_blob.hpp"
 #include "structstream/streaming_tree.hpp"
@@ -59,17 +59,17 @@ TEST_CASE ("deserialize/pod", "Deserialization of a plain-old-data type")
 
     pod_t pod;
 
-    typedef deserialize_struct<
+    typedef struct_decl<
         Container,
         0x01,
         struct_members<
-            deserialize_member_raw<UInt32Record, 0x02, pod_t, uint32_t, offsetof(pod_t, v1)>,
-            deserialize_member<UInt32Record, 0x04, pod_t, uint8_t, &pod_t::v3>,
-            deserialize_member_raw<Float64Record, 0x03, pod_t, double, offsetof(pod_t, v2)>
+            member_raw<UInt32Record, 0x02, pod_t, uint32_t, offsetof(pod_t, v1)>,
+            member<UInt32Record, 0x04, pod_t, uint8_t, &pod_t::v3>,
+            member_raw<Float64Record, 0x03, pod_t, double, offsetof(pod_t, v2)>
             >
         > deserializer;
 
-    FromTree(StreamSink(new deserializer(pod)),
+    FromTree(deserialize<deserializer>(pod),
              std::dynamic_pointer_cast<Container>(pod_root_node));
 
     CHECK(pod.v1 == 0x2342dead);
@@ -92,15 +92,15 @@ TEST_CASE ("deserialize/str/member_ptr", "Deserialization of a string")
 
     block_t block;
 
-    typedef deserialize_struct<
+    typedef struct_decl<
         Container,
         0x01,
         struct_members<
-            deserialize_member_string<UTF8Record, 0x02, block_t, &block_t::value>
+            member_string<UTF8Record, 0x02, block_t, &block_t::value>
             >
         > deserializer;
 
-    FromTree(StreamSink(new deserializer(block)),
+    FromTree(deserialize<deserializer>(block),
              std::dynamic_pointer_cast<Container>(pod_root_node));
 
     CHECK(block.value == "Hello World!");
@@ -125,15 +125,15 @@ TEST_CASE ("deserialize/str/callback", "Deserialization of a string")
 
     block_t block;
 
-    typedef deserialize_struct<
+    typedef struct_decl<
         Container,
         0x01,
         struct_members<
-            deserialize_member_string_cb<UTF8Record, 0x02, block_t, &block_t::set_str>
+            member_string_cb<UTF8Record, 0x02, block_t, nullptr, &block_t::set_str>
             >
         > deserializer;
 
-    FromTree(StreamSink(new deserializer(block)),
+    FromTree(deserialize<deserializer>(block),
              std::dynamic_pointer_cast<Container>(pod_root_node));
 
     CHECK(block.value == "Hello World!");
@@ -171,15 +171,15 @@ TEST_CASE ("deserialize/blob/callback", "Deserialization of a blob")
 
     block_t block;
 
-    typedef deserialize_struct<
+    typedef struct_decl<
         Container,
         0x01,
         struct_members<
-            deserialize_member_cb_len<UTF8Record, 0x02, block_t, &block_t::set_str>
+            member_cb_len<UTF8Record, 0x02, block_t, nullptr, nullptr, &block_t::set_str>
             >
         > deserializer;
 
-    FromTree(StreamSink(new deserializer(block)),
+    FromTree(deserialize<deserializer>(block),
              std::dynamic_pointer_cast<Container>(pod_root_node));
 
     CHECK(strcmp(block.get_str(), text) == 0);
@@ -202,13 +202,13 @@ TEST_CASE ("deserialize/iterator/simple", "Deserialization of an integer array")
 
     std::vector<uint32_t> dest;
 
-    typedef deserialize_iterator<
-        typename deserialize_value<UInt32Record, 0x02, uint32_t>::deserializer,
+    typedef iterator<
+        value_decl<UInt32Record, 0x02, uint32_t>,
         std::back_insert_iterator<decltype(dest)>,
         uint32_t
         > deserializer;
 
-    FromTree(StreamSink(new deserializer(std::back_inserter(dest))),
+    FromTree(deserialize<deserializer>(std::back_inserter(dest)),
              std::dynamic_pointer_cast<Container>(pod_root_node));
 
     REQUIRE((sizeof(values) / sizeof(uint32_t)) == dest.size());
@@ -239,12 +239,12 @@ TEST_CASE ("deserialize/container/simple", "Deserialization of an integer array"
 
     std::vector<uint32_t> dest;
 
-    typedef deserialize_only<deserialize_container<
-        typename deserialize_value<UInt32Record, 0x02, uint32_t>::deserializer,
+    typedef only<container<
+        value_decl<UInt32Record, 0x02, uint32_t>,
         std::back_insert_iterator<decltype(dest)>
         >> deserializer;
 
-    FromTree(StreamSink(new deserializer(dest)),
+    FromTree(deserialize<deserializer>(dest),
              std::dynamic_pointer_cast<Container>(pod_root_node));
 
     REQUIRE((sizeof(values) / sizeof(uint32_t)) == dest.size());

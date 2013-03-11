@@ -25,18 +25,24 @@ authors named in the AUTHORS file.
 **********************************************************************/
 #include "catch.hpp"
 
-#include "structstream/serializer.hpp"
+#include "structstream/serialize.hpp"
 
+#include "structstream/streaming_tree.hpp"
 #include "structstream/node_primitive.hpp"
+#include "structstream/node_container.hpp"
 
 using namespace StructStream;
 
 TEST_CASE ("serialize/primitive/int", "Serialize a single integer")
 {
     static const uint32_t value = 0x12345678;
-    NodeHandle result = serialize_primitive<
-        0x01, UInt32Record, uint32_t>::serialize(&value);
+    typedef value_decl<UInt32Record, 0x01, uint32_t> serializer;
 
+    ContainerHandle root = NodeHandleFactory<Container>::create(0x00);
+
+    serialize_to_sink<serializer>(value, StreamSink(new ToTree(root)));
+
+    NodeHandle result = *root->children_begin();
     UInt32Record *rec = dynamic_cast<UInt32Record*>(result.get());
 
     REQUIRE(result.get() != 0);
@@ -55,13 +61,20 @@ TEST_CASE ("serialize/block/simple", "Serialize a block with some primitive elem
 
     block_t block{0x12345678, 0x00, 0.2f};
 
-    NodeHandle result = serialize_block<
+    typedef struct_decl<
+        Container,
         0x01,
-        block_t,
-        serialize_primitive<0x11, UInt32Record, uint32_t, offsetof(block_t, v1)>,
-        serialize_primitive<0x13, Float64Record, float, offsetof(block_t, v3)>,
-        serialize_primitive<0x12, UInt32Record, uint8_t, offsetof(block_t, v2)>
-        >::serialize(&block);
+        struct_members<
+            member<UInt32Record, 0x11, block_t, uint32_t, &block_t::v1>,
+            member<Float64Record, 0x13, block_t, float, &block_t::v3>,
+            member<UInt32Record, 0x12, block_t, uint8_t, &block_t::v2>
+            >
+        > serializer;
+
+    ContainerHandle root = NodeHandleFactory<Container>::create(0x00);
+    serialize_to_sink<serializer>(block, StreamSink(new ToTree(root)));
+
+    NodeHandle result = *root->children_begin();
 
     REQUIRE(result.get() != 0);
 
@@ -87,16 +100,20 @@ TEST_CASE ("serialize/block/simple", "Serialize a block with some primitive elem
     CHECK(v3_rec->get() == block.v3);
 }
 
+
 TEST_CASE ("serialize/array/int", "Serialize an array of integer")
 {
     static const std::vector<uint32_t> values{1, 2, 3, 4, 5};
 
-    NodeHandle result = NodeHandleFactory<Container>::create(0x01);
+    ContainerHandle result = NodeHandleFactory<Container>::create(0x01);
     Container *cont = static_cast<Container*>(result.get());
 
-    serialize_iterator<
-        serialize_primitive_by_value<0x02, UInt32Record, uint32_t>
-        >::serialize_into(cont, values.cbegin(), values.cend());
+    typedef container<
+        value_decl<UInt32Record, 0x02, uint32_t>,
+        std::back_insert_iterator<decltype(values)>
+        > serializer;
+
+    serialize_to_sink<serializer>(values, StreamSink(new ToTree(result)));
 
     REQUIRE((intptr_t)values.size() == (intptr_t)cont->child_count());
 
