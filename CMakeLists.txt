@@ -52,6 +52,7 @@ set(TEST_SOURCES
   "tests/decode_forgiving.cpp"
   "tests/decode_failures.cpp"
   "tests/serialize.cpp"
+  "tests/deserialize.cpp"
   "tests/hashing.cpp"
   "tests/iterators.cpp"
 )

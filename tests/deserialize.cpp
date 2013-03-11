@@ -129,7 +129,7 @@ TEST_CASE ("deserialize/str/callback", "Deserialization of a string")
         Container,
         0x01,
         struct_members<
-            member_string_cb<UTF8Record, 0x02, block_t, &block_t::set_str>
+            member_string_cb<UTF8Record, 0x02, block_t, nullptr, &block_t::set_str>
             >
         > deserializer;
 
@@ -175,7 +175,7 @@ TEST_CASE ("deserialize/blob/callback", "Deserialization of a blob")
         Container,
         0x01,
         struct_members<
-            member_cb_len<UTF8Record, 0x02, block_t, &block_t::set_str>
+            member_cb_len<UTF8Record, 0x02, block_t, nullptr, nullptr, &block_t::set_str>
             >
         > deserializer;
 
