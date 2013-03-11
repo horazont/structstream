@@ -51,7 +51,7 @@ protected:
 
 public:
     ToTree();
-    ToTree(ContainerHandle root);
+    explicit ToTree(ContainerHandle root);
     virtual ~ToTree();
 private:
     std::forward_list<ParentInfo*> _stack;

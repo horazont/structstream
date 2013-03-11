@@ -203,7 +203,7 @@ TEST_CASE ("deserialize/iterator/simple", "Deserialization of an integer array")
     std::vector<uint32_t> dest;
 
     typedef iterator<
-        value<UInt32Record, 0x02, uint32_t>,
+        value_decl<UInt32Record, 0x02, uint32_t>,
         std::back_insert_iterator<decltype(dest)>,
         uint32_t
         > deserializer;
@@ -240,7 +240,7 @@ TEST_CASE ("deserialize/container/simple", "Deserialization of an integer array"
     std::vector<uint32_t> dest;
 
     typedef only<container<
-        value<UInt32Record, 0x02, uint32_t>,
+        value_decl<UInt32Record, 0x02, uint32_t>,
         std::back_insert_iterator<decltype(dest)>
         >> deserializer;
 
