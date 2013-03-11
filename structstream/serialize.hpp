@@ -922,6 +922,57 @@ struct only
     };
 };
 
+template <typename _dest_t,
+          typename item_decl,
+          typename input_iterator,
+          input_iterator (_dest_t::*iter_begin)() const,
+          input_iterator (_dest_t::*iter_end)() const,
+          void (_dest_t::*add_item)(typename std::remove_const<typename input_iterator::value_type>::type &&element_type)>
+struct member_sequence_cb
+{
+    typedef _dest_t dest_t;
+    typedef typename item_decl::record_t record_t;
+    static constexpr ID id = item_decl::id;
+
+private:
+    typedef typename input_iterator::value_type element_type;
+    typedef deserialize_sequence<item_decl, element_type> sequence_decl;
+public:
+
+    class deserializer: public sequence_decl::deserializer
+    {
+    public:
+        typedef dest_t& arg_t;
+    public:
+        deserializer(arg_t dest):
+            sequence_decl::deserializer::deserializer(),
+            _dest(dest)
+        {
+
+        };
+    private:
+        arg_t _dest;
+    protected:
+        virtual void submit_item(element_type &&item)
+        {
+            (_dest.*add_item)(std::move(item));
+        };
+    };
+
+    struct serializer
+    {
+        typedef const dest_t& arg_t;
+
+        static inline void to_sink(arg_t obj, StreamSinkIntf *sink)
+        {
+            input_iterator curr = (obj.*iter_begin)();
+            input_iterator end = (obj.*iter_end)();
+            for (; curr != end; curr++) {
+                item_decl::serializer::to_sink(*curr, sink);
+            }
+        };
+    };
+};
 
 }
 
