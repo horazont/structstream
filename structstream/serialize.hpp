@@ -121,6 +121,29 @@ struct member_raw
     };
 };
 
+struct value_extractor
+{
+    /* SFINAE at work to pick the best implementation */
+
+    template <typename record_t, typename value_t>
+    static inline auto assign(record_t *rec, value_t &value, long foo = 0)
+        -> decltype(rec->get(), (void)0)
+    {
+        /* use this if a compatible get() is available */
+        value = rec->get();
+    }
+
+
+    template <typename record_t, typename value_t>
+    inline auto push_node_impl(record_t *rec, value_t &value, int foo = 0)
+        -> decltype(rec->datastr(), (void)0)
+    {
+        /* use this otherwise; will not work always, but for some
+           types which do not offer string getters */
+        value = rec->datastr();
+    }
+};
+
 template <typename _record_t, ID _id, typename _dest_t, typename member_t, member_t _dest_t::*member_ptr>
 struct member
 {
@@ -138,29 +161,10 @@ struct member
     private:
         dest_t& _dest;
     public:
-
-        /* SFINAE at work to pick the best implementation */
-        template <typename __record_t>
-        inline auto push_node_impl(__record_t *rec, long foo = 0)
-            -> decltype(rec->get(), (void)0)
-        {
-            /* use this if a compatible get() is available */
-            (_dest.*member_ptr) = rec->get();
-        }
-
-        template <typename __record_t>
-        inline auto push_node_impl(__record_t *rec, int foo = 0)
-            -> decltype(rec->datastr(), (void)0)
-        {
-            /* use this otherwise; will not work always, but for some
-            types which do not offer string getters */
-            (_dest.*member_ptr) = rec->datastr();
-        }
-
         virtual bool push_node(NodeHandle node)
         {
             record_t *rec = static_cast<record_t*>(node.get());
-            push_node_impl<record_t>(std::move(rec), 0L);
+            value_extractor::assign<record_t, dest_t>(std::move(rec), 0L);
             return true;
         };
     };
@@ -776,9 +780,38 @@ struct value_decl
     typedef _record_t record_t;
     static constexpr ID id = _id;
 
-    typedef typename member_raw<record_t, id, dest_t, dest_t, 0>::deserializer deserializer;
+    class deserializer: public ThrowOnAll
+    {
+    public:
+        typedef dest_t& arg_t;
+    public:
+        deserializer(arg_t dest):
+            _dest(dest)
+        {
+        };
+        virtual ~deserializer() {};
+    private:
+        arg_t _dest;
+    public:
+        virtual bool push_node(NodeHandle node)
+        {
+            record_t *rec = dynamic_cast<record_t*>(node.get());
+            value_extractor::assign<record_t, dest_t>(rec, _dest);
+            return true;
+        };
+    };
 
-    typedef typename member_raw<record_t, id, dest_t, dest_t, 0>::serializer serializer;
+    struct serializer
+    {
+        typedef const dest_t& arg_t;
+
+        inline static void to_sink(arg_t obj, StreamSinkIntf *sink)
+        {
+            auto node = NodeHandleFactory<record_t>::create(id);
+            node->set(obj);
+            sink->push_node(node);
+        };
+    };
 };
 
 template <typename deserializer>
