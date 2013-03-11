@@ -77,6 +77,67 @@ TEST_CASE ("deserialize/pod", "Deserialization of a plain-old-data type")
     CHECK(pod.v3 == 0x12);
 }
 
+
+TEST_CASE ("deserialize/pod/nested", "Deserialization of nested plain-old-data types")
+{
+    struct pod1_t {
+        uint32_t v1;
+        double v2;
+    };
+
+    struct pod2_t {
+        pod1_t v1;
+        uint8_t v2;
+    };
+
+    ContainerHandle pod1_cont = NodeHandleFactory<Container>::create(0x01);
+
+    NodeHandle node = NodeHandleFactory<UInt32Record>::create(0x02);
+    static_cast<UInt32Record*>(node.get())->set(0x2342dead);
+    pod1_cont->child_add(node);
+
+    node = NodeHandleFactory<Float64Record>::create(0x03);
+    static_cast<Float64Record*>(node.get())->set(23.42);
+    pod1_cont->child_add(node);
+
+    ContainerHandle pod2_cont = NodeHandleFactory<Container>::create(0x05);
+
+    node = NodeHandleFactory<UInt32Record>::create(0x04);
+    static_cast<UInt32Record*>(node.get())->set(0xffffff12);
+    pod2_cont->child_add(node);
+
+    pod2_cont->child_add(pod1_cont);
+
+    pod2_t pod;
+
+    typedef struct_decl<
+        Container,
+        0x05,
+        struct_members<
+            member_struct<
+                pod2_t,
+                struct_decl<
+                    Container,
+                    0x01,
+                    struct_members<
+                        member<UInt32Record, 0x02, pod1_t, uint32_t, &pod1_t::v1>,
+                        member<Float64Record, 0x03, pod1_t, double, &pod1_t::v2>
+                        >
+                    >,
+                &pod2_t::v1
+                >,
+            member<UInt32Record, 0x04, pod2_t, uint8_t, &pod2_t::v2>
+            >
+        > deserializer;
+
+    FromTree(deserialize<deserializer>(pod),
+             std::dynamic_pointer_cast<Container>(pod2_cont));
+
+    CHECK(pod.v1.v1 == 0x2342dead);
+    CHECK(pod.v1.v2 == 23.42);
+    CHECK(pod.v2 == 0x12);
+}
+
 TEST_CASE ("deserialize/str/member_ptr", "Deserialization of a string")
 {
     struct block_t {

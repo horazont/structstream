@@ -365,6 +365,37 @@ struct member_string_cb
 //     typedef serialize_member_string_cb<record_t, id, dest_t, getfunc> serializer;
 // };
 
+template <typename _dest_t, typename struct_t, typename struct_t::dest_t _dest_t::*member_ptr>
+struct member_struct
+{
+    typedef typename struct_t::record_t record_t;
+    static constexpr ID id = struct_t::id;
+    typedef _dest_t dest_t;
+
+    class deserializer: public struct_t::deserializer
+    {
+    public:
+        typedef dest_t& arg_t;
+    public:
+        deserializer(arg_t dest):
+            struct_t::deserializer::deserializer(dest.*member_ptr)
+        {
+
+        }
+        virtual ~deserializer() {};
+    };
+
+    struct serializer
+    {
+        typedef const dest_t& arg_t;
+
+        static inline void to_sink(arg_t obj, StreamSinkIntf *sink)
+        {
+            struct_t::serializer::to_sink(obj.*member_ptr, sink);
+        };
+    };
+};
+
 template <typename... member_ts>
 struct struct_members
 {
