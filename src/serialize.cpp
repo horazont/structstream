@@ -23,7 +23,7 @@ FEEDBACK & QUESTIONS
 For feedback and questions about structstream++ please e-mail one of the
 authors named in the AUTHORS file.
 **********************************************************************/
-#include "structstream/deserializer.hpp"
+#include "structstream/serialize.hpp"
 
 namespace StructStream {
 

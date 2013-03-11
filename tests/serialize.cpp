@@ -1,5 +1,5 @@
 /**********************************************************************
-File name: serialize.cpp
+File name: deserialize.cpp
 This file is part of: structstream++
 
 LICENSE
@@ -25,90 +25,235 @@ authors named in the AUTHORS file.
 **********************************************************************/
 #include "catch.hpp"
 
-#include "structstream/serializer.hpp"
+#include <cstddef>
 
+#include "structstream/serialize.hpp"
 #include "structstream/node_primitive.hpp"
+#include "structstream/node_blob.hpp"
+#include "structstream/streaming_tree.hpp"
 
 using namespace StructStream;
 
-TEST_CASE ("serialize/primitive/int", "Serialize a single integer")
+TEST_CASE ("deserialize/pod", "Deserialization of a plain-old-data type")
 {
-    static const uint32_t value = 0x12345678;
-    NodeHandle result = serialize_primitive<
-        0x01, UInt32Record, uint32_t>::serialize(&value);
-
-    UInt32Record *rec = dynamic_cast<UInt32Record*>(result.get());
-
-    REQUIRE(result.get() != 0);
-    REQUIRE(rec != 0);
-
-    CHECK(rec->get() == value);
-}
-
-TEST_CASE ("serialize/block/simple", "Serialize a block with some primitive elements")
-{
-    struct block_t {
+    struct pod_t {
         uint32_t v1;
-        uint8_t v2;
-        float v3;
+        uint8_t v3;
+        double v2;
     };
 
-    block_t block{0x12345678, 0x00, 0.2f};
+    NodeHandle pod_root_node = NodeHandleFactory<Container>::create(0x01);
+    Container *pod_root = static_cast<Container*>(pod_root_node.get());
 
-    NodeHandle result = serialize_block<
+    NodeHandle node = NodeHandleFactory<UInt32Record>::create(0x02);
+    static_cast<UInt32Record*>(node.get())->set(0x2342dead);
+    pod_root->child_add(node);
+
+    node = NodeHandleFactory<UInt32Record>::create(0x04);
+    static_cast<UInt32Record*>(node.get())->set(0xffffff12);
+    pod_root->child_add(node);
+
+    node = NodeHandleFactory<Float64Record>::create(0x03);
+    static_cast<Float64Record*>(node.get())->set(23.42);
+    pod_root->child_add(node);
+
+    pod_t pod;
+
+    typedef struct_decl<
+        Container,
         0x01,
-        block_t,
-        serialize_primitive<0x11, UInt32Record, uint32_t, offsetof(block_t, v1)>,
-        serialize_primitive<0x13, Float64Record, float, offsetof(block_t, v3)>,
-        serialize_primitive<0x12, UInt32Record, uint8_t, offsetof(block_t, v2)>
-        >::serialize(&block);
+        struct_members<
+            member_raw<UInt32Record, 0x02, pod_t, uint32_t, offsetof(pod_t, v1)>,
+            member<UInt32Record, 0x04, pod_t, uint8_t, &pod_t::v3>,
+            member_raw<Float64Record, 0x03, pod_t, double, offsetof(pod_t, v2)>
+            >
+        > deserializer;
 
-    REQUIRE(result.get() != 0);
+    FromTree(deserialize<deserializer>(pod),
+             std::dynamic_pointer_cast<Container>(pod_root_node));
 
-    Container *parent = dynamic_cast<Container*>(result.get());
-
-    REQUIRE(parent != 0);
-
-    NodeHandle curr_child = parent->first_child_by_id(0x11);
-    REQUIRE(curr_child.get() != 0);
-    UInt32Record *v1_rec = dynamic_cast<UInt32Record*>(curr_child.get());
-    REQUIRE(v1_rec != 0);
-
-    curr_child = parent->first_child_by_id(0x12);
-    UInt32Record *v2_rec = dynamic_cast<UInt32Record*>(curr_child.get());
-    REQUIRE(v2_rec != 0);
-
-    curr_child = parent->first_child_by_id(0x13);
-    Float64Record *v3_rec = dynamic_cast<Float64Record*>(curr_child.get());
-    REQUIRE(v3_rec != 0);
-
-    CHECK(v1_rec->get() == block.v1);
-    CHECK(v2_rec->get() == block.v2);
-    CHECK(v3_rec->get() == block.v3);
+    CHECK(pod.v1 == 0x2342dead);
+    CHECK(pod.v2 == 23.42);
+    CHECK(pod.v3 == 0x12);
 }
 
-TEST_CASE ("serialize/array/int", "Serialize an array of integer")
+TEST_CASE ("deserialize/str/member_ptr", "Deserialization of a string")
 {
-    static const std::vector<uint32_t> values{1, 2, 3, 4, 5};
+    struct block_t {
+        std::string value;
+    };
 
-    NodeHandle result = NodeHandleFactory<Container>::create(0x01);
-    Container *cont = static_cast<Container*>(result.get());
+    NodeHandle pod_root_node = NodeHandleFactory<Container>::create(0x01);
+    Container *pod_root = static_cast<Container*>(pod_root_node.get());
 
-    serialize_iterator<
-        serialize_primitive_by_value<0x02, UInt32Record, uint32_t>
-        >::serialize_into(cont, values.cbegin(), values.cend());
+    NodeHandle node = NodeHandleFactory<UTF8Record>::create(0x02);
+    static_cast<UTF8Record*>(node.get())->set("Hello World!");
+    pod_root->child_add(node);
 
-    REQUIRE((intptr_t)values.size() == (intptr_t)cont->child_count());
+    block_t block;
 
-    auto intit = values.cbegin();
+    typedef struct_decl<
+        Container,
+        0x01,
+        struct_members<
+            member_string<UTF8Record, 0x02, block_t, &block_t::value>
+            >
+        > deserializer;
 
-    for (auto nodeit = cont->children_cbegin();
-         nodeit != cont->children_cend();
-         nodeit++, intit++)
+    FromTree(deserialize<deserializer>(block),
+             std::dynamic_pointer_cast<Container>(pod_root_node));
+
+    CHECK(block.value == "Hello World!");
+}
+
+TEST_CASE ("deserialize/str/callback", "Deserialization of a string")
+{
+    struct block_t {
+        std::string value;
+
+        void set_str(const std::string &ref) {
+            value = ref;
+        };
+    };
+
+    NodeHandle pod_root_node = NodeHandleFactory<Container>::create(0x01);
+    Container *pod_root = static_cast<Container*>(pod_root_node.get());
+
+    NodeHandle node = NodeHandleFactory<UTF8Record>::create(0x02);
+    static_cast<UTF8Record*>(node.get())->set("Hello World!");
+    pod_root->child_add(node);
+
+    block_t block;
+
+    typedef struct_decl<
+        Container,
+        0x01,
+        struct_members<
+            member_string_cb<UTF8Record, 0x02, block_t, &block_t::set_str>
+            >
+        > deserializer;
+
+    FromTree(deserialize<deserializer>(block),
+             std::dynamic_pointer_cast<Container>(pod_root_node));
+
+    CHECK(block.value == "Hello World!");
+
+}
+
+TEST_CASE ("deserialize/blob/callback", "Deserialization of a blob")
+{
+    struct block_t {
+    public:
+        block_t(): _buf(), _len(0) {};
+        virtual ~block_t() { if (_buf) { free(_buf); } };
+    private:
+        char* _buf;
+        intptr_t _len;
+    public:
+        void set_str(const char* value, const intptr_t len) {
+            _buf = (char*)realloc(_buf, len);
+            memcpy(_buf, value, len);
+        };
+
+        const char* get_str() const {
+            return _buf;
+        };
+    };
+
+    static const char* text = "Hello World!";
+
+    NodeHandle pod_root_node = NodeHandleFactory<Container>::create(0x01);
+    Container *pod_root = static_cast<Container*>(pod_root_node.get());
+
+    NodeHandle node = NodeHandleFactory<UTF8Record>::create(0x02);
+    static_cast<UTF8Record*>(node.get())->set(text);
+    pod_root->child_add(node);
+
+    block_t block;
+
+    typedef struct_decl<
+        Container,
+        0x01,
+        struct_members<
+            member_cb_len<UTF8Record, 0x02, block_t, &block_t::set_str>
+            >
+        > deserializer;
+
+    FromTree(deserialize<deserializer>(block),
+             std::dynamic_pointer_cast<Container>(pod_root_node));
+
+    CHECK(strcmp(block.get_str(), text) == 0);
+}
+
+TEST_CASE ("deserialize/iterator/simple", "Deserialization of an integer array")
+{
+    static const uint32_t values[] = {1, 2, 3, 4, 5};
+
+    NodeHandle pod_root_node = NodeHandleFactory<Container>::create(0x01);
+    Container *pod_root = static_cast<Container*>(pod_root_node.get());
+
+    for (auto &value: values)
     {
-        UInt32Record *rec = dynamic_cast<UInt32Record*>((*nodeit).get());
-        REQUIRE(rec != 0);
-        REQUIRE(rec->get() == *intit);
+        NodeHandle rec_node = NodeHandleFactory<UInt32Record>::create(0x02);
+        UInt32Record *rec = static_cast<UInt32Record*>(rec_node.get());
+        rec->set(value);
+        pod_root->child_add(rec_node);
     }
 
+    std::vector<uint32_t> dest;
+
+    typedef iterator<
+        value<UInt32Record, 0x02, uint32_t>,
+        std::back_insert_iterator<decltype(dest)>,
+        uint32_t
+        > deserializer;
+
+    FromTree(deserialize<deserializer>(std::back_inserter(dest)),
+             std::dynamic_pointer_cast<Container>(pod_root_node));
+
+    REQUIRE((sizeof(values) / sizeof(uint32_t)) == dest.size());
+
+    int value_idx = 0;
+    for (auto it = dest.begin();
+         it != dest.end();
+         it++, value_idx++)
+    {
+        CHECK(values[value_idx] == *it);
+    }
+}
+
+TEST_CASE ("deserialize/container/simple", "Deserialization of an integer array")
+{
+    static const uint32_t values[] = {1, 2, 3, 4, 5};
+
+    NodeHandle pod_root_node = NodeHandleFactory<Container>::create(0x01);
+    Container *pod_root = static_cast<Container*>(pod_root_node.get());
+
+    for (auto &value: values)
+    {
+        NodeHandle rec_node = NodeHandleFactory<UInt32Record>::create(0x02);
+        UInt32Record *rec = static_cast<UInt32Record*>(rec_node.get());
+        rec->set(value);
+        pod_root->child_add(rec_node);
+    }
+
+    std::vector<uint32_t> dest;
+
+    typedef only<container<
+        value<UInt32Record, 0x02, uint32_t>,
+        std::back_insert_iterator<decltype(dest)>
+        >> deserializer;
+
+    FromTree(deserialize<deserializer>(dest),
+             std::dynamic_pointer_cast<Container>(pod_root_node));
+
+    REQUIRE((sizeof(values) / sizeof(uint32_t)) == dest.size());
+
+    int value_idx = 0;
+    for (auto it = dest.begin();
+         it != dest.end();
+         it++, value_idx++)
+    {
+        CHECK(values[value_idx] == *it);
+    }
 }
