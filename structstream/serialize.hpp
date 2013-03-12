@@ -178,7 +178,7 @@ struct value_extractor
 
 
     template <typename record_t, typename value_t>
-    inline auto push_node_impl(record_t *rec, value_t &value, int foo = 0)
+    static inline auto assign(record_t *rec, value_t &value, int foo = 0)
         -> decltype(rec->datastr(), (void)0)
     {
         /* use this otherwise; will not work always, but for some
@@ -207,7 +207,11 @@ struct member
         virtual bool push_node(NodeHandle node)
         {
             record_t *rec = static_cast<record_t*>(node.get());
-            value_extractor::assign<record_t, dest_t>(std::move(rec), 0L);
+            value_extractor::assign<record_t, member_t>(
+                std::move(rec),
+                _dest.*member_ptr,
+                0L
+                );
             return true;
         };
     };
