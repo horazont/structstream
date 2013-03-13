@@ -63,7 +63,7 @@ VarUInt read_varuint_ex(IOIntf *stream, intptr_t *overlen, uint_fast8_t *bytecou
         *overlen += 1;
     }
 
-    uint8_t *buffer = (uint8_t*)malloc(count);
+    uint8_t *buffer = new uint8_t[count];
     try {
         sread(stream, buffer, count);
 
@@ -78,9 +78,10 @@ VarUInt read_varuint_ex(IOIntf *stream, intptr_t *overlen, uint_fast8_t *bytecou
             result |= ((uint64_t)(buffer[idx]) << ((count-idx)-1)*8);
         }
     } catch (...) {
-        free(buffer);
+        delete[] buffer;
         throw;
     }
+    delete[] buffer;
 
     return result;
 }
