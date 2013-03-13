@@ -79,6 +79,7 @@ VarUInt read_varuint_ex(IOIntf *stream, intptr_t *overlen, uint_fast8_t *bytecou
         }
     } catch (...) {
         free(buffer);
+        throw;
     }
 
     return result;
