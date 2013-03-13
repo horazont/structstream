@@ -122,13 +122,14 @@ RecordType enum name value    content format
                               error if it encounters this record
                               type. It is reserved for future
                               extension of the specification.
-``UINT32``           ``0x01`` 4 byte unsigned integer, little endian
-``INT32``            ``0x02`` 4 byte signed integer, little endian
-``UINT64``           ``0x03`` 8 byte unsigned integer, little endian
-``INT64``            ``0x04`` 8 byte signed integer, little endian
-``BOOL_TRUE``        ``0x05`` *no contents*, shall be interpreted as
+``CONTAINER``        ``0x01`` *container node, see above*
+``UINT32``           ``0x02`` 4 byte unsigned integer, little endian
+``INT32``            ``0x03`` 4 byte signed integer, little endian
+``UINT64``           ``0x04`` 8 byte unsigned integer, little endian
+``INT64``            ``0x05`` 8 byte signed integer, little endian
+``BOOL_TRUE``        ``0x06`` *no contents*, shall be interpreted as
                               boolean ``True``
-``BOOL_FALSE``       ``0x06`` *no contents*, shall be interpreted as
+``BOOL_FALSE``       ``0x07`` *no contents*, shall be interpreted as
                               boolean ``False``
 ``FLOAT32``          ``0x08`` 4 byte IEEE float (single precision),
                               little endian
