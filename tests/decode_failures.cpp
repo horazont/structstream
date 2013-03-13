@@ -143,3 +143,12 @@ TEST_CASE ("decode/varuint/invalid", "Abort on invalid varints")
 
     REQUIRE_THROWS_AS(blob_to_varuint(data, sizeof(data)), InvalidVarIntError);
 }
+
+TEST_CASE ("decode/varuint/missing_payload", "Abort on too short varints")
+{
+    static const uint8_t data[] = {
+        0x40
+    };
+
+    REQUIRE_THROWS_AS(blob_to_varuint(data, sizeof(data)), EndOfStreamError);
+}
