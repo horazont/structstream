@@ -33,6 +33,38 @@ authors named in the AUTHORS file.
 
 namespace StructStream { namespace Utils {
 
+template <typename int_type>
+struct platform_utils
+{
+};
+
+template <>
+struct platform_utils<long unsigned int>
+{
+    typedef long unsigned int int_type;
+
+    static constexpr uint_fast8_t total_bit_count = sizeof(int_type) * 8;
+
+    static inline uint_fast8_t significant_bits(int_type value)
+    {
+        return total_bit_count - __builtin_clzl(value);
+    };
+};
+
+template <>
+struct platform_utils<long long unsigned int>
+{
+    typedef long long unsigned int int_type;
+
+    static constexpr uint_fast8_t total_bit_count = sizeof(int_type) * 8;
+
+    static inline uint_fast8_t significant_bits(int_type value)
+    {
+        return total_bit_count - __builtin_clzll(value);
+    };
+};
+
+
 using namespace StructStream;
 
 VarUInt read_varuint_ex(IOIntf *stream, intptr_t *overlen, uint_fast8_t *bytecount)
@@ -117,8 +149,7 @@ RecordType read_record_type(IOIntf *stream)
 
 inline uint_fast8_t bytecount_from_varuint(VarUInt value)
 {
-    const uint_fast8_t total_bit_count = (sizeof(value)*8);
-    const uint_fast8_t bitcount = total_bit_count-__builtin_clzl(value);
+    const uint_fast8_t bitcount = platform_utils<VarUInt>::significant_bits(value);
     // this gives ceil((float)bitcount / 7)
     const uint_fast8_t bytecount = (bitcount+6) / 7;
 
@@ -170,8 +201,7 @@ void write_varint(IOIntf *stream, VarInt value)
         VarUInt enc_value = 0;
         enc_value = (VarUInt)(-value);
 
-        const uint_fast8_t total_bit_count = (sizeof(enc_value)*8);
-        const uint_fast8_t bitcount = total_bit_count-__builtin_clzl(enc_value);
+        const uint_fast8_t bitcount = platform_utils<VarUInt>::significant_bits(enc_value);
         // intentionally one bit more than needed to encode the value
         const uint_fast8_t bytecount = (bitcount+7)/7;
 
@@ -179,8 +209,7 @@ void write_varint(IOIntf *stream, VarInt value)
         enc_value |= (VarUInt(1) << (bytecount*7-1));
         write_varbuf_ex(stream, enc_value, bytecount);
     } else {
-        const uint_fast8_t total_bit_count = (sizeof(value)*8);
-        const uint_fast8_t bitcount = total_bit_count-__builtin_clzl(value);
+        const uint_fast8_t bitcount = platform_utils<VarUInt>::significant_bits((VarUInt)value);
         // intentionally one bit more than needed to encode the value
         const uint_fast8_t bytecount = (bitcount+7)/7;
 
