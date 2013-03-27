@@ -143,9 +143,6 @@ TEST_CASE ("iter/find_most_shallow/more_herings",
     CHECK((*foo).get() == c3.get());
     ++foo;
     CHECK(!foo.valid());
-    if (foo.valid()) {
-        printf("hint: (*foo).get() == 0x%lx\n", (intptr_t)(*foo).get());
-    }
 }
 
 TEST_CASE ("iter/find_most_shallow/even_more_herings",
