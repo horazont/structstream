@@ -44,7 +44,7 @@ TEST_CASE ("decode/container/empty", "Test decode of an empty container with exp
 
     Container *cont = dynamic_cast<Container*>(node.get());
     REQUIRE(cont != 0);
-    CHECK(cont->id() == 0x01);
+    CHECK(cont->id() == 0x01U);
     CHECK(cont->children_begin() == cont->children_end());
 }
 
@@ -133,25 +133,25 @@ TEST_CASE ("decode/container/complex", "Complex nesting structure")
 
     UInt32Record *rec = dynamic_cast<UInt32Record*>((*children).get());
     REQUIRE(rec != 0);
-    REQUIRE(rec->id() == 0x02);
+    REQUIRE(rec->id() == 0x02U);
     REQUIRE(rec->get() == 0x11111111);
 
     children += 1;
 
     Container *cont2 = dynamic_cast<Container*>((*children).get());
     REQUIRE(cont2 != 0);
-    REQUIRE(cont2->id() == 0x01);
+    REQUIRE(cont2->id() == 0x01U);
 
     rec = dynamic_cast<UInt32Record*>((*(cont2->children_begin())).get());
     REQUIRE(rec != 0);
-    REQUIRE(rec->id() == 0x03);
+    REQUIRE(rec->id() == 0x03U);
     REQUIRE(rec->get() == 0x22222222);
 
     children += 1;
 
     rec = dynamic_cast<UInt32Record*>((*children).get());
     REQUIRE(rec != 0);
-    REQUIRE(rec->id() == 0x04);
+    REQUIRE(rec->id() == 0x04U);
     REQUIRE(rec->get() == 0x33333333);
 
     children += 1;

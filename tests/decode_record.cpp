@@ -196,5 +196,5 @@ TEST_CASE ("decode/records/varuint", "Test decode of a varuint record")
 
     VarUIntRecord *rec = dynamic_cast<VarUIntRecord*>(node.get());
     REQUIRE(rec != 0);
-    REQUIRE(rec->get() == 0x2100);
+    REQUIRE(rec->get() == 0x2100U);
 }
