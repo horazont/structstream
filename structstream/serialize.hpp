@@ -29,6 +29,7 @@ authors named in the AUTHORS file.
 #include "structstream/static.hpp"
 #include "structstream/node_container.hpp"
 #include "structstream/streaming_base.hpp"
+#include "structstream/streaming_tree.hpp"
 
 namespace StructStream {
 
@@ -117,6 +118,67 @@ struct member_raw
             record_t *rec = static_cast<record_t*>(node.get());
             rec->set(*reinterpret_cast<const member_t*>(reinterpret_cast<const uint8_t*>(&obj) + offset));
             sink->push_node(node);
+        }
+    };
+};
+
+template <typename _record_t, ID _id, typename _dest_t, std::shared_ptr<_record_t> _dest_t::*member_ptr>
+struct member_record
+{
+    typedef _record_t record_t;
+    typedef _dest_t dest_t;
+    static constexpr ID id = _id;
+
+    class deserializer: public ToTree
+    {
+    public:
+        typedef dest_t& arg_t;
+    public:
+        deserializer(arg_t dest):
+            ToTree(),
+            _dest(dest)
+        {
+            if (std::is_base_of<Container, record_t>::value) {
+                _dest.*member_ptr = root();
+            }
+        };
+    private:
+        arg_t _dest;
+    public:
+        virtual bool push_node(NodeHandle node) {
+            if (std::is_base_of<Container, record_t>::value) {
+                return ToTree::push_node(node);
+            } else {
+                _dest.*member_ptr = std::static_pointer_cast<_record_t>(node);
+            }
+        };
+    };
+
+    struct serializer
+    {
+        typedef const dest_t& arg_t;
+
+        static inline void to_sink(arg_t obj, StreamSinkIntf *sink)
+        {
+            std::shared_ptr<_record_t> node = obj.*member_ptr;
+            if (!node) {
+                return;
+            }
+            if (std::is_base_of<Container, record_t>::value) {
+                ContainerMeta meta;
+                meta.child_count = node->child_count();
+                sink->start_container(node, &meta);
+                for (auto it = node->children_begin();
+                     it != node->children_end();
+                     it++)
+                {
+
+                }
+                ContainerFooter foot;
+                sink->end_container(&foot);
+            } else {
+                sink->push_node(node);
+            }
         }
     };
 };
