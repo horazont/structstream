@@ -116,7 +116,7 @@ intptr_t Container::child_count() const
     return _children.size();
 }
 
-void Container::child_erase(NodeVector::iterator &to_remove)
+void Container::child_erase(NodeVector::iterator to_remove)
 {
     NodeHandle child = *to_remove;
     if ((*to_remove)->parent().get() != this) {

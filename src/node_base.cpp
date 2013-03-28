@@ -56,8 +56,11 @@ Node::~Node()
 }
 
 void Node::set_parent(ContainerHandle parent) {
-    assert(_parent.lock().get() == nullptr);
+    if (parent) {
+        assert(!_parent.lock());
+    }
     _parent = parent;
+
 }
 
 void Node::detach_from_parent() {

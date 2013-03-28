@@ -88,7 +88,7 @@ public:
      *
      * @param to_remove Iterator pointing at the child to remove.
      */
-    void child_erase(NodeVector::iterator &to_remove);
+    void child_erase(NodeVector::iterator to_remove);
 
     /**
      * Find a child node in the container.
