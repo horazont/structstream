@@ -315,7 +315,7 @@ void FromBitstream::end_of_container()
     check_end_of_container();
 }
 
-NodeHandle FromBitstream::read_next() {
+NodeHandle FromBitstream::read_step() {
     if (_curr_parent == nullptr) {
         // printf("bitstream: state suggests end-of-stream, won't read further\n");
         return NodeHandle();
@@ -345,7 +345,7 @@ NodeHandle FromBitstream::read_next() {
                 throw UnexpectedEndOfChildren("Non-armored container closed by End-Of-Children tag. This may also imply that some children are missing.");
             }
         }
-	return read_next();
+        return NodeHandle();
     }
 
     if (_curr_parent->armored
@@ -380,7 +380,7 @@ NodeHandle FromBitstream::read_next() {
             _curr_parent->read_child_count++;
             check_end_of_container();
 
-            return read_next();
+            return read_step();
         } else {
             throw UnsupportedRecordType("Unsupported record type.");
         }
@@ -403,12 +403,30 @@ NodeHandle FromBitstream::read_next() {
     return new_node;
 }
 
+void FromBitstream::read_next()
+{
+    NodeHandle node = read_step();
+    if (!node) {
+        return;
+    }
+
+    ContainerHandle cont = std::dynamic_pointer_cast<Container>(node);
+    if (cont) {
+        typename decltype(_parent_stack)::size_type this_len = _parent_stack.size();
+        // printf("bitstream: read_next(): waiting for length %lu\n", this_len);
+        while (_parent_stack.size() >= this_len) {
+            read_step();
+            // printf("bitstream: read_next(): current length %lu\n", _parent_stack.size());
+        }
+    }
+}
+
 void FromBitstream::read_all()
 {
     try {
         NodeHandle node;
         do {
-            node = read_next();
+            node = read_step();
         } while (node.get() != nullptr);
     } catch (SinkClosed &foo) {
         cleanup_state();

@@ -26,6 +26,7 @@ authors named in the AUTHORS file.
 #ifndef _STRUCTSTREAM_STREAMING_BITSTREAM_H
 #define _STRUCTSTREAM_STREAMING_BITSTREAM_H
 
+#include <list>
 #include <forward_list>
 
 #include "structstream/streaming_base.hpp"
@@ -117,7 +118,7 @@ private:
     StreamSink _sink_h;
     StreamSinkIntf *_sink;
 
-    std::forward_list<ParentInfo*> _parent_stack;
+    std::list<ParentInfo*> _parent_stack;
     ParentInfo *_curr_parent;
 
     uint32_t _forgiveness;
@@ -135,9 +136,20 @@ protected:
     virtual void end_of_container_body(ParentInfo *info);
     void end_of_container();
 protected:
-    NodeHandle read_next();
+    NodeHandle read_step();
 public:
+    /**
+     * Read until the end of stream is reached.
+     */
     void read_all();
+
+    /**
+     * Read one node. If the node is a container, also read all child
+     * nodes of this container. If the node is not a container,
+     * return.
+     */
+    void read_next();
+
     void set_forgiving_for(uint32_t forgiveness, bool forgiving = true);
 };
 
