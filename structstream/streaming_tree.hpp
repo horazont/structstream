@@ -83,8 +83,8 @@ public:
     void send_all();
     };*/
 
-void FromTree(StreamSink sink, ContainerHandle root);
-void FromTree(StreamSink sink, std::initializer_list<NodeHandle> children);
+void FromTree(StreamSink sink, ContainerHandle root, bool send_end_of_stream = true);
+void FromTree(StreamSink sink, std::initializer_list<NodeHandle> children, bool send_end_of_stream = true);
 
 }
 

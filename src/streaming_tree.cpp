@@ -144,7 +144,7 @@ bool subtree_to_sink(StreamSink sink, NodeHandle subtree)
     }
 }
 
-void FromTree(StreamSink sink, ContainerHandle root)
+void FromTree(StreamSink sink, ContainerHandle root, bool send_end_of_stream)
 {
     for (auto it = root->children_begin();
          it != root->children_end();
@@ -154,17 +154,19 @@ void FromTree(StreamSink sink, ContainerHandle root)
             break;
         };
     }
-    sink->end_of_stream();
+    if (send_end_of_stream)
+        sink->end_of_stream();
 }
 
-void FromTree(StreamSink sink, std::initializer_list<NodeHandle> children)
+void FromTree(StreamSink sink, std::initializer_list<NodeHandle> children, bool send_end_of_stream)
 {
     for (auto child: children) {
         if (!subtree_to_sink(sink, child)) {
             break;
         };
     }
-    sink->end_of_stream();
+    if (send_end_of_stream)
+        sink->end_of_stream();
 }
 
 }
