@@ -80,6 +80,11 @@ public:
     virtual NodeHandle copy() const = 0;
 
     /**
+     * Create and return a shallow copy of the node.
+     */
+    virtual NodeHandle shallow_copy() const;
+
+    /**
      * Return the record type of the node.
      */
     virtual RecordType record_type() const = 0;

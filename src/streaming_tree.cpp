@@ -87,7 +87,15 @@ bool ToTree::start_container(ContainerHandle cont, const ContainerMeta *meta)
 
     // printf("tree: starting container with id 0x%lx\n", cont->id());
 
-    _curr_parent->parent->child_add(cont);
+    // we must do a shallow copy here if we find out that the
+    // container is in some other tree structure. This is for example
+    // the case if we receive our nodes from a FromTree operation
+    if (cont->parent().get() != _curr_parent->parent) {
+        if (cont->parent()) {
+            cont = std::static_pointer_cast<Container>(cont->shallow_copy());
+        }
+        _curr_parent->parent->child_add(cont);
+    }
     push_parent(new ParentInfo(meta->copy(), cont));
     return true;
 }
@@ -98,7 +106,12 @@ bool ToTree::push_node(NodeHandle node)
 
     // printf("tree: new child with id 0x%lx\n", node->id());
 
-    _curr_parent->parent->child_add(node);
+    if (node->parent().get() != _curr_parent->parent) {
+        if (node->parent()) {
+            node = node->shallow_copy();
+        }
+        _curr_parent->parent->child_add(node);
+    }
     return true;
 }
 

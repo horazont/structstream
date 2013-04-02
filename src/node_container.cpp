@@ -196,4 +196,9 @@ NodeHandle Container::copy() const
     return NodeHandleFactory<Container>::copy(*this);
 }
 
+NodeHandle Container::shallow_copy() const
+{
+    return NodeHandleFactory<Container>::create(id());
+}
+
 }

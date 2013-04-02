@@ -81,4 +81,9 @@ void Node::write_header(IOIntf *stream) const
     Utils::write_id(stream, _id);
 }
 
+NodeHandle Node::shallow_copy() const
+{
+    return copy();
+}
+
 }

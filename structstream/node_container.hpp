@@ -163,6 +163,14 @@ public:
      * @return The new copy
      */
     virtual NodeHandle copy() const;
+
+    /**
+     * Create and return a shallow copy of the container.
+     *
+     * This does not include any children.
+     */
+    virtual NodeHandle shallow_copy() const;
+
     virtual RecordType record_type() const {
         return RT_CONTAINER;
     };
