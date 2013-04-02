@@ -182,6 +182,36 @@ public:
     friend struct NodeHandleFactory< PrimitiveDataRecord<_T, rt> >;
 };
 
+template <typename enum_t, RecordType rt,
+          typename underlying_record_type =
+              PrimitiveDataRecord<typename std::underlying_type<enum_t>::type, rt>>
+class EnumRecordTpl: public underlying_record_type
+{
+public:
+    typedef decltype(std::declval<underlying_record_type>().get()) int_t;
+public:
+    EnumRecordTpl(ID id):
+        PrimitiveDataRecord<int_t, rt>(id)
+    {
+
+    };
+
+    EnumRecordTpl(const EnumRecordTpl& ref)
+    {
+    };
+    EnumRecordTpl& operator=(const EnumRecordTpl& ref);
+public:
+    inline enum_t get() const {
+        return (enum_t)this->_data;
+    };
+
+    inline void set(const enum_t& value) {
+        this->_data = (int_t)value;
+    };
+
+    friend struct NodeHandleFactory< EnumRecordTpl<enum_t, rt, underlying_record_type> >;
+};
+
 typedef PrimitiveDataRecord<int32_t, RT_INT32> Int32Record;
 typedef PrimitiveDataRecord<uint32_t, RT_UINT32> UInt32Record;
 typedef PrimitiveDataRecord<int64_t, RT_INT64> Int64Record;
