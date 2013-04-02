@@ -80,7 +80,7 @@ typename deserializer::deserializer deserializer_obj(typename deserializer::dese
 template <typename decl>
 void serialize_to_sink(typename decl::serializer::arg_t src, StreamSink sink)
 {
-    decl::serializer::to_sink(src, sink.get());
+    decl::serializer::to_sink(src, sink);
 }
 
 template <typename _record_t, ID _id, typename _dest_t, typename member_t, intptr_t offset>
@@ -112,7 +112,7 @@ struct member_raw
     {
         typedef const dest_t& arg_t;
 
-        static inline void to_sink(const dest_t &obj, StreamSinkIntf *sink)
+        static inline void to_sink(const dest_t &obj, StreamSink sink)
         {
             NodeHandle node = NodeHandleFactory<record_t>::create(id);
             record_t *rec = static_cast<record_t*>(node.get());
@@ -158,7 +158,7 @@ struct member_record
     {
         typedef const dest_t& arg_t;
 
-        static inline void to_sink(arg_t obj, StreamSinkIntf *sink)
+        static inline void to_sink(arg_t obj, StreamSink sink)
         {
             std::shared_ptr<_record_t> node = obj.*member_ptr;
             if (!node) {
@@ -219,7 +219,7 @@ struct member_direct
     {
         typedef const dest_t& arg_t;
 
-        static inline void to_sink(arg_t obj, StreamSinkIntf *sink)
+        static inline void to_sink(arg_t obj, StreamSink sink)
         {
             sink->push_node((obj.*get_record)(id));
         };
@@ -282,7 +282,7 @@ struct member
     {
         typedef const dest_t& arg_t;
 
-        static inline void to_sink(const dest_t &obj, StreamSinkIntf *sink)
+        static inline void to_sink(const dest_t &obj, StreamSink sink)
         {
             NodeHandle node = NodeHandleFactory<record_t>::create(id);
             record_t *rec = static_cast<record_t*>(node.get());
@@ -321,7 +321,7 @@ struct member_cb
     {
         typedef const dest_t& arg_t;
 
-        static inline void to_sink(arg_t obj, StreamSinkIntf *sink)
+        static inline void to_sink(arg_t obj, StreamSink sink)
         {
             NodeHandle node = NodeHandleFactory<record_t>::create(id);
             record_t *rec = static_cast<record_t*>(node.get());
@@ -334,7 +334,7 @@ struct member_cb
 template <typename record_t, ID id, typename dest_t, intptr_t (dest_t::*lenfunc)() const, const char* (dest_t::*buffunc)() const>
 struct serializer_member_cb_len
 {
-    static inline void to_sink(dest_t &obj, StreamSinkIntf *sink)
+    static inline void to_sink(dest_t &obj, StreamSink sink)
     {
         NodeHandle node = NodeHandleFactory<record_t>::create(id);
         record_t *rec = static_cast<record_t*>(node.get());
@@ -422,7 +422,7 @@ struct serialize_member_string_cb
 {
     typedef const src_t& arg_t;
 
-    static inline void to_sink(arg_t obj, StreamSinkIntf *sink)
+    static inline void to_sink(arg_t obj, StreamSink sink)
     {
         NodeHandle node = NodeHandleFactory<record_t>::create(id);
         record_t *rec = static_cast<record_t*>(node.get());
@@ -502,7 +502,7 @@ struct member_struct
     {
         typedef const dest_t& arg_t;
 
-        static inline void to_sink(arg_t obj, StreamSinkIntf *sink)
+        static inline void to_sink(arg_t obj, StreamSink sink)
         {
             struct_t::serializer::to_sink(obj.*member_ptr, sink);
         };
@@ -547,7 +547,7 @@ public:
         return other_members::dispatch_node(&members[1], node);
     }
 
-    static inline void to_sink(const dest_t &obj, StreamSinkIntf *sink)
+    static inline void to_sink(const dest_t &obj, StreamSink sink)
     {
         member_t::serializer::to_sink(obj, sink);
         other_members::to_sink(obj, sink);
@@ -578,7 +578,7 @@ struct struct_members<>
     }
 
     template <typename U>
-    static inline void to_sink(const U &obj, StreamSinkIntf *sink)
+    static inline void to_sink(const U &obj, StreamSink sink)
     {
         // intentionally left blank
     }
@@ -655,7 +655,7 @@ struct struct_decl
     {
         typedef const dest_t& arg_t;
 
-        static inline void to_sink(const dest_t &obj, StreamSinkIntf *sink)
+        static inline void to_sink(const dest_t &obj, StreamSink sink)
         {
             ContainerHandle node = NodeHandleFactory<record_t>::create(id);
             ContainerMeta *meta = new ContainerMeta();
@@ -834,7 +834,7 @@ struct iterator
     {
         static inline void to_sink(input_iterator begin,
                                    input_iterator end,
-                                   StreamSinkIntf *sink)
+                                   StreamSink sink)
         {
             for (; begin != end; begin++) {
                 item_decl::serializer::to_sink(*begin, sink);
@@ -875,7 +875,7 @@ struct container
     {
         typedef const dest_t& arg_t;
 
-        static inline void to_sink(const dest_t &obj, StreamSinkIntf *sink)
+        static inline void to_sink(const dest_t &obj, StreamSink sink)
         {
             iterator_decl::serializer::to_sink(obj.cbegin(), obj.cend(), sink);
         }
@@ -914,7 +914,7 @@ struct value_decl
     {
         typedef const dest_t& arg_t;
 
-        inline static void to_sink(arg_t obj, StreamSinkIntf *sink)
+        inline static void to_sink(arg_t obj, StreamSink sink)
         {
             auto node = NodeHandleFactory<record_t>::create(id);
             node->set(obj);
@@ -1072,7 +1072,7 @@ public:
     {
         typedef const dest_t& arg_t;
 
-        static inline void to_sink(arg_t obj, StreamSinkIntf *sink)
+        static inline void to_sink(arg_t obj, StreamSink sink)
         {
             input_iterator curr = (obj.*iter_begin)();
             input_iterator end = (obj.*iter_end)();
