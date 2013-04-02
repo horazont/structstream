@@ -94,6 +94,9 @@ VarUInt read_varuint_ex(IOIntf *stream, intptr_t *overlen, uint_fast8_t *bytecou
     if (overlen && (result == 0))  {
         *overlen += 1;
     }
+    if (count == 0) {
+        return result;
+    }
 
     uint8_t *buffer = new uint8_t[count];
     try {
