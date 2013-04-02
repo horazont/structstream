@@ -135,17 +135,37 @@ struct member_record
         typedef dest_t& arg_t;
     public:
         deserializer(arg_t dest):
-            ToTree(),
+            ToTree(NodeHandleFactory<Container>::create(_id)),
+            _first_event(true),
             _dest(dest)
+        {
+        };
+    private:
+        bool _first_event;
+        arg_t _dest;
+
+        inline void set_up_root()
         {
             if (std::is_base_of<Container, record_t>::value) {
                 _dest.*member_ptr = root();
             }
-        };
-    private:
-        arg_t _dest;
+        }
     public:
+        virtual bool start_container(ContainerHandle cont, const ContainerMeta* meta)
+        {
+            if (_first_event) {
+                set_up_root();
+                _first_event = false;
+            }
+            return ToTree::start_container(cont, meta);
+        };
+
         virtual bool push_node(NodeHandle node) {
+            if (_first_event) {
+                set_up_root();
+                _first_event = false;
+            }
+
             if (std::is_base_of<Container, record_t>::value) {
                 return ToTree::push_node(node);
             } else {
@@ -165,17 +185,7 @@ struct member_record
                 return;
             }
             if (std::is_base_of<Container, record_t>::value) {
-                ContainerMeta meta;
-                meta.child_count = node->child_count();
-                sink->start_container(node, &meta);
-                for (auto it = node->children_begin();
-                     it != node->children_end();
-                     it++)
-                {
-
-                }
-                ContainerFooter foot;
-                sink->end_container(&foot);
+                FromTree(sink, {node}, false);
             } else {
                 sink->push_node(node);
             }
