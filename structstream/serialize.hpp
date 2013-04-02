@@ -26,6 +26,8 @@ authors named in the AUTHORS file.
 #ifndef _STRUCTSTREAM_DESERIALIZER_H
 #define _STRUCTSTREAM_DESERIALIZER_H
 
+#include <stdexcept>
+
 #include "structstream/static.hpp"
 #include "structstream/node_container.hpp"
 #include "structstream/streaming_base.hpp"
@@ -594,7 +596,7 @@ struct struct_members<>
     }
 };
 
-template <typename _record_t, ID _id, typename members>
+template <typename _record_t, ID _id, typename members, bool strict=false>
 struct struct_decl
 {
     typedef typename members::dest_t dest_t;
@@ -618,6 +620,14 @@ struct struct_decl
         StreamSink member_sinks[members::member_count];
         dest_t &dest;
     protected:
+        static inline void throw_unknown_child(NodeHandle child)
+        {
+            throw std::runtime_error("Unknown struct child found: rt="
+                                     + std::to_string(child->record_type())
+                                     + "; id=" + std::to_string(child->id())
+                                     + ".");
+        };
+
         virtual bool _start_container(ContainerHandle cont, const ContainerMeta *meta) {
             Container *node = cont.get();
             StreamSink sink_to_use = members::dispatch_node(member_sinks, node);
@@ -627,6 +637,8 @@ struct struct_decl
                 //        node->id());
                 nest(sink_to_use);
             } else {
+                if (strict)
+                    throw_unknown_child(cont);
                 // printf("struct: found NO way to deserialize rt %x, id %lx; skipping container\n",
                 //        node->record_type(),
                 //        node->id());
@@ -644,6 +656,8 @@ struct struct_decl
                 //        node->id());
                 sink_to_use->push_node(node_h);
             } else {
+                if (strict)
+                    throw_unknown_child(node_h);
                 // printf("struct: found NO way to deserialize rt %x, id %lx\n",
                 //        node->record_type(),
                 //        node->id());
