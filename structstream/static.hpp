@@ -33,6 +33,7 @@ namespace StructStream {
 typedef uint64_t VarUInt;
 typedef int64_t VarInt;
 typedef uint64_t ID;
+typedef VarUInt RecordType;
 
 const VarUInt MaxVarUInt = 0xffffffffffffff;
 const VarUInt MinVarUInt = 0x0;
@@ -44,31 +45,29 @@ const ID TreeRootID = 0x00000000;
 const ID MaxID = MaxVarUInt;
 const ID InvalidID = MaxID;
 
+const RecordType RT_RESERVED = 0x00;  // may indicate a larger typefield
+const RecordType RT_CONTAINER = 0x01;
+const RecordType RT_UINT32 = 0x02;
+const RecordType RT_INT32 = 0x03;
+const RecordType RT_UINT64 = 0x04;
+const RecordType RT_INT64 = 0x05;
+const RecordType RT_BOOL_TRUE = 0x06;
+const RecordType RT_BOOL_FALSE = 0x07;
+const RecordType RT_FLOAT32 = 0x08;
+const RecordType RT_FLOAT64 = 0x09;
+const RecordType RT_UTF8STRING = 0x0A;
+const RecordType RT_BLOB = 0x0B;
+const RecordType RT_END_OF_CHILDREN = 0x0C;
+const RecordType RT_VARUINT = 0x0D;
+const RecordType RT_VARINT = 0x0E;
 
-enum RecordType {
-    RT_RESERVED = 0x00,  // may indicate a larger typefield
-    RT_CONTAINER = 0x01,
-    RT_UINT32 = 0x02,
-    RT_INT32 = 0x03,
-    RT_UINT64 = 0x04,
-    RT_INT64 = 0x05,
-    RT_BOOL_TRUE = 0x06,
-    RT_BOOL_FALSE = 0x07,
-    RT_FLOAT32 = 0x08,
-    RT_FLOAT64 = 0x09,
-    RT_UTF8STRING = 0x0A,
-    RT_BLOB = 0x0B,
-    RT_END_OF_CHILDREN = 0x0C,
-    RT_VARUINT = 0x0D,
-    RT_VARINT = 0x0E,
+const RecordType RT_APPBLOB_MIN = 0x40;
+const RecordType RT_APPBLOB_MAX = 0x5f;
+const RecordType RT_APP_NOSIZE_MIN = 0x60;
+const RecordType RT_APP_NOSIZE_MAX = 0x7f;
 
-    RT_APPBLOB_MIN = 0x40,
-    RT_APPBLOB_MAX = 0x5f,
-    RT_APP_NOSIZE_MIN = 0x60,
-    RT_APP_NOSIZE_MAX = 0x7f
+// up to here, record type doesn't require a second byte
 
-    // up to here, record type doesn't require a second byte
-};
 
 enum ContainerFlags {
     CF_WITH_SIZE = 0x0001,

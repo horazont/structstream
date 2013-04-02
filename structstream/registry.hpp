@@ -31,18 +31,6 @@ authors named in the AUTHORS file.
 
 #include "structstream/node_base.hpp"
 
-namespace std {
-
-template<>
-struct hash<StructStream::RecordType> {
-public:
-    size_t operator()(const StructStream::RecordType &id) const {
-        return hash<unsigned long>()(id);
-    };
-};
-
-}
-
 namespace StructStream {
 
 typedef std::function< NodeHandle(ID) > NodeConstructor;
