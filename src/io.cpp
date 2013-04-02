@@ -37,10 +37,21 @@ void sread(IOIntf *io, void *buf, const intptr_t len)
     if (read_bytes < len) {
         throw EndOfStreamError("Premature end-of-stream while reading.");
     }
+
+    // printf("read:");
+    // for (const uint8_t *item = (const uint8_t*)buf;
+    //      item < (const uint8_t*)buf + len;
+    //      item++)
+    // {
+    //     printf(" 0x%x", *item);
+    // }
+    // printf("\n");
+
 }
 
 void swrite(IOIntf *io, const void *buf, const intptr_t len)
 {
+
     // printf("writing:");
     // for (const uint8_t *item = (const uint8_t*)buf;
     //      item < (const uint8_t*)buf + len;
@@ -49,6 +60,7 @@ void swrite(IOIntf *io, const void *buf, const intptr_t len)
     //     printf(" 0x%x", *item);
     // }
     // printf("\n");
+
     intptr_t written_bytes = io->write(buf, len);
     if (written_bytes < len) {
         throw EndOfStreamError("Premature end-of-stream while writing.");
