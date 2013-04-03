@@ -315,6 +315,12 @@ void FromBitstream::end_of_container()
     check_end_of_container();
 }
 
+void FromBitstream::close() {
+    cleanup_state();
+    _source_h = nullptr;
+    _source = nullptr;
+}
+
 NodeHandle FromBitstream::read_step() {
     if (_curr_parent == nullptr) {
         // printf("bitstream: state suggests end-of-stream, won't read further\n");

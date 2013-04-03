@@ -139,6 +139,12 @@ protected:
     NodeHandle read_step();
 public:
     /**
+     * Cleanup the state and remove all references on the I/O passed
+     * to the constructor.
+     */
+    void close();
+
+    /**
      * Read until the end of stream is reached.
      */
     void read_all();
