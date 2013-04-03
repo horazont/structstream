@@ -367,7 +367,7 @@ NodeHandle FromBitstream::read_step() {
 	throw InvalidIDError("Invalid object ID encountered.");
     }
 
-    // printf("bitstream: found 0x%x with id 0x%lx\n", rt, id);
+    // printf("bitstream: found 0x%lx with id 0x%lx\n", rt, id);
 
     NodeHandle new_node = _node_factory->node_from_record_type(rt, id);
     if (!new_node.get()) {
