@@ -191,7 +191,7 @@ public:
     typedef decltype(std::declval<underlying_record_type>().get()) int_t;
 public:
     EnumRecordTpl(ID id):
-        PrimitiveDataRecord<int_t, rt>(id)
+        underlying_record_type(id)
     {
 
     };
