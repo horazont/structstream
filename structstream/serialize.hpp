@@ -823,6 +823,33 @@ struct deserialize_sequence
 };
 
 template <typename item_decl,
+          typename element_type>
+struct deserialize_sequence_cb
+{
+    typedef typename item_decl::record_t record_t;
+    static constexpr ID id = item_decl::id;
+
+    class deserializer: public deserialize_sequence<item_decl, element_type>::deserializer
+    {
+    public:
+        typedef std::function< void(element_type&& item) > arg_t;
+    public:
+        deserializer(arg_t callback):
+            _callback(callback)
+        {
+
+        };
+    private:
+        arg_t _callback;
+    protected:
+        virtual void submit_item(element_type &&item)
+        {
+            _callback(std::move(item));
+        }
+    };
+};
+
+template <typename item_decl,
           typename output_iterator,
           typename input_iterator,
           typename element_type = typename output_iterator::container_type::value_type>
