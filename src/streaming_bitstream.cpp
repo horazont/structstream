@@ -175,7 +175,7 @@ void FromBitstream::proc_container_flags(VarUInt &flags_int, FromBitstream::Pare
 
     if ((flags_int & CF_WITH_SIZE) != 0) {
         flags_int ^= CF_WITH_SIZE;
-        info->meta->child_count = Utils::read_varint(_source);
+        info->meta->child_count = Utils::read_varuint(_source);
     }
 
     if ((flags_int & CF_ARMORED) != 0) {
