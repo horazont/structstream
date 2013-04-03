@@ -196,17 +196,32 @@ public:
 
     };
 
-    EnumRecordTpl(const EnumRecordTpl& ref)
+    EnumRecordTpl(const EnumRecordTpl& ref):
+        underlying_record_type(ref)
     {
+
     };
-    EnumRecordTpl& operator=(const EnumRecordTpl& ref);
+
+    EnumRecordTpl& operator=(const EnumRecordTpl& ref)
+    {
+        underlying_record_type::operator=(ref);
+        return *this;
+    };
 public:
+    virtual NodeHandle copy() const {
+        return NodeHandleFactory<EnumRecordTpl<enum_t, rt, underlying_record_type>>::copy(*this);
+    };
+
     inline enum_t get() const {
         return (enum_t)this->_data;
     };
 
     inline void set(const enum_t& value) {
         this->_data = (int_t)value;
+    };
+
+    virtual RecordType record_type() const {
+        return rt;
     };
 
     friend struct NodeHandleFactory< EnumRecordTpl<enum_t, rt, underlying_record_type> >;
