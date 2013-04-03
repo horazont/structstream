@@ -64,6 +64,14 @@ public:
      * @result Newly created node or empty handle.
      */
     NodeHandle node_from_record_type(RecordType rt, ID id) const;
+
+    void register_record_type(RecordType rt, NodeConstructor constructor);
+
+    template <class record_type>
+    void register_record_class(RecordType rt)
+    {
+        register_record_type(rt, [](ID id){ return NodeHandleFactory<record_type>::create(id); });
+    }
 };
 
 typedef std::shared_ptr<Registry> RegistryHandle;
