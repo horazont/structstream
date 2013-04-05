@@ -197,24 +197,25 @@ void write_varbuf_ex(IOIntf *stream, VarUInt buf, uint_fast8_t bytecount)
 
 void write_varint(IOIntf *stream, VarInt value)
 {
+    VarUInt enc_value = 0;
     if (value < 0) {
-        VarUInt enc_value = 0;
         enc_value = (VarUInt)(-value);
-
-        const uint_fast8_t bitcount = platform_utils<VarUInt>::significant_bits(enc_value);
-        // intentionally one bit more than needed to encode the value
-        const uint_fast8_t bytecount = (bitcount+7)/7;
-
-        assert((enc_value | ((VarUInt)1 << (bytecount*7-1))) != enc_value);
-        enc_value |= (VarUInt(1) << (bytecount*7-1));
-        write_varbuf_ex(stream, enc_value, bytecount);
     } else {
-        const uint_fast8_t bitcount = platform_utils<VarUInt>::significant_bits((VarUInt)value);
-        // intentionally one bit more than needed to encode the value
-        const uint_fast8_t bytecount = (bitcount+7)/7;
-
-        write_varbuf_ex(stream, (VarUInt)value, bytecount);
+        enc_value = (VarUInt)(value);
     }
+
+    const uint_fast8_t bitcount = platform_utils<VarUInt>::significant_bits(
+        enc_value);
+    // intentionally one bit more than needed to encode the value
+    const uint_fast8_t bytecount = (bitcount+7)/7;
+
+    if (value < 0) {
+        assert((enc_value | ((VarUInt)1 << (bytecount*7-1))) != enc_value);
+        // embed sign-bit into output
+        enc_value |= (VarUInt(1) << (bytecount*7-1));
+    }
+
+    write_varbuf_ex(stream, enc_value, bytecount);
 }
 
 void write_varuint(IOIntf *stream, VarUInt value)
