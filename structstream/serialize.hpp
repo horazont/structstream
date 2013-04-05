@@ -1,5 +1,5 @@
 /**********************************************************************
-File name: deserializer.hpp
+File name: serialize.hpp
 This file is part of: structstream++
 
 LICENSE
