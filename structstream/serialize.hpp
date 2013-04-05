@@ -744,7 +744,7 @@ struct iterator_helper<type, std::shared_ptr<type>>
 {
     static inline void assign(std::shared_ptr<type> *src, type **dest)
     {
-        *dest = src.get();
+        *dest = src->get();
     }
 
     static inline std::shared_ptr<type> construct()
@@ -758,7 +758,7 @@ struct iterator_helper<type, std::unique_ptr<type>>
 {
     static inline void assign(std::unique_ptr<type> *src, type **dest)
     {
-        *dest = src.get();
+        *dest = src->get();
     }
 
     static inline std::unique_ptr<type> construct()
