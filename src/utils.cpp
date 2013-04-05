@@ -39,6 +39,19 @@ struct platform_utils
 };
 
 template <>
+struct platform_utils<unsigned int>
+{
+    typedef unsigned int int_type;
+
+    static constexpr uint_fast8_t total_bit_count = sizeof(int_type) * 8;
+
+    static inline uint_fast8_t significant_bits(int_type value)
+    {
+        return total_bit_count - __builtin_clz(value);
+    };
+};
+
+template <>
 struct platform_utils<long unsigned int>
 {
     typedef long unsigned int int_type;
