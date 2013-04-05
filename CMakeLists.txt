@@ -43,6 +43,7 @@ target_link_libraries(structstream++ ${DEPS})
 
 set(CATCH_INCLUDE_DIRS "Catch/single_include")
 set(TEST_SOURCES
+  "tests/model.cpp"
   "tests/encode_record.cpp"
   "tests/encode_varint.cpp"
   "tests/encode_container.cpp"
