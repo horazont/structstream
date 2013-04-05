@@ -34,11 +34,12 @@ authors named in the AUTHORS file.
 using namespace StructStream;
 
 inline ContainerHandle blob_to_tree(const uint8_t *data, intptr_t data_len,
-    uint32_t forgivingness = 0)
+                                    uint32_t forgivingness = 0,
+                                    RegistryHandle registry = nullptr)
 {
-    RegistryHandle registry = RegistryHandle(new Registry());
+    RegistryHandle registry_to_use = (registry ? registry : RegistryHandle(new Registry()));
     IOIntfHandle io = IOIntfHandle(new ReadableMemory(data, data_len));
-    return bitstream_to_tree(io, registry, forgivingness);
+    return bitstream_to_tree(io, registry_to_use, forgivingness);
 }
 
 inline intptr_t tree_to_blob(uint8_t *output, intptr_t output_len, std::initializer_list<NodeHandle> children, bool armor = true)
