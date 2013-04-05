@@ -98,25 +98,22 @@ VarUInt read_varuint_ex(IOIntf *stream, intptr_t *overlen, uint_fast8_t *bytecou
         return result;
     }
 
-    uint8_t *buffer = new uint8_t[count];
-    try {
-        sread(stream, buffer, count);
+    // this size must be increased if we ever support more than 8-byte
+    // varuints.
+    uint8_t buffer[7];
+    assert(count <= 7);
+    sread(stream, buffer, count);
 
-        for (int idx = 0; idx < count; idx++) {
-            if (overlen) {
-                if (buffer[idx] == 0) {
-                    *overlen += 1;
-                } else {
-                    *overlen = 0;
-                }
+    for (int idx = 0; idx < count; idx++) {
+        if (overlen) {
+            if (buffer[idx] == 0) {
+                *overlen += 1;
+            } else {
+                *overlen = 0;
             }
-            result |= ((uint64_t)(buffer[idx]) << ((count-idx)-1)*8);
         }
-    } catch (...) {
-        delete[] buffer;
-        throw;
+        result |= ((uint64_t)(buffer[idx]) << ((count-idx)-1)*8);
     }
-    delete[] buffer;
 
     return result;
 }
