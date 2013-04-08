@@ -456,7 +456,10 @@ void FromBitstream::set_forgiving_for(uint32_t forgiveness, bool forgiving)
 
 ToBitstream::ToBitstream(IOIntfHandle dest):
     _dest_h(dest),
-    _dest(dest.get())
+    _dest(dest.get()),
+    _parent_stack(),
+    _curr_parent(),
+    _default_armor()
 {
 
 }
