@@ -459,7 +459,7 @@ ToBitstream::ToBitstream(IOIntfHandle dest):
     _dest(dest.get()),
     _parent_stack(),
     _curr_parent(),
-    _default_armor()
+    _default_armor(false)
 {
 
 }
