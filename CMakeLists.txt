@@ -41,33 +41,34 @@ endif (GNUTLS_FOUND)
 add_library(structstream++ ${STRUCTSTREAM_SOURCES})
 target_link_libraries(structstream++ ${DEPS})
 
-set(CATCH_INCLUDE_DIRS "Catch/single_include")
-set(TEST_SOURCES
-  "tests/model.cpp"
-  "tests/encode_record.cpp"
-  "tests/encode_varint.cpp"
-  "tests/encode_container.cpp"
-  "tests/encode_enum.cpp"
-  "tests/decode_record.cpp"
-  "tests/decode_varint.cpp"
-  "tests/decode_container.cpp"
-  "tests/decode_forgiving.cpp"
-  "tests/decode_failures.cpp"
-  "tests/decode_enum.cpp"
-  "tests/serialize.cpp"
-  "tests/deserialize.cpp"
-  "tests/hashing.cpp"
-  "tests/iterators.cpp"
-)
-
-include_directories(${CATCH_INCLUDE_DIRS})
-add_executable(run_tests tests/main.cpp ${TEST_SOURCES} )
-target_link_libraries(run_tests structstream++)
-
-add_executable(examples/person EXCLUDE_FROM_ALL examples/person.cpp)
-target_link_libraries(examples/person structstream++)
-
 if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+
+  set(CATCH_INCLUDE_DIRS "Catch/single_include")
+  set(TEST_SOURCES
+    "tests/model.cpp"
+    "tests/encode_record.cpp"
+    "tests/encode_varint.cpp"
+    "tests/encode_container.cpp"
+    "tests/encode_enum.cpp"
+    "tests/decode_record.cpp"
+    "tests/decode_varint.cpp"
+    "tests/decode_container.cpp"
+    "tests/decode_forgiving.cpp"
+    "tests/decode_failures.cpp"
+    "tests/decode_enum.cpp"
+    "tests/serialize.cpp"
+    "tests/deserialize.cpp"
+    "tests/hashing.cpp"
+    "tests/iterators.cpp"
+    )
+
+  include_directories(${CATCH_INCLUDE_DIRS})
+  add_executable(run_tests tests/main.cpp ${TEST_SOURCES} )
+  target_link_libraries(run_tests structstream++)
+
+  add_executable(examples/person EXCLUDE_FROM_ALL examples/person.cpp)
+  target_link_libraries(examples/person structstream++)
+
   add_custom_target(
     docs
     COMMAND make html
