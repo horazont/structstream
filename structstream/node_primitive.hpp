@@ -35,6 +35,68 @@ authors named in the AUTHORS file.
 
 namespace StructStream {
 
+namespace {
+
+template <typename int_t>
+struct bswap_impl;
+
+template <>
+struct bswap_impl<int32_t>
+{
+    static inline int32_t bswap(const int32_t value)
+    {
+        return __builtin_bswap32(value);
+    };
+};
+
+template <>
+struct bswap_impl<int64_t>
+{
+    static inline int64_t bswap(const int64_t value)
+    {
+        return __builtin_bswap64(value);
+    };
+};
+
+template <typename A, typename enable = void>
+struct endianess;
+
+template<typename A>
+struct endianess<A, typename std::enable_if<sizeof(A) != sizeof(int8_t)>::type>
+{
+    typedef typename std::conditional<
+        sizeof(A) == sizeof(int32_t), int32_t,
+        typename std::conditional<
+            sizeof(A) == sizeof(int64_t), int64_t,
+            void
+            >::type
+        >::type int_t;
+
+    static_assert(!std::is_same<int_t, void>::value,
+                  "Can only deal with 8, 32 or 64-bit values.");
+
+    static inline void bswap(A &value)
+    {
+        union {
+            A orig;
+            int_t buf;
+        } converter;
+        converter.orig = value;
+        converter.buf = bswap_impl<int_t>::bswap(converter.buf);
+        value = converter.orig;
+    };
+};
+
+template<typename A>
+struct endianess<A, typename std::enable_if<sizeof(A) == sizeof(int8_t)>::type>
+{
+    static inline void bswap(A &value)
+    {
+    };
+};
+
+}
+
 /**
  * Base class for primitive data records.
  */
@@ -97,6 +159,8 @@ class PrimitiveDataRecord: public DataRecord {
         (sizeof(_T) == 8),
         "PrimitiveDataRecord only supports 1, 4 or 8 byte wide types.");
 
+    typedef endianess<_T> endian_helper;
+
 protected:
     explicit PrimitiveDataRecord(ID id):
         DataRecord::DataRecord(id),
@@ -127,19 +191,8 @@ public:
 
     virtual void read(IOIntf *stream) {
         if (Utils::is_big_endian && (sizeof(_T) > 1)) {
-            uint8_t buf[sizeof(_T)];
-            sread(stream, buf, sizeof(_T));
-
-            switch (sizeof(_T)) {
-            case 4:
-                _data = (_T)(__builtin_bswap32(*reinterpret_cast<uint32_t*>(buf)));
-                break;
-            case 8:
-                _data = (_T)(__builtin_bswap64(*reinterpret_cast<uint64_t*>(buf)));
-                break;
-            default:
-                assert(false);
-            };
+            sread(stream, &_data, sizeof(_T));
+            endian_helper::bswap(_data);
         } else {
             sreadv<_T>(stream, &_data);
         }
@@ -148,20 +201,9 @@ public:
     virtual void write(IOIntf *stream) const {
         write_header(stream);
         if (Utils::is_big_endian) {
-            uint8_t buf[sizeof(_T)];
-
-            switch (sizeof(_T)) {
-            case 4:
-                *((_T*)buf) = (_T)(__builtin_bswap32(*reinterpret_cast<const uint32_t*>(&_data)));
-                break;
-            case 8:
-                *((_T*)buf) = (_T)(__builtin_bswap64(*reinterpret_cast<const uint64_t*>(&_data)));
-                break;
-            default:
-                assert(false);
-            };
-
-            swrite(stream, buf, sizeof(_T));
+            _T tmp = _data;
+            endian_helper::bswap(tmp);
+            swrite(stream, &tmp, sizeof(_T));
         } else {
             swritev<_T>(stream, _data);
         }
