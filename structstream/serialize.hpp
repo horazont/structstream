@@ -625,7 +625,7 @@ struct struct_decl
             throw std::runtime_error("Unknown struct child found: rt="
                                      + std::to_string(child->record_type())
                                      + "; id=" + std::to_string(child->id())
-                                     + ".");
+                                     + "; typeid=." + typeid(*child.get()).name());
         };
 
         virtual bool _start_container(ContainerHandle cont, const ContainerMeta *meta) {
