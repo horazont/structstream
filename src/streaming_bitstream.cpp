@@ -190,7 +190,7 @@ void FromBitstream::proc_container_flags(VarUInt &flags_int, FromBitstream::Pare
     if ((flags_int & CF_HASHED) != 0) {
         HashType hash_function = static_cast<HashType>(Utils::read_varuint(_source));;
 
-	flags_int ^= CF_HASHED;
+        flags_int ^= CF_HASHED;
         info->meta->has_hash = true;
         info->footer->hash_function = hash_function;
     }
@@ -329,7 +329,7 @@ NodeHandle FromBitstream::read_step() {
 
     RecordType rt = Utils::read_record_type(_source);
     if (rt == RT_RESERVED) {
-	throw UnsupportedRecordType("RT_RESERVED encountered. This stream may have been created with a newer version of structstream.");
+        throw UnsupportedRecordType("RT_RESERVED encountered. This stream may have been created with a newer version of structstream.");
     } else if (rt == RT_END_OF_CHILDREN) {
         // printf("bitstream: end of children encountered\n");
 
@@ -364,7 +364,7 @@ NodeHandle FromBitstream::read_step() {
 
     ID id = Utils::read_id(_source);
     if (id == InvalidID) {
-	throw InvalidIDError("Invalid object ID encountered.");
+        throw InvalidIDError("Invalid object ID encountered.");
     }
 
     // printf("bitstream: found 0x%lx with id 0x%lx\n", rt, id);
@@ -396,7 +396,7 @@ NodeHandle FromBitstream::read_step() {
     if (new_parent.get() != nullptr) {
         start_of_container(new_parent);
     } else {
-	new_node->read(_source);
+        new_node->read(_source);
         if (!_sink->push_node(new_node)) {
             throw SinkClosed();
         };
