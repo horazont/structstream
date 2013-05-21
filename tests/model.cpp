@@ -62,3 +62,13 @@ TEST_CASE ("model/container", "Test the container model thoroughly")
 
     CHECK(clone->child_count() == 0);
 }
+
+TEST_CASE ("model/bool_record", "Test the boolean record inheritance")
+{
+    NodeHandle rec = NodeHandleFactory<BoolRecord>::create(0x00);
+    CHECK(rec.get() != 0);
+    BoolRecord *boolrec = dynamic_cast<BoolRecord*>(rec.get());
+    REQUIRE(boolrec != 0);
+    NodeHandle copy = rec->copy();
+    REQUIRE(dynamic_cast<BoolRecord*>(copy.get()) != 0);
+}

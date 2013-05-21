@@ -60,6 +60,11 @@ BoolRecord::BoolRecord(const BoolRecord &ref):
 
 }
 
+NodeHandle BoolRecord::copy() const
+{
+    return NodeHandleFactory<BoolRecord>::copy(*this);
+}
+
 void BoolRecord::read(IOIntf *stream)
 {
 

@@ -283,6 +283,9 @@ protected:
     explicit BoolRecord(ID id);
     BoolRecord(const BoolRecord &ref);
 public:
+    virtual ~BoolRecord() {};
+public:
+    virtual NodeHandle copy() const;
     virtual void read(IOIntf *stream);
     virtual void write(IOIntf *stream) const;
     virtual RecordType record_type() const;
