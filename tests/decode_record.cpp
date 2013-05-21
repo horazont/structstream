@@ -30,6 +30,36 @@ authors named in the AUTHORS file.
 
 using namespace StructStream;
 
+TEST_CASE ("decode/records/bool/false", "Test decode of a bool record")
+{
+    static const uint8_t data[] = {
+        (uint8_t)(RT_BOOL_FALSE) | 0x80, uint8_t(0x01) | 0x80,
+        (uint8_t)(RT_END_OF_CHILDREN) | 0x80
+    };
+
+    NodeHandle node = *(blob_to_tree(data, sizeof(data))->children_begin());
+    REQUIRE(node.get() != 0);
+
+    BoolRecord *rec = dynamic_cast<BoolRecord*>(node.get());
+    REQUIRE(rec != 0);
+    REQUIRE(rec->get() == false);
+}
+
+TEST_CASE ("decode/records/bool/true", "Test decode of a bool record")
+{
+    static const uint8_t data[] = {
+        (uint8_t)(RT_BOOL_TRUE) | 0x80, uint8_t(0x01) | 0x80,
+        (uint8_t)(RT_END_OF_CHILDREN) | 0x80
+    };
+
+    NodeHandle node = *(blob_to_tree(data, sizeof(data))->children_begin());
+    REQUIRE(node.get() != 0);
+
+    BoolRecord *rec = dynamic_cast<BoolRecord*>(node.get());
+    REQUIRE(rec != 0);
+    REQUIRE(rec->get() == true);
+}
+
 TEST_CASE ("decode/records/uint32", "Test decode of a uint32 record")
 {
     static const uint8_t data[] = {

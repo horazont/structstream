@@ -33,6 +33,46 @@ authors named in the AUTHORS file.
 
 using namespace StructStream;
 
+TEST_CASE ("encode/record/bool/false", "Encode a boolean record")
+{
+    static const uint8_t expected[] = {
+        COMMON_HEADER
+        (uint8_t)(RT_BOOL_FALSE) | 0x80, uint8_t(0x01) | 0x80,
+        COMMON_FOOTER
+    };
+
+    NodeHandle tree = NodeHandleFactory<BoolRecord>::create(0x01);
+    BoolRecord *rec = static_cast<BoolRecord*>(tree.get());
+    rec->set(false);
+
+    uint8_t output[sizeof(expected)];
+
+    intptr_t size = tree_to_blob(output, sizeof(output), {tree});
+    REQUIRE(size == sizeof(expected));
+
+    REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
+}
+
+TEST_CASE ("encode/record/bool/true", "Encode a boolean record")
+{
+    static const uint8_t expected[] = {
+        COMMON_HEADER
+        (uint8_t)(RT_BOOL_TRUE) | 0x80, uint8_t(0x01) | 0x80,
+        COMMON_FOOTER
+    };
+
+    NodeHandle tree = NodeHandleFactory<BoolRecord>::create(0x01);
+    BoolRecord *rec = static_cast<BoolRecord*>(tree.get());
+    rec->set(true);
+
+    uint8_t output[sizeof(expected)];
+
+    intptr_t size = tree_to_blob(output, sizeof(output), {tree});
+    REQUIRE(size == sizeof(expected));
+
+    REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
+}
+
 TEST_CASE ("encode/record/uint32", "Encode a RT_UINT32 record")
 {
     static const uint8_t expected[] = {

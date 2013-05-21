@@ -101,6 +101,48 @@ TEST_CASE ("serialize/block/simple", "Serialize a block with some primitive elem
 }
 
 
+TEST_CASE ("serialize/block/bool", "Serialize a block with a boolean")
+{
+    struct block_t {
+        bool v1;
+        uint8_t v2;
+    };
+
+    block_t block{true, 0xff};
+
+    typedef struct_decl<
+        Container,
+        0x01,
+        struct_members<
+            member<UInt32Record, 0x11, block_t, uint8_t, &block_t::v2>,
+            member<BoolRecord, 0x13, block_t, bool, &block_t::v1>
+            >
+        > serializer;
+
+    ContainerHandle root = NodeHandleFactory<Container>::create(0x00);
+    serialize_to_sink<serializer>(block, StreamSink(new ToTree(root)));
+
+    NodeHandle result = *root->children_begin();
+
+    REQUIRE(result.get() != 0);
+
+    Container *parent = dynamic_cast<Container*>(result.get());
+
+    REQUIRE(parent != 0);
+
+    NodeHandle curr_child = parent->first_child_by_id(0x13);
+    REQUIRE(curr_child.get() != 0);
+    BoolRecord *v1_rec = dynamic_cast<BoolRecord*>(curr_child.get());
+    REQUIRE(v1_rec != 0);
+
+    curr_child = parent->first_child_by_id(0x11);
+    UInt32Record *v2_rec = dynamic_cast<UInt32Record*>(curr_child.get());
+    REQUIRE(v2_rec != 0);
+
+    CHECK(v1_rec->get() == block.v1);
+    CHECK(v2_rec->get() == block.v2);
+}
+
 TEST_CASE ("serialize/array/int", "Serialize an array of integer")
 {
     static const std::vector<uint32_t> values{1, 2, 3, 4, 5};
