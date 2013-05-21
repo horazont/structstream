@@ -656,11 +656,11 @@ struct struct_decl
                 //        node->id());
                 sink_to_use->push_node(node_h);
             } else {
+                //  printf("struct: found NO way to deserialize rt %x, id %lx\n",
+                //         node->record_type(),
+                //         node->id());
                 if (strict)
                     throw_unknown_child(node_h);
-                // printf("struct: found NO way to deserialize rt %x, id %lx\n",
-                //        node->record_type(),
-                //        node->id());
             }
             return true;
         };
