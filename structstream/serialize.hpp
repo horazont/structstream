@@ -851,7 +851,7 @@ struct container
         typedef dest_t& arg_t;
     public:
         deserializer(dest_t &dest):
-            iterator_decl::deserializer::deserializer(output_iterator(dest)),
+            iterator_decl::deserializer::deserializer(output_iterator(dest, dest.begin())),
             _dest(dest)
         {
 
