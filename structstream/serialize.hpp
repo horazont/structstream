@@ -304,7 +304,7 @@ struct member
     };
 };
 
-template <typename _record_t, ID _id, typename _dest_t, typename member_t, const member_t (_dest_t::*getfunc)() const, void (_dest_t::*setfunc)(member_t)>
+template <typename _record_t, ID _id, typename _dest_t, typename member_t, const member_t& (_dest_t::*getfunc)() const, void (_dest_t::*setfunc)(const member_t&)>
 struct member_cb
 {
     typedef _record_t record_t;
