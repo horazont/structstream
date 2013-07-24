@@ -201,51 +201,6 @@ TEST_CASE ("deserialize/str/callback", "Deserialization of a string")
 
 }
 
-TEST_CASE ("deserialize/blob/callback", "Deserialization of a blob")
-{
-    struct block_t {
-    public:
-        block_t(): _buf(), _len(0) {};
-        virtual ~block_t() { if (_buf) { free(_buf); } };
-    private:
-        char* _buf;
-        intptr_t _len;
-    public:
-        void set_str(const char* value, const intptr_t len) {
-            _buf = (char*)realloc(_buf, len);
-            memcpy(_buf, value, len);
-        };
-
-        const char* get_str() const {
-            return _buf;
-        };
-    };
-
-    static const char* text = "Hello World!";
-
-    NodeHandle pod_root_node = NodeHandleFactory<Container>::create(0x01);
-    Container *pod_root = static_cast<Container*>(pod_root_node.get());
-
-    NodeHandle node = NodeHandleFactory<UTF8Record>::create(0x02);
-    static_cast<UTF8Record*>(node.get())->set(text);
-    pod_root->child_add(node);
-
-    block_t block;
-
-    typedef struct_decl<
-        Container,
-        0x01,
-        struct_members<
-            member_cb_len<UTF8Record, 0x02, block_t, nullptr, nullptr, &block_t::set_str>
-            >
-        > deserializer;
-
-    FromTree(deserialize<deserializer>(block),
-             std::dynamic_pointer_cast<Container>(pod_root_node));
-
-    CHECK(strcmp(block.get_str(), text) == 0);
-}
-
 TEST_CASE ("deserialize/iterator/simple", "Deserialization of an integer array")
 {
     static const uint32_t values[] = {1, 2, 3, 4, 5};
