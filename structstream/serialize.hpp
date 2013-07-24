@@ -273,7 +273,10 @@ struct member
     public:
         typedef dest_t& arg_t;
     public:
-        deserializer(dest_t &dest): _dest(dest) {};
+        deserializer(dest_t &dest):
+            _dest(dest)
+        {
+        };
         virtual ~deserializer() = default;
     private:
         dest_t& _dest;
@@ -317,7 +320,10 @@ struct member_cb
     public:
         typedef dest_t& arg_t;
     public:
-        deserializer(dest_t &dest): _dest(dest) {};
+        deserializer(dest_t &dest):
+            _dest(dest)
+        {
+        };
         virtual ~deserializer() = default;
     private:
         dest_t& _dest;
@@ -359,7 +365,10 @@ template <typename record_t, typename dest_t, void (dest_t::*setfunc)(const char
 class deserialize_member_cb_len: public ThrowOnAll
 {
 public:
-    deserialize_member_cb_len(dest_t &dest): _dest(dest) {};
+    deserialize_member_cb_len(dest_t &dest):
+        _dest(dest)
+    {
+    };
     virtual ~deserialize_member_cb_len() = default;
 private:
     dest_t& _dest;
@@ -494,8 +503,8 @@ template <typename _dest_t, typename struct_t, typename struct_t::dest_t _dest_t
 struct member_struct
 {
     typedef typename struct_t::record_t record_t;
-    static constexpr ID id = struct_t::id;
     typedef _dest_t dest_t;
+    static constexpr ID id = struct_t::id;
 
     class deserializer: public struct_t::deserializer
     {
@@ -707,9 +716,7 @@ struct struct_decl
 };
 
 template <typename type, typename container>
-struct iterator_helper
-{
-};
+struct iterator_helper;
 
 template <typename type>
 struct iterator_helper<type, type*>
