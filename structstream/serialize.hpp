@@ -1128,6 +1128,9 @@ public:
 
     struct serializer
     {
+    private:
+        typedef iterator_helper<const typename item_decl::dest_t, const element_type> helper;
+    public:
         typedef const dest_t& arg_t;
 
         static inline void to_sink(arg_t obj, StreamSink sink)
@@ -1135,7 +1138,9 @@ public:
             input_iterator curr = (obj.*iter_begin)();
             input_iterator end = (obj.*iter_end)();
             for (; curr != end; curr++) {
-                item_decl::serializer::to_sink(*curr, sink);
+                const typename item_decl::dest_t *item;
+                helper::assign(&*curr, &item);
+                item_decl::serializer::to_sink(*item, sink);
             }
         };
     };
