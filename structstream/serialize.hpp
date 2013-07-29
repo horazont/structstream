@@ -1010,36 +1010,36 @@ struct only
         StreamSink _deserializer;
     public:
         virtual bool _start_container(ContainerHandle cont, const ContainerMeta *meta)
-            {
-                if (cont->id() == id) {
-                    record_t *rec = dynamic_cast<record_t*>(cont.get());
-                    if (rec != nullptr) {
-                        nest(_deserializer);
-                    }
+        {
+            if (cont->id() == id) {
+                record_t *rec = dynamic_cast<record_t*>(cont.get());
+                if (rec != nullptr) {
+                    nest(_deserializer);
                 }
-                return true;
-            };
+            }
+            return true;
+        };
 
         virtual bool _push_node(NodeHandle node)
-            {
-                if (node->id() == id) {
-                    record_t *rec = dynamic_cast<record_t*>(node.get());
-                    if (rec != nullptr) {
-                        _deserializer->push_node(node);
-                    }
+        {
+            if (node->id() == id) {
+                record_t *rec = dynamic_cast<record_t*>(node.get());
+                if (rec != nullptr) {
+                    _deserializer->push_node(node);
                 }
-                return true;
-            };
+            }
+            return false;
+        };
 
         virtual bool _end_container(const ContainerFooter *foot)
-            {
-                return true;
-            };
+        {
+            return false;
+        };
 
         virtual void _end_of_stream()
-            {
+        {
 
-            };
+        };
     };
 };
 
