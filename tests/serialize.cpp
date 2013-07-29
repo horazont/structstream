@@ -169,5 +169,4 @@ TEST_CASE ("serialize/array/int", "Serialize an array of integer")
         REQUIRE(rec != 0);
         REQUIRE(rec->get() == *intit);
     }
-
 }
