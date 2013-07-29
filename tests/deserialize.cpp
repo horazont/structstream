@@ -255,10 +255,10 @@ TEST_CASE ("deserialize/container/simple", "Deserialization of an integer array"
 
     std::vector<uint32_t> dest;
 
-    typedef only<container<
+    typedef container<
         value_decl<UInt32Record, 0x02, uint32_t>,
         std::back_insert_iterator<decltype(dest)>
-        >> deserializer;
+        > deserializer;
 
     FromTree(deserialize<deserializer>(dest),
              std::dynamic_pointer_cast<Container>(pod_root_node));
@@ -272,4 +272,52 @@ TEST_CASE ("deserialize/container/simple", "Deserialization of an integer array"
     {
         CHECK(values[value_idx] == *it);
     }
+}
+
+TEST_CASE ("serialize/only/detect_missing", "Detect missing object with only<> deserializer")
+{
+    ContainerHandle result = NodeHandleFactory<Container>::create(0x00);
+    NodeHandle rec_node = NodeHandleFactory<UInt32Record>::create(0x02);
+    result->child_add(rec_node);
+
+    uint32_t dest;
+    typedef only<value_decl<UInt32Record, 0x01, uint32_t>, true> deserializer;
+
+
+    CHECK_THROWS_AS(
+        FromTree(deserialize<deserializer>(dest), result),
+        RecordNotFound);
+}
+
+TEST_CASE ("serialize/only/require_first/err", "Require an object to be first with only<>")
+{
+    ContainerHandle result = NodeHandleFactory<Container>::create(0x00);
+    std::shared_ptr<UInt32Record> rec_node = NodeHandleFactory<UInt32Record>::create(0x02);
+    result->child_add(rec_node);
+    rec_node = NodeHandleFactory<UInt32Record>::create(0x01);
+    result->child_add(rec_node);
+
+    uint32_t dest;
+    typedef only<value_decl<UInt32Record, 0x01, uint32_t>, false, true> deserializer;
+
+    CHECK_THROWS_AS(
+        FromTree(deserialize<deserializer>(dest), result),
+        RecordNotFound);
+}
+
+TEST_CASE ("serialize/only/require_first/ok", "Require an object to be first with only<>")
+{
+    ContainerHandle result = NodeHandleFactory<Container>::create(0x00);
+    std::shared_ptr<UInt32Record> rec_node = NodeHandleFactory<UInt32Record>::create(0x01);
+    rec_node->set(2342);
+    result->child_add(rec_node);
+    rec_node = NodeHandleFactory<UInt32Record>::create(0x02);
+    result->child_add(rec_node);
+
+    uint32_t dest = 0;
+    typedef only<value_decl<UInt32Record, 0x01, uint32_t>, false, true> deserializer;
+
+    FromTree(deserialize<deserializer>(dest), result);
+
+    CHECK(dest == 2342);
 }

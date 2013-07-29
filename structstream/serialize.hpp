@@ -29,6 +29,7 @@ authors named in the AUTHORS file.
 #include <stdexcept>
 
 #include "structstream/static.hpp"
+#include "structstream/errors.hpp"
 #include "structstream/node_container.hpp"
 #include "structstream/streaming_sinks.hpp"
 #include "structstream/streaming_tree.hpp"
@@ -988,7 +989,7 @@ public:
     };
 };
 
-template <typename item_decl>
+template <typename item_decl, bool require=false, bool first=false>
 struct only
 {
     typedef typename item_decl::dest_t dest_t;
@@ -1001,13 +1002,17 @@ struct only
         typedef typename item_decl::deserializer::arg_t arg_t;
     public:
         deserializer(arg_t dest):
-            _deserializer(deserialize<item_decl>(dest))
+            _deserializer(deserialize<item_decl>(dest)),
+            _found(false)
         {
 
         };
         virtual ~deserializer() = default;
+
     private:
         StreamSink _deserializer;
+        bool _found;
+
     public:
         virtual bool _start_container(ContainerHandle cont, const ContainerMeta *meta)
         {
@@ -1015,7 +1020,12 @@ struct only
                 record_t *rec = dynamic_cast<record_t*>(cont.get());
                 if (rec != nullptr) {
                     nest(_deserializer);
+                    _found = true;
+                    return true;
                 }
+            }
+            if (first) {
+                throw RecordNotFound("Record required by only<> was not found (as first).");
             }
             return true;
         };
@@ -1026,9 +1036,14 @@ struct only
                 record_t *rec = dynamic_cast<record_t*>(node.get());
                 if (rec != nullptr) {
                     _deserializer->push_node(node);
+                    _found = true;
+                    return false;
                 }
             }
-            return false;
+            if (first) {
+                throw RecordNotFound("Record required by only<> was not found (as first).");
+            }
+            return true;
         };
 
         virtual bool _end_container(const ContainerFooter *foot)
@@ -1038,7 +1053,9 @@ struct only
 
         virtual void _end_of_stream()
         {
-
+            if (!_found && require) {
+                throw RecordNotFound("Record required by only<> was not found.");
+            }
         };
     };
 };

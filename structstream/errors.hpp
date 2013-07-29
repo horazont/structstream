@@ -205,6 +205,28 @@ public:
 
 };
 
+/**
+ * A record which was required by a serializer was not found in the
+ * source stream.
+ */
+class RecordNotFound: public std::runtime_error {
+public:
+    RecordNotFound(const std::string &what_arg): std::runtime_error(what_arg) {};
+    RecordNotFound(const char *what_arg): std::runtime_error(what_arg) {};
+    RecordNotFound(const RecordNotFound &ref) = default;
+};
+
+/**
+ * A record which was not expected by the serializer was found in the
+ * source stream.
+ */
+class UnexpectedRecord: public std::runtime_error {
+public:
+    UnexpectedRecord(const std::string &what_arg): std::runtime_error(what_arg) {};
+    UnexpectedRecord(const char *what_arg): std::runtime_error(what_arg) {};
+    UnexpectedRecord(const UnexpectedRecord &ref) = default;
+};
+
 
 
 }
