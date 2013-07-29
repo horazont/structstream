@@ -20,6 +20,7 @@ set(STRUCTSTREAM_SOURCES
   "src/streaming_base.cpp"
   "src/streaming_tree.cpp"
   "src/streaming_bitstream.cpp"
+  "src/streaming_sinks.cpp"
   "src/streaming.cpp"
   "src/hashing_base.cpp"
   "src/hashing_gnutls.cpp"

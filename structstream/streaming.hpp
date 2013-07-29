@@ -28,6 +28,7 @@ authors named in the AUTHORS file.
 
 #include "structstream/streaming_tree.hpp"
 #include "structstream/streaming_bitstream.hpp"
+#include "structstream/streaming_sinks.hpp"
 
 namespace StructStream {
 

@@ -30,7 +30,7 @@ authors named in the AUTHORS file.
 
 #include "structstream/static.hpp"
 #include "structstream/node_container.hpp"
-#include "structstream/streaming_base.hpp"
+#include "structstream/streaming_sinks.hpp"
 #include "structstream/streaming_tree.hpp"
 
 namespace StructStream {

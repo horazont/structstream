@@ -108,53 +108,6 @@ public:
 typedef std::shared_ptr<StreamSinkIntf> StreamSink;
 typedef std::weak_ptr<StreamSinkIntf> StreamSinkW;
 
-class SinkTree: public StreamSinkIntf {
-public:
-    SinkTree();
-    virtual ~SinkTree();
-private:
-    StreamSink _nested;
-    bool _handling_container;
-    intptr_t _depth;
-protected:
-    void nest(StreamSink other);
-protected:
-    virtual bool _start_container(ContainerHandle cont, const ContainerMeta *meta) = 0;
-    virtual bool _push_node(NodeHandle node) = 0;
-    virtual bool _end_container(const ContainerFooter *foot) = 0;
-    virtual void _end_of_stream() = 0;
-public:
-    virtual bool start_container(ContainerHandle cont, const ContainerMeta *meta) final;
-    virtual bool push_node(NodeHandle node) final;
-    virtual bool end_container(const ContainerFooter *foot) final;
-    virtual void end_of_stream() final;
-};
-
-class ThrowOnAll: public StreamSinkIntf {
-public:
-    ThrowOnAll() = default;
-    ThrowOnAll(const ThrowOnAll &ref) = default;
-    virtual ~ThrowOnAll() {};
-    ThrowOnAll &operator= (const ThrowOnAll &ref) = default;
-public:
-    virtual bool start_container(ContainerHandle cont, const ContainerMeta *meta);
-    virtual bool push_node(NodeHandle node);
-    virtual bool end_container(const ContainerFooter *foot);
-    virtual void end_of_stream();
-};
-
-class NullSink: public StreamSinkIntf {
-public:
-    NullSink() = default;
-    NullSink(const NullSink &ref) = default;
-    virtual ~NullSink() {};
-    NullSink &operator= (const NullSink &ref) = default;
-public:
-    virtual bool start_container(ContainerHandle cont, const ContainerMeta *meta);
-    virtual bool push_node(NodeHandle node);
-    virtual bool end_container(const ContainerFooter *foot);
-    virtual void end_of_stream();
-};
 
 /**
  * Push a complete basic container to a stream sink. This does not
