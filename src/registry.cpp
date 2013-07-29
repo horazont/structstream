@@ -52,6 +52,20 @@ Registry::Registry(const Registry &ref):
 
 }
 
+Registry::Registry(
+        const std::initializer_list<std::pair<RecordType, NodeConstructor>> &initial,
+        bool add_defaults):
+    _record_types()
+{
+    if (add_defaults) {
+        register_defaults();
+    }
+    for (auto &to_add: initial)
+    {
+        register_record_type(to_add.first, to_add.second);
+    }
+}
+
 Registry::~Registry()
 {
 

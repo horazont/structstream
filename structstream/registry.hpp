@@ -46,6 +46,9 @@ class Registry {
 public:
     Registry();
     Registry(const Registry &ref);
+    Registry(
+        const std::initializer_list<std::pair<RecordType, NodeConstructor>> &initial,
+        bool add_defaults = true);
     virtual ~Registry();
 private:
     std::unordered_map<RecordType, NodeConstructor> _record_types;
