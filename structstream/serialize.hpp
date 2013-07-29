@@ -197,7 +197,7 @@ struct member_record
 
 template <typename _record_t, ID _id, typename _dest_t,
           std::shared_ptr<_record_t> (_dest_t::*get_record)(ID id) const,
-          void (_dest_t::*set_record)(std::shared_ptr<_record_t>)>
+          void (_dest_t::*set_record)(const std::shared_ptr<_record_t>&)>
 struct member_direct
 {
     typedef _record_t record_t;
