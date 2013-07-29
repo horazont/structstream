@@ -97,7 +97,9 @@ NodeHandle Registry::node_from_record_type(RecordType rt, ID id) const
     return (found->second)(id);
 }
 
-void Registry::register_record_type(RecordType rt, NodeConstructor constructor)
+void Registry::register_record_type(
+    RecordType rt,
+    const NodeConstructor &constructor)
 {
     _record_types[rt] = constructor;
 }
