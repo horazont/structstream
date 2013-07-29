@@ -431,12 +431,12 @@ struct member_string_cb
 //     typedef serialize_member_string_cb<record_t, id, dest_t, getfunc> serializer;
 // };
 
-template <typename _dest_t, typename struct_t, typename struct_t::dest_t _dest_t::*member_ptr>
+template <typename _dest_t, typename struct_t, typename struct_t::dest_t _dest_t::*member_ptr, ID struct_id = struct_t::id>
 struct member_struct
 {
     typedef typename struct_t::record_t record_t;
     typedef _dest_t dest_t;
-    static constexpr ID id = struct_t::id;
+    static constexpr ID id = struct_id;
 
     class deserializer: public struct_t::deserializer
     {
