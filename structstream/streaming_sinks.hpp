@@ -48,10 +48,10 @@ protected:
     virtual bool _end_container(const ContainerFooter *foot) = 0;
     virtual void _end_of_stream() = 0;
 public:
-    virtual bool start_container(ContainerHandle cont, const ContainerMeta *meta) final;
-    virtual bool push_node(NodeHandle node) final;
-    virtual bool end_container(const ContainerFooter *foot) final;
-    virtual void end_of_stream() final;
+    bool start_container(ContainerHandle cont, const ContainerMeta *meta) final override;
+    bool push_node(NodeHandle node) final override;
+    bool end_container(const ContainerFooter *foot) final override;
+    void end_of_stream() final override;
 };
 
 class ThrowOnAll: public StreamSinkIntf {
@@ -61,10 +61,10 @@ public:
     virtual ~ThrowOnAll() {};
     ThrowOnAll &operator= (const ThrowOnAll &ref) = default;
 public:
-    virtual bool start_container(ContainerHandle cont, const ContainerMeta *meta);
-    virtual bool push_node(NodeHandle node);
-    virtual bool end_container(const ContainerFooter *foot);
-    virtual void end_of_stream();
+    bool start_container(ContainerHandle cont, const ContainerMeta *meta) override;
+    bool push_node(NodeHandle node) override;
+    bool end_container(const ContainerFooter *foot) override;
+    void end_of_stream() override;
 };
 
 class NullSink: public StreamSinkIntf {
@@ -74,10 +74,10 @@ public:
     virtual ~NullSink() {};
     NullSink &operator= (const NullSink &ref) = default;
 public:
-    virtual bool start_container(ContainerHandle cont, const ContainerMeta *meta);
-    virtual bool push_node(NodeHandle node);
-    virtual bool end_container(const ContainerFooter *foot);
-    virtual void end_of_stream();
+    bool start_container(ContainerHandle cont, const ContainerMeta *meta) override;
+    bool push_node(NodeHandle node) override;
+    bool end_container(const ContainerFooter *foot) override;
+    void end_of_stream() override;
 };
 
 class SinkChain: public StreamSinkIntf {
