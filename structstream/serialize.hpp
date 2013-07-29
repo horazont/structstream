@@ -833,7 +833,29 @@ struct iterator
     };
 };
 
-template <typename item_decl, typename output_iterator, typename input_iterator = typename output_iterator::container_type::const_iterator>
+template <typename output_iterator_t>
+struct iterator_initializer
+{
+    static output_iterator_t init(
+        typename output_iterator_t::container_type &dest)
+    {
+        return output_iterator_t(dest);
+    }
+};
+
+template <typename container_t>
+struct iterator_initializer<std::insert_iterator<container_t>>
+{
+    typedef std::insert_iterator<container_t> iterator_t;
+
+    static iterator_t init(
+        typename iterator_t::container_type &dest)
+    {
+        return iterator_t(dest, dest.begin());
+    }
+};
+
+template <typename item_decl, typename output_iterator, typename input_iterator = typename output_iterator::container_type::const_iterator, typename iterator_initializer_t = iterator_initializer<output_iterator>>
 struct container
 {
     typedef iterator<item_decl,
@@ -851,7 +873,7 @@ struct container
         typedef dest_t& arg_t;
     public:
         deserializer(dest_t &dest):
-            iterator_decl::deserializer::deserializer(output_iterator(dest, dest.begin())),
+            iterator_decl::deserializer::deserializer(iterator_initializer_t::init(dest)),
             _dest(dest)
         {
 
