@@ -57,6 +57,7 @@ if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     "tests/decode_forgiving.cpp"
     "tests/decode_failures.cpp"
     "tests/decode_enum.cpp"
+    "tests/decode_misc.cpp"
     "tests/serialize.cpp"
     "tests/deserialize.cpp"
     "tests/hashing.cpp"

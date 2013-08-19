@@ -433,7 +433,7 @@ void FromBitstream::read_all()
         NodeHandle node;
         do {
             node = read_step();
-        } while (node.get() != nullptr);
+        } while (_curr_parent != nullptr);
     } catch (SinkClosed &foo) {
         cleanup_state();
         return;
