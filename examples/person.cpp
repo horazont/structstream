@@ -19,11 +19,11 @@ struct PersonRecord {
         return name;
     };
 
-    void set_age(const uint32_t new_age) {
+    void set_age(const uint32_t &new_age) {
         age = new_age;
     };
 
-    const uint32_t get_age() const {
+    const uint32_t &get_age() const {
         return age;
     };
 };
