@@ -164,7 +164,7 @@ void FromBitstream::start_of_container(ContainerHandle cont_h)
         throw SinkClosed();
     };
 
-    // printf("bitstream: push %lx\n", (uint64_t)_curr_parent->cont.get());
+    // printf("bitstream: push 0x%lx\n", (uint64_t)_curr_parent->cont.get());
 }
 
 void FromBitstream::proc_container_flags(VarUInt &flags_int, FromBitstream::ParentInfo *info)
@@ -293,7 +293,7 @@ void FromBitstream::end_of_container()
 
     try {
         if (_curr_parent) {
-            // printf("bitstream: pop %lx\n", (intptr_t)(info->cont.get()));
+            // printf("bitstream: pop 0x%lx\n", (intptr_t)(info->cont.get()));
 
             // Do not call this virtual method for the root node
             end_of_container_body(info);

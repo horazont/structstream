@@ -1051,11 +1051,17 @@ struct only
     public:
         virtual bool _start_container(ContainerHandle cont, const ContainerMeta *meta)
         {
+            // printf("only@%lx: encountered rt %lx, id %lx\n",
+            //        (long unsigned int)this,
+            //        cont->record_type(),
+            //        cont->id());
             if (cont->id() == id) {
+                // printf("(matches)\n");
                 record_t *rec = dynamic_cast<record_t*>(cont.get());
                 if (rec != nullptr) {
                     nest(_deserializer);
                     _found = true;
+                    // printf("(correct type)\n");
                     return true;
                 }
             }
@@ -1067,11 +1073,17 @@ struct only
 
         virtual bool _push_node(NodeHandle node)
         {
+            // printf("only@%lx: encountered rt %lx, id %lx\n",
+            //        (long unsigned int)this,
+            //        node->record_type(),
+            //        node->id());
             if (node->id() == id) {
+                // printf("(matches)\n");
                 record_t *rec = dynamic_cast<record_t*>(node.get());
                 if (rec != nullptr) {
                     _deserializer->push_node(node);
                     _found = true;
+                    // printf("(correct type)\n");
                     return false;
                 }
             }
@@ -1083,11 +1095,13 @@ struct only
 
         virtual bool _end_container(const ContainerFooter *foot)
         {
+            // printf("only@%lx: end container\n", (long unsigned int)this);
             return false;
         };
 
         virtual void _end_of_stream()
         {
+            // printf("only@%lx: end of stream\n", (long unsigned int)this);
             if (!_found && require) {
                 throw RecordNotFound("Record required by only<> was not found.");
             }
