@@ -935,6 +935,42 @@ struct value_decl
     };
 };
 
+template <typename value_decl, typename value_ptr>
+struct heap_value
+{
+    typedef value_ptr dest_t;
+    typedef typename value_decl::record_t record_t;
+    static constexpr ID id = value_decl::id;
+
+    class deserializer: public value_decl::deserializer
+    {
+    public:
+        typedef dest_t& arg_t;
+
+    public:
+        deserializer(arg_t dest):
+            value_decl::deserializer(*(dest = value_ptr(new typename value_decl::dest_t()))),
+            _dest(dest)
+        {
+
+        };
+
+    private:
+        arg_t _dest;
+
+    };
+
+    struct serializer
+    {
+        typedef const dest_t& arg_t;
+
+        inline static void to_sink(arg_t obj, StreamSink sink)
+        {
+            value_decl::serializer::to_sink(*obj, sink);
+        }
+    };
+};
+
 template <typename deserializer>
 struct deserialize_one: public SinkTree
 {
