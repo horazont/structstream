@@ -67,17 +67,16 @@ struct common_struct_type<void, A>
     typedef A type;
 };
 
-
-template <typename deserializer>
-StreamSink deserialize(typename deserializer::deserializer::arg_t dest)
+template <typename deserializer, typename... arg_ts>
+StreamSink deserialize(typename deserializer::deserializer::arg_t dest, arg_ts... args)
 {
     return StreamSink(new typename deserializer::deserializer(dest));
 }
 
-template <typename deserializer>
-typename deserializer::deserializer deserializer_obj(typename deserializer::deserializer::arg_t dest)
+template <typename deserializer, typename... arg_ts>
+typename deserializer::deserializer deserializer_obj(typename deserializer::deserializer::arg_t dest, arg_ts... args)
 {
-    return typename deserializer::deserializer(dest);
+    return typename deserializer::deserializer(dest, args...);
 }
 
 template <typename decl>
