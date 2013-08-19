@@ -43,7 +43,6 @@ add_library(structstream++ ${STRUCTSTREAM_SOURCES})
 target_link_libraries(structstream++ ${DEPS})
 
 if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-
   set(CATCH_INCLUDE_DIRS "Catch/single_include")
   set(TEST_SOURCES
     "tests/model.cpp"
