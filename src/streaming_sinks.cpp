@@ -27,6 +27,8 @@ authors named in the AUTHORS file.
 
 #include <cassert>
 
+#include "structstream/node_container.hpp"
+
 namespace StructStream {
 
 /* StructStream::SinkTree */
@@ -197,5 +199,50 @@ void SinkChain::end_of_stream()
 {
     _current_sink->end_of_stream();
 }
+
+/* StructStream::SinkDebug */
+
+SinkDebug::SinkDebug(std::ostream &dest):
+    _dest(dest),
+    _indent("")
+{
+
+}
+
+void SinkDebug::node_info(const NodeHandle &node)
+{
+    _dest << "(rt=0x" << std::hex << node->record_type()
+          << "; id=0x" << std::hex << node->id()
+          << ")";
+}
+
+bool SinkDebug::start_container(ContainerHandle cont, const ContainerMeta *meta)
+{
+    _dest << _indent << "|- cont ";
+    node_info(std::dynamic_pointer_cast<Node>(cont));
+    _dest << std::endl;
+    _indent += "|   ";
+    return true;
+}
+
+bool SinkDebug::push_node(NodeHandle node)
+{
+    _dest << _indent << "|- node ";
+    node_info(node);
+    _dest << std::endl;
+    return true;
+}
+
+bool SinkDebug::end_container(const ContainerFooter *foot)
+{
+    _indent = _indent.substr(0, _indent.size()-4);
+    return true;
+}
+
+void SinkDebug::end_of_stream()
+{
+    _dest << "end of stream" << std::endl;
+}
+
 
 }

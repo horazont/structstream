@@ -58,4 +58,10 @@ void tree_to_bitstream(std::initializer_list<NodeHandle> nodes, IOIntfHandle out
     FromTree(StreamSink(outstream), nodes);
 }
 
+void tree_debug(ContainerHandle root, std::ostream &dest)
+{
+    StreamSink sink(new SinkDebug(dest));
+    FromTree(sink, root);
+}
+
 }

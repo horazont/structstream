@@ -41,6 +41,8 @@ void tree_to_bitstream(ContainerHandle root, IOIntfHandle out,
 void tree_to_bitstream(std::initializer_list<NodeHandle> nodes, IOIntfHandle out,
                        bool armor = true);
 
+void tree_debug(ContainerHandle root, std::ostream &dest);
+
 }
 
 #endif

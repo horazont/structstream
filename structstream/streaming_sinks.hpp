@@ -101,6 +101,27 @@ public:
 
 };
 
+class SinkDebug: public StreamSinkIntf {
+public:
+    SinkDebug(std::ostream &dest);
+    SinkDebug(const SinkDebug &ref) = delete;
+    SinkDebug &operator=(const SinkDebug &ref) = delete;
+
+private:
+    std::ostream &_dest;
+    std::string _indent;
+
+private:
+    void node_info(const NodeHandle &node);
+
+public:
+    bool start_container(ContainerHandle cont, const ContainerMeta *meta) override;
+    bool push_node(NodeHandle node) override;
+    bool end_container(const ContainerFooter *foot) override;
+    void end_of_stream() override;
+
+};
+
 }
 
 #endif
