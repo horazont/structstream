@@ -242,26 +242,25 @@ TEST_CASE ("deserialize/container/simple", "Deserialization of an integer array"
 {
     static const uint32_t values[] = {1, 2, 3, 4, 5};
 
-    NodeHandle pod_root_node = NodeHandleFactory<Container>::create(0x01);
-    Container *pod_root = static_cast<Container*>(pod_root_node.get());
+    ContainerHandle pod_root = NodeHandleFactory<Container>::create(0x01);
 
     for (auto &value: values)
     {
-        NodeHandle rec_node = NodeHandleFactory<UInt32Record>::create(0x02);
-        UInt32Record *rec = static_cast<UInt32Record*>(rec_node.get());
+        std::shared_ptr<UInt32Record> rec = NodeHandleFactory<UInt32Record>::create(0x02);
         rec->set(value);
-        pod_root->child_add(rec_node);
+        pod_root->child_add(rec);
     }
 
     std::vector<uint32_t> dest;
 
     typedef container<
         value_decl<UInt32Record, 0x02, uint32_t>,
+        0x01,
         std::back_insert_iterator<decltype(dest)>
         > deserializer;
 
     FromTree(deserialize<deserializer>(dest),
-             std::dynamic_pointer_cast<Container>(pod_root_node));
+             std::dynamic_pointer_cast<Container>(pod_root));
 
     REQUIRE((sizeof(values) / sizeof(uint32_t)) == dest.size());
 

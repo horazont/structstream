@@ -855,7 +855,7 @@ struct iterator_initializer<std::insert_iterator<container_t>>
     }
 };
 
-template <typename item_decl, typename output_iterator, typename input_iterator = typename output_iterator::container_type::const_iterator, typename iterator_initializer_t = iterator_initializer<output_iterator>>
+template <typename item_decl, ID _id, typename output_iterator, typename input_iterator = typename output_iterator::container_type::const_iterator, typename iterator_initializer_t = iterator_initializer<output_iterator>>
 struct container
 {
     typedef iterator<item_decl,
@@ -864,8 +864,8 @@ struct container
                      typename output_iterator::container_type::value_type>
             iterator_decl;
     typedef typename output_iterator::container_type dest_t;
-    typedef typename iterator_decl::record_t record_t;
-    static constexpr ID id = iterator_decl::id;
+    typedef Container record_t;
+    static constexpr ID id = _id;
 
     class deserializer: public iterator_decl::deserializer
     {
@@ -889,7 +889,28 @@ struct container
 
         static inline void to_sink(const dest_t &obj, StreamSink sink)
         {
+            ContainerHandle node = NodeHandleFactory<record_t>::create(id);
+            ContainerMeta *meta = new ContainerMeta();
+            try {
+                sink->start_container(node, meta);
+            } catch (...) {
+                delete meta;
+                throw;
+            }
+
             iterator_decl::serializer::to_sink(obj.cbegin(), obj.cend(), sink);
+
+            ContainerFooter *foot = new ContainerFooter();
+            try {
+                sink->end_container(foot);
+            } catch (...) {
+                delete foot;
+                delete meta;
+                throw;
+            }
+            delete foot;
+            delete meta;
+
         }
     };
 };

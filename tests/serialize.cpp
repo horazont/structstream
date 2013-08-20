@@ -148,14 +148,20 @@ TEST_CASE ("serialize/array/int", "Serialize an array of integer")
     static const std::vector<uint32_t> values{1, 2, 3, 4, 5};
 
     ContainerHandle result = NodeHandleFactory<Container>::create(0x01);
-    Container *cont = static_cast<Container*>(result.get());
 
     typedef container<
         value_decl<UInt32Record, 0x02, uint32_t>,
+        0x01,
         std::back_insert_iterator<decltype(values)>
         > serializer;
 
     serialize_to_sink<serializer>(values, StreamSink(new ToTree(result)));
+
+    REQUIRE(result->child_count() >= 1);
+    CHECK(result->child_count() == 1);
+
+    Container *cont = dynamic_cast<Container*>((*result->children_begin()).get());
+    REQUIRE(cont != 0);
 
     REQUIRE((intptr_t)values.size() == (intptr_t)cont->child_count());
 
