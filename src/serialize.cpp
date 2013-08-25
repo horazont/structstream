@@ -50,4 +50,51 @@ static_assert(std::is_same<typename common_struct_type<A, B>::type, B>::value, "
 static_assert(std::is_same<typename common_struct_type<A, void>::type, A>::value, "A is common_struct_type of A and void");
 static_assert(std::is_same<typename common_struct_type<B, void>::type, B>::value, "B is common_struct_type of B and void");
 
+/* StructStream::DeserializerSink */
+
+DeserializerSink::DeserializerSink(deserializer_base *child):
+    _child(child)
+{
+
+}
+
+DeserializerSink::~DeserializerSink()
+{
+    _finalize_child();
+}
+
+void DeserializerSink::_finalize_child()
+{
+    if (!_child) {
+        return;
+    }
+
+    std::unique_ptr<deserializer_base> guard(_child);
+    _child = nullptr;
+
+    guard->finalize();
+}
+
+bool DeserializerSink::end_container(const ContainerFooter *foot)
+{
+    return _child->end_container();
+}
+
+void DeserializerSink::end_of_stream()
+{
+    _finalize_child();
+}
+
+bool DeserializerSink::push_node(NodeHandle node)
+{
+    return _child->node(node);
+}
+
+bool DeserializerSink::start_container(
+    ContainerHandle cont,
+    const ContainerMeta *meta)
+{
+    return _child->start_container(cont);
+}
+
 }

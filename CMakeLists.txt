@@ -17,6 +17,7 @@ set(STRUCTSTREAM_SOURCES
   "src/registry.cpp"
   "src/utils.cpp"
   "src/serialize.cpp"
+  "src/serialize_base.cpp"
   "src/streaming_base.cpp"
   "src/streaming_tree.cpp"
   "src/streaming_bitstream.cpp"

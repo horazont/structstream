@@ -36,7 +36,7 @@ using namespace StructStream;
 TEST_CASE ("serialize/primitive/int", "Serialize a single integer")
 {
     static const uint32_t value = 0x12345678;
-    typedef value_decl<UInt32Record, 0x01, uint32_t> serializer;
+    typedef only<value_decl<UInt32Record, id_selector<0x01>, uint32_t>> serializer;
 
     ContainerHandle root = NodeHandleFactory<Container>::create(0x00);
 
@@ -63,11 +63,11 @@ TEST_CASE ("serialize/block/simple", "Serialize a block with some primitive elem
 
     typedef struct_decl<
         Container,
-        0x01,
+        id_selector<0x01>,
         struct_members<
-            member<UInt32Record, 0x11, block_t, uint32_t, &block_t::v1>,
-            member<Float64Record, 0x13, block_t, float, &block_t::v3>,
-            member<UInt32Record, 0x12, block_t, uint8_t, &block_t::v2>
+            member<UInt32Record, id_selector<0x11>, block_t, uint32_t, &block_t::v1>,
+            member<Float64Record, id_selector<0x13>, block_t, float, &block_t::v3>,
+            member<UInt32Record, id_selector<0x12>, block_t, uint8_t, &block_t::v2>
             >
         > serializer;
 
@@ -112,10 +112,10 @@ TEST_CASE ("serialize/block/bool", "Serialize a block with a boolean")
 
     typedef struct_decl<
         Container,
-        0x01,
+        id_selector<0x01>,
         struct_members<
-            member<UInt32Record, 0x11, block_t, uint8_t, &block_t::v2>,
-            member<BoolRecord, 0x13, block_t, bool, &block_t::v1>
+            member<UInt32Record, id_selector<0x11>, block_t, uint8_t, &block_t::v2>,
+            member<BoolRecord, id_selector<0x13>, block_t, bool, &block_t::v1>
             >
         > serializer;
 
@@ -150,8 +150,8 @@ TEST_CASE ("serialize/array/int", "Serialize an array of integer")
     ContainerHandle result = NodeHandleFactory<Container>::create(0x01);
 
     typedef container<
-        value_decl<UInt32Record, 0x02, uint32_t>,
-        0x01,
+        value_decl<UInt32Record, id_selector<0x02>, uint32_t>,
+        id_selector<0x01>,
         std::back_insert_iterator<decltype(values)>
         > serializer;
 

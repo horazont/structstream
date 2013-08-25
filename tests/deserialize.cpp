@@ -28,6 +28,7 @@ authors named in the AUTHORS file.
 #include <cstddef>
 
 #include "structstream/serialize.hpp"
+#include "structstream/node_container.hpp"
 #include "structstream/node_primitive.hpp"
 #include "structstream/node_blob.hpp"
 #include "structstream/streaming_tree.hpp"
@@ -42,8 +43,7 @@ TEST_CASE ("deserialize/pod", "Deserialization of a plain-old-data type")
         double v2;
     };
 
-    NodeHandle pod_root_node = NodeHandleFactory<Container>::create(0x01);
-    Container *pod_root = static_cast<Container*>(pod_root_node.get());
+    ContainerHandle pod_root = NodeHandleFactory<Container>::create(0x01);
 
     NodeHandle node = NodeHandleFactory<UInt32Record>::create(0x02);
     static_cast<UInt32Record*>(node.get())->set(0x2342dead);
@@ -58,19 +58,20 @@ TEST_CASE ("deserialize/pod", "Deserialization of a plain-old-data type")
     pod_root->child_add(node);
 
     pod_t pod;
+    memset(&pod, 0, sizeof(pod));
 
     typedef struct_decl<
         Container,
-        0x01,
+        id_selector<0x01>,
         struct_members<
-            member_raw<UInt32Record, 0x02, pod_t, uint32_t, offsetof(pod_t, v1)>,
-            member<UInt32Record, 0x04, pod_t, uint8_t, &pod_t::v3>,
-            member_raw<Float64Record, 0x03, pod_t, double, offsetof(pod_t, v2)>
+            member<UInt32Record, id_selector<0x02>, pod_t, uint32_t, &pod_t::v1>,
+            member<UInt32Record, id_selector<0x04>, pod_t, uint8_t, &pod_t::v3>,
+            member<Float64Record, id_selector<0x03>, pod_t, double, &pod_t::v2>
             >
         > deserializer;
 
-    FromTree(deserialize<deserializer>(pod),
-             std::dynamic_pointer_cast<Container>(pod_root_node));
+    FromTree(deserialize<only<deserializer, true, true>>(pod),
+             {pod_root});
 
     CHECK(pod.v1 == 0x2342dead);
     CHECK(pod.v2 == 23.42);
@@ -92,19 +93,19 @@ TEST_CASE ("deserialize/pod/nested", "Deserialization of nested plain-old-data t
 
     ContainerHandle pod1_cont = NodeHandleFactory<Container>::create(0x01);
 
-    NodeHandle node = NodeHandleFactory<UInt32Record>::create(0x02);
-    static_cast<UInt32Record*>(node.get())->set(0x2342dead);
-    pod1_cont->child_add(node);
+    std::shared_ptr<UInt32Record> uint32_node = NodeHandleFactory<UInt32Record>::create(0x02);
+    uint32_node->set(0x2342dead);
+    pod1_cont->child_add(uint32_node);
 
-    node = NodeHandleFactory<Float64Record>::create(0x03);
-    static_cast<Float64Record*>(node.get())->set(23.42);
-    pod1_cont->child_add(node);
+    std::shared_ptr<Float64Record> float64_node = NodeHandleFactory<Float64Record>::create(0x03);
+    float64_node->set(23.42);
+    pod1_cont->child_add(float64_node);
 
     ContainerHandle pod2_cont = NodeHandleFactory<Container>::create(0x05);
 
-    node = NodeHandleFactory<UInt32Record>::create(0x04);
-    static_cast<UInt32Record*>(node.get())->set(0xffffff12);
-    pod2_cont->child_add(node);
+    uint32_node = NodeHandleFactory<UInt32Record>::create(0x04);
+    uint32_node->set(0xffffff12);
+    pod2_cont->child_add(uint32_node);
 
     pod2_cont->child_add(pod1_cont);
 
@@ -112,26 +113,26 @@ TEST_CASE ("deserialize/pod/nested", "Deserialization of nested plain-old-data t
 
     typedef struct_decl<
         Container,
-        0x05,
+        id_selector<0x05>,
         struct_members<
             member_struct<
                 pod2_t,
                 struct_decl<
                     Container,
-                    0x01,
+                    id_selector<0x01>,
                     struct_members<
-                        member<UInt32Record, 0x02, pod1_t, uint32_t, &pod1_t::v1>,
-                        member<Float64Record, 0x03, pod1_t, double, &pod1_t::v2>
+                        member<UInt32Record, id_selector<0x02>, pod1_t, uint32_t, &pod1_t::v1>,
+                        member<Float64Record, id_selector<0x03>, pod1_t, double, &pod1_t::v2>
                         >
                     >,
                 &pod2_t::v1
                 >,
-            member<UInt32Record, 0x04, pod2_t, uint8_t, &pod2_t::v2>
+            member<UInt32Record, id_selector<0x04>, pod2_t, uint8_t, &pod2_t::v2>
             >
         > deserializer;
 
-    FromTree(deserialize<deserializer>(pod),
-             std::dynamic_pointer_cast<Container>(pod2_cont));
+    FromTree(deserialize<only<deserializer, true, true>>(pod),
+             {pod2_cont});
 
     CHECK(pod.v1.v1 == 0x2342dead);
     CHECK(pod.v1.v2 == 23.42);
@@ -155,9 +156,9 @@ TEST_CASE ("deserialize/str/member_ptr", "Deserialization of a string")
 
     typedef struct_decl<
         Container,
-        0x01,
+        id_selector<0x01>,
         struct_members<
-            member_string<UTF8Record, 0x02, block_t, &block_t::value>
+            member<UTF8Record, id_selector<0x02>, block_t, std::string, &block_t::value>
             >
         > deserializer;
 
@@ -165,40 +166,6 @@ TEST_CASE ("deserialize/str/member_ptr", "Deserialization of a string")
              std::dynamic_pointer_cast<Container>(pod_root_node));
 
     CHECK(block.value == "Hello World!");
-}
-
-TEST_CASE ("deserialize/str/callback", "Deserialization of a string")
-{
-    struct block_t {
-        std::string value;
-
-        void set_str(const std::string &ref) {
-            value = ref;
-        };
-    };
-
-    NodeHandle pod_root_node = NodeHandleFactory<Container>::create(0x01);
-    Container *pod_root = static_cast<Container*>(pod_root_node.get());
-
-    NodeHandle node = NodeHandleFactory<UTF8Record>::create(0x02);
-    static_cast<UTF8Record*>(node.get())->set("Hello World!");
-    pod_root->child_add(node);
-
-    block_t block;
-
-    typedef struct_decl<
-        Container,
-        0x01,
-        struct_members<
-            member_string_cb<UTF8Record, 0x02, block_t, nullptr, &block_t::set_str>
-            >
-        > deserializer;
-
-    FromTree(deserialize<deserializer>(block),
-             std::dynamic_pointer_cast<Container>(pod_root_node));
-
-    CHECK(block.value == "Hello World!");
-
 }
 
 TEST_CASE ("deserialize/iterator/simple", "Deserialization of an integer array")
@@ -219,9 +186,8 @@ TEST_CASE ("deserialize/iterator/simple", "Deserialization of an integer array")
     std::vector<uint32_t> dest;
 
     typedef iterator<
-        value_decl<UInt32Record, 0x02, uint32_t>,
-        std::back_insert_iterator<decltype(dest)>,
-        uint32_t
+        value_decl<UInt32Record, id_selector<0x02>, uint32_t>,
+        std::back_insert_iterator<decltype(dest)>
         > deserializer;
 
     FromTree(deserialize<deserializer>(std::back_inserter(dest)),
@@ -254,8 +220,8 @@ TEST_CASE ("deserialize/container/simple", "Deserialization of an integer array"
     std::vector<uint32_t> dest;
 
     typedef container<
-        value_decl<UInt32Record, 0x02, uint32_t>,
-        0x01,
+        value_decl<UInt32Record, id_selector<0x02>, uint32_t>,
+        id_selector<0x01>,
         std::back_insert_iterator<decltype(dest)>
         > deserializer;
 
@@ -273,14 +239,14 @@ TEST_CASE ("deserialize/container/simple", "Deserialization of an integer array"
     }
 }
 
-TEST_CASE ("serialize/only/detect_missing", "Detect missing object with only<> deserializer")
+TEST_CASE ("deserialize/only/detect_missing", "Detect missing object with only<> deserializer")
 {
     ContainerHandle result = NodeHandleFactory<Container>::create(0x00);
     NodeHandle rec_node = NodeHandleFactory<UInt32Record>::create(0x02);
     result->child_add(rec_node);
 
     uint32_t dest;
-    typedef only<value_decl<UInt32Record, 0x01, uint32_t>, true> deserializer;
+    typedef only<value_decl<UInt32Record, id_selector<0x01>, uint32_t>, true> deserializer;
 
 
     CHECK_THROWS_AS(
@@ -288,7 +254,7 @@ TEST_CASE ("serialize/only/detect_missing", "Detect missing object with only<> d
         RecordNotFound);
 }
 
-TEST_CASE ("serialize/only/require_first/err", "Require an object to be first with only<>")
+TEST_CASE ("deserialize/only/require_first/err", "Require an object to be first with only<>")
 {
     ContainerHandle result = NodeHandleFactory<Container>::create(0x00);
     std::shared_ptr<UInt32Record> rec_node = NodeHandleFactory<UInt32Record>::create(0x02);
@@ -297,14 +263,14 @@ TEST_CASE ("serialize/only/require_first/err", "Require an object to be first wi
     result->child_add(rec_node);
 
     uint32_t dest;
-    typedef only<value_decl<UInt32Record, 0x01, uint32_t>, false, true> deserializer;
+    typedef only<value_decl<UInt32Record, id_selector<0x01>, uint32_t>, true, true> deserializer;
 
     CHECK_THROWS_AS(
         FromTree(deserialize<deserializer>(dest), result),
         RecordNotFound);
 }
 
-TEST_CASE ("serialize/only/require_first/ok", "Require an object to be first with only<>")
+TEST_CASE ("deserialize/only/require_first/ok", "Require an object to be first with only<>")
 {
     ContainerHandle result = NodeHandleFactory<Container>::create(0x00);
     std::shared_ptr<UInt32Record> rec_node = NodeHandleFactory<UInt32Record>::create(0x01);
@@ -314,7 +280,7 @@ TEST_CASE ("serialize/only/require_first/ok", "Require an object to be first wit
     result->child_add(rec_node);
 
     uint32_t dest = 0;
-    typedef only<value_decl<UInt32Record, 0x01, uint32_t>, false, true> deserializer;
+    typedef only<value_decl<UInt32Record, id_selector<0x01>, uint32_t>, false, true> deserializer;
 
     FromTree(deserialize<deserializer>(dest), result);
 
