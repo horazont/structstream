@@ -9,3 +9,4 @@ Makefile
 .local
 examples/person
 .emacs.desktop*
+*.geany
