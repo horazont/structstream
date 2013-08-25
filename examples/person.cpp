@@ -10,36 +10,18 @@ using namespace StructStream;
 struct PersonRecord {
     std::string name;
     uint32_t age;
-
-    void set_name(const std::string &new_name) {
-        name = new_name;
-    };
-
-    const std::string &get_name() const {
-        return name;
-    };
-
-    void set_age(const uint32_t &new_age) {
-        age = new_age;
-    };
-
-    const uint32_t &get_age() const {
-        return age;
-    };
 };
 
 /* Here we define a class which will handle deserialization of our
  * struct. */
-typedef struct_decl<
+typedef only<struct_decl<
     Container,
-    0x01,
+    id_selector<0x01>,
     struct_members<
-        member_string_cb<UTF8Record, 0x02, PersonRecord, &PersonRecord::get_name, &PersonRecord::set_name>,
-        member_cb<UInt32Record, 0x03, PersonRecord, uint32_t, &PersonRecord::get_age, &PersonRecord::set_age>
+        member<UTF8Record, id_selector<0x02>, PersonRecord, std::string, &PersonRecord::name>,
+        member<UInt32Record, id_selector<0x03>, PersonRecord, uint32_t, &PersonRecord::age>
         >
-    > PersonSerializer;
-
-typedef deserialize_one<PersonSerializer> PersonDeserializer;
+    >, true, true> PersonSerializer;
 
 void read_and_show_input(std::istream &infile)
 {
@@ -53,7 +35,7 @@ void read_and_show_input(std::istream &infile)
         FromBitstream(
             io,
             RegistryHandle(new Registry()),
-            StreamSink(new PersonDeserializer(person))
+            deserialize<PersonSerializer>(person)
             ).read_all();
     } catch (FormatError &e) {
         std::cerr << "Input file was invalid: Format violation" << std::endl;
