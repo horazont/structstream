@@ -34,19 +34,21 @@ struct WritableMemory;
 
 struct ReadableMemory: public IOIntf {
 public:
-    ReadableMemory(const void *srcbuf, const intptr_t len);
+    ReadableMemory(const uint8_t *srcbuf, const intptr_t len);
     ReadableMemory(const ReadableMemory &ref);
     ReadableMemory(const WritableMemory &ref);
     virtual ~ReadableMemory();
+
 private:
-    void* _buf;
+    uint8_t *_buf;
     intptr_t _len;
     intptr_t _offs;
+
 public:
     ReadableMemory& operator=(const ReadableMemory &ref);
 
-    inline const void *buffer() const { return _buf; };
-    inline const intptr_t size() const { return _len; };
+    inline const uint8_t *buffer() const { return _buf; };
+    inline intptr_t size() const { return _len; };
 
     virtual intptr_t read(void *buf, const intptr_t len);
     virtual intptr_t write(const void *buf, const intptr_t len);
@@ -55,13 +57,13 @@ public:
 struct WritableMemory: public IOIntf {
 public:
     WritableMemory();
-    WritableMemory(void *buf, const intptr_t len);
+    WritableMemory(uint8_t *buf, const intptr_t len);
     WritableMemory(const uint32_t blank_pattern);
     WritableMemory(const ReadableMemory &ref);
     WritableMemory(const WritableMemory &ref);
     virtual ~WritableMemory();
 private:
-    void *_buf;
+    uint8_t *_buf;
     intptr_t _buf_size;
     intptr_t _outward_size;
     intptr_t _offs;
@@ -72,11 +74,13 @@ private:
 public:
     WritableMemory& operator=(const WritableMemory &ref);
 
-    inline const void *buffer() const { return _buf; };
-    inline const intptr_t size() const { return _outward_size; };
+    inline const uint8_t *buffer() const { return _buf; };
+    inline intptr_t size() const { return _outward_size; };
 
     virtual intptr_t read(void *buf, const intptr_t len);
     virtual intptr_t write(const void *buf, const intptr_t len);
+
+    uint8_t *release_buffer(intptr_t &len);
 };
 
 }

@@ -31,8 +31,8 @@ authors named in the AUTHORS file.
 
 namespace StructStream {
 
-ReadableMemory::ReadableMemory(const void *srcbuf, const intptr_t len):
-    _buf(malloc(len)),
+ReadableMemory::ReadableMemory(const uint8_t *srcbuf, const intptr_t len):
+    _buf((uint8_t*)malloc(len)),
     _len(len),
     _offs(0)
 {
@@ -40,7 +40,7 @@ ReadableMemory::ReadableMemory(const void *srcbuf, const intptr_t len):
 }
 
 ReadableMemory::ReadableMemory(const ReadableMemory &ref):
-    _buf(malloc(ref._len)),
+    _buf((uint8_t*)malloc(ref._len)),
     _len(ref._len),
     _offs(0)
 {
@@ -48,7 +48,7 @@ ReadableMemory::ReadableMemory(const ReadableMemory &ref):
 }
 
 ReadableMemory::ReadableMemory(const WritableMemory &ref):
-    _buf(malloc(ref.size())),
+    _buf((uint8_t*)malloc(ref.size())),
     _len(ref.size()),
     _offs(0)
 {
@@ -63,7 +63,7 @@ ReadableMemory::~ReadableMemory()
 ReadableMemory& ReadableMemory::operator=(const ReadableMemory &ref)
 {
     free(_buf);
-    _buf = malloc(ref._len);
+    _buf = (uint8_t*)malloc(ref._len);
     _len = ref._len;
     _offs = ref._offs;
     memcpy(_buf, ref._buf, _len);
@@ -102,7 +102,7 @@ WritableMemory::WritableMemory():
 
 }
 
-WritableMemory::WritableMemory(void *buf, const intptr_t len):
+WritableMemory::WritableMemory(uint8_t *buf, const intptr_t len):
     _buf(buf),
     _buf_size(len),
     _outward_size(0),
@@ -137,7 +137,10 @@ void WritableMemory::grow()
     assert(_buf_size % sizeof(_blank_pattern) == 0);
 
     const intptr_t new_size = _buf_size + 1024*sizeof(_blank_pattern);
-    _buf = realloc(_buf, new_size);
+    uint8_t *new_buf = (uint8_t*)realloc(_buf, new_size);
+    if (!new_buf) {
+        throw std::runtime_error("Out of memory during grow().");
+    }
 
     uint32_t *fillat = (uint32_t*)(&((uint8_t*)_buf)[_buf_size]);
     const uint32_t *end = (uint32_t*)(&((uint8_t*)_buf)[new_size]);
