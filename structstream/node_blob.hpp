@@ -105,7 +105,7 @@ public:
         return (_IntfT*)(_buf);
     };
 
-    const intptr_t datalen() const {
+    intptr_t datalen() const {
         return _len;
     };
 
