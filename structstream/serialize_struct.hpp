@@ -138,12 +138,124 @@ struct member_direct
 
 template <typename _struct_t,
           typename _value_decl,
-          typename _value_decl::dest_t (_struct_t::*_value_ptr),
-          typename _selector_t = typename _value_decl::selector_t>
+          typename _selector_t,
+          typename _value_decl::dest_t (_struct_t::*_value_ptr)>
+struct member_struct_wrap
+{
+    typedef typename _value_decl::record_t value_record_t;
+    typedef typename _value_decl::selector_t value_selector_t;
+
+    typedef Container record_t;
+    typedef _selector_t selector_t;
+    typedef _struct_t dest_t;
+
+    struct deserializer: public deserializer_nesting
+    {
+        typedef dest_t& arg_t;
+
+        deserializer(arg_t dest):
+            _dest(dest),
+            _found(false)
+        {
+
+        };
+
+    private:
+        dest_t &_dest;
+        bool _found;
+
+        deserializer_base *match_node(const NodeHandle &node)
+        {
+            if (value_selector_t::test(node->id())) {
+                value_record_t *rec = dynamic_cast<value_record_t*>(
+                    node.get());
+                if (rec) {
+                    _found = true;
+                    return new typename _value_decl::deserializer(
+                        _dest.*_value_ptr);
+                }
+            }
+            throw RecordNotFound(
+                "Mandatory child in member_struct_wrap container has "
+                "incorrect header (does not match)!");
+        }
+
+        void match_cont(const ContainerHandle &cont)
+        {
+            deserializer_base *result = match_node(cont);
+            nest(result);
+        }
+
+        void check_found()
+        {
+            if (_found) {
+                throw UnexpectedRecord(
+                    "More than one child in member_struct_wrap "
+                    "container.");
+            }
+        }
+
+    protected:
+        bool _end_container() override
+        {
+            return true;
+        }
+
+        bool _node(const NodeHandle &node) override
+        {
+            check_found();
+            deserializer_base *handler = match_node(node);
+            handler->node(node);
+            delete handler;
+            return true;
+        }
+
+        bool _start_container(const ContainerHandle &cont) override
+        {
+            check_found();
+            match_cont(cont);
+            return true;
+        }
+
+    public:
+        void finalize() override
+        {
+            if (!_found) {
+                throw RecordNotFound(
+                    "Mandatory child in member_struct_wrap container "
+                    "was not found.");
+            }
+        }
+    };
+
+    struct serializer
+    {
+        typedef const dest_t& arg_t;
+
+        static inline void to_sink(arg_t src, const StreamSink &sink)
+        {
+            ContainerHandle parent =
+                NodeHandleFactory<Container>::create(selector_t::first);
+            ContainerMeta meta;
+            sink->start_container(parent, &meta);
+
+            _value_decl::serializer::to_sink(src.*_value_ptr, sink);
+
+            ContainerFooter foot;
+            sink->end_container(&foot);
+        }
+
+    };
+
+};
+
+template <typename _struct_t,
+          typename _value_decl,
+          typename _value_decl::dest_t (_struct_t::*_value_ptr)>
 struct member_struct
 {
     typedef typename _value_decl::record_t record_t;
-    typedef _selector_t selector_t;
+    typedef typename _value_decl::selector_t selector_t;
     typedef _struct_t dest_t;
 
     struct deserializer: public _value_decl::deserializer
@@ -164,16 +276,9 @@ struct member_struct
 
         static inline void to_sink(arg_t src, const StreamSink &sink)
         {
-            ContainerHandle parent =
-                NodeHandleFactory<Container>::create(selector_t::first);
-            ContainerMeta meta;
-            sink->start_container(parent, &meta);
-
             _value_decl::serializer::to_sink(src.*_value_ptr, sink);
-
-            ContainerFooter foot;
-            sink->end_container(&foot);
         }
+
     };
 };
 
