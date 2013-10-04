@@ -223,8 +223,6 @@ protected:
         deserializer_base *handler = match_cont(cont);
         if (handler == nullptr) {
             return handle_unknown_cont(cont);
-        } else {
-            nest(handler);
         }
         return true;
     };
