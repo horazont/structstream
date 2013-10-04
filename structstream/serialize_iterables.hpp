@@ -354,6 +354,88 @@ public:
 
 };
 
+/* static array */
+
+template <typename item_decl,
+          typename _selector_t,
+          unsigned int item_count,
+          typename _dest_t = typename item_decl::dest_t,
+          bool require_all = true,
+          bool fail_on_overflow = true,
+          typename _record_t = Container>
+struct static_array
+{
+    static_assert(std::is_base_of<Container, _record_t>::value,
+                  "static_array serializer requires Container subclass "
+                  "as record type!");
+
+    typedef _selector_t selector_t;
+    typedef _record_t record_t;
+    typedef _dest_t dest_t[item_count];
+
+    struct deserializer: public deserializer_sequence<item_decl, _dest_t>
+    {
+        typedef dest_t& arg_t;
+
+        deserializer(arg_t dest):
+            _dest(dest),
+            _offs(0)
+        {
+
+        }
+
+    private:
+        dest_t &_dest;
+        unsigned int _offs;
+
+    protected:
+        void _submit_item(_dest_t &&item) override
+        {
+            if (_offs >= item_count) {
+                if (fail_on_overflow) {
+                    throw UnexpectedRecord("static_array overflew.");
+                } else {
+                    return;
+                }
+            }
+            _dest[_offs] = std::move(item);
+            ++_offs;
+        }
+
+    public:
+        void finalize() override
+        {
+            if (require_all) {
+                if (_offs != item_count) {
+                    throw RecordNotFound("static_array did not find all"
+                                         " children.");
+                }
+            }
+        }
+
+    };
+
+    struct serializer
+    {
+        typedef const dest_t& arg_t;
+
+        static inline void to_sink(arg_t src, const StreamSink &sink)
+        {
+            ContainerHandle parent =
+                NodeHandleFactory<record_t>::create(selector_t::first);
+            ContainerMeta meta;
+
+            sink->start_container(parent, &meta);
+            for (unsigned int i = 0; i < item_count; i++) {
+                item_decl::serializer::to_sink(src[i], sink);
+            }
+
+            ContainerFooter foot;
+            sink->end_container(&foot);
+        }
+    };
+};
+
 }
 
 #endif
