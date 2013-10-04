@@ -74,10 +74,10 @@ intptr_t ReadableMemory::read(void *buf, const intptr_t len)
 {
     intptr_t to_read = len;
     if (_offs + len > _len) {
-	to_read = _len - _offs;
-	if (to_read == 0) {
-	    return 0;
-	}
+        to_read = _len - _offs;
+        if (to_read == 0) {
+            return 0;
+        }
     }
     memmove(buf, &((unsigned char*)_buf)[_offs], to_read);
     _offs += to_read;
