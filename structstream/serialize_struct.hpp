@@ -86,6 +86,57 @@ struct member
 };
 
 template <typename _struct_t,
+          typename _selector_t,
+          typename _record_t,
+          std::shared_ptr<_record_t> (_struct_t::*get_record)(ID id) const,
+          void (_struct_t::*set_record)(const std::shared_ptr<_record_t>&)>
+struct member_direct
+{
+    typedef _struct_t dest_t;
+    typedef _selector_t selector_t;
+    typedef _record_t record_t;
+
+    static_assert(!std::is_base_of<Container, record_t>::value,
+                  "member_direct does not support Containers.");
+
+    struct deserializer: public deserializer_base
+    {
+        typedef dest_t& arg_t;
+
+        deserializer(arg_t dest):
+            _dest(dest)
+        {
+
+        }
+
+    private:
+        dest_t &_dest;
+
+    public:
+        bool node(const NodeHandle &node) override
+        {
+            std::shared_ptr<record_t> rec =
+                std::static_pointer_cast<record_t>(node);
+
+            (_dest.*set_record)(rec);
+            return true;
+        };
+
+    };
+
+    struct serializer
+    {
+        typedef const dest_t& arg_t;
+
+        static inline void to_sink(arg_t src, const StreamSink sink)
+        {
+            sink->push_node(
+                (src.*get_record)(selector_t::first));
+        }
+    };
+};
+
+template <typename _struct_t,
           typename _value_decl,
           typename _value_decl::dest_t (_struct_t::*_value_ptr),
           typename _selector_t = typename _value_decl::selector_t>
