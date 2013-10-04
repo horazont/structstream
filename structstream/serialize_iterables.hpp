@@ -59,7 +59,7 @@ struct iterator_helper<T, std::shared_ptr<T>>
         *dest = src->get();
     };
 
-    static inline T &get_raw_reference(std::shared_ptr<T> **src)
+    static inline T &get_raw_reference(std::shared_ptr<T> *src)
     {
         return *src->get();
     };
@@ -72,6 +72,21 @@ struct iterator_helper<T, std::shared_ptr<T>>
 };
 
 template <typename T>
+struct iterator_helper<const T, const std::shared_ptr<T>>
+{
+    static inline void get_ptr(const std::shared_ptr<T> *src, const T **dest)
+    {
+        *dest = src->get();
+    };
+
+    static inline const T &get_raw_reference(const std::shared_ptr<T> *src)
+    {
+        return *src->get();
+    };
+
+};
+
+template <typename T>
 struct iterator_helper<T, std::unique_ptr<T>>
 {
     static inline void get_ptr(std::unique_ptr<T> *src, T **dest)
@@ -79,13 +94,33 @@ struct iterator_helper<T, std::unique_ptr<T>>
         *dest = src->get();
     };
 
-    static inline T &get_raw_reference(std::unique_ptr<T> **src)
+    static inline T &get_raw_reference(std::unique_ptr<T> *src)
     {
         return *src->get();
     };
 
     template <typename... arg_ts>
     static inline std::unique_ptr<T> construct(arg_ts... args)
+    {
+        return std::unique_ptr<T>(new T(args...));
+    }
+};
+
+template <typename T>
+struct iterator_helper<const T, const std::unique_ptr<T>>
+{
+    static inline void get_ptr(const std::unique_ptr<T> *src, const T **dest)
+    {
+        *dest = src->get();
+    };
+
+    static inline const T &get_raw_reference(const std::unique_ptr<T> *src)
+    {
+        return *src->get();
+    };
+
+    template <typename... arg_ts>
+    static inline const std::unique_ptr<T> construct(arg_ts... args)
     {
         return std::unique_ptr<T>(new T(args...));
     }
