@@ -230,6 +230,31 @@ protected:
     virtual void _submit_item(element_t &&item) = 0;
 };
 
+template <typename item_decl, typename element_t>
+struct deserialize_sequence_cb
+{
+    struct deserializer: public deserializer_sequence<item_decl, element_t>
+    {
+        typedef std::function<void(element_t &&item)> callback_t;
+        typedef const callback_t& arg_t;
+
+        deserializer(arg_t cb):
+            _cb(cb)
+        {
+
+        }
+
+    private:
+        callback_t _cb;
+
+    protected:
+        void _submit_item(element_t &&item) override
+        {
+            _cb(std::move(item));
+        }
+    };
+};
+
 
 /* iterables */
 
