@@ -31,6 +31,8 @@ authors named in the AUTHORS file.
 #include "structstream/serialize_base.hpp"
 #include "structstream/serialize_utils.hpp"
 
+#include "structstream/streaming_tree.hpp"
+
 namespace StructStream {
 
 /* leaf serializers */
@@ -82,6 +84,71 @@ struct member
                 value_helper<record_t, _value_t>::to_record(
                     src.*_value_ptr, selector_t::first));
         };
+    };
+};
+
+template <typename _record_t,
+          typename _selector_t,
+          typename _struct_t,
+          std::shared_ptr<_record_t> _struct_t::*_value_ptr>
+struct member_record
+{
+    typedef _record_t record_t;
+    typedef _selector_t selector_t;
+    typedef _struct_t dest_t;
+
+    static_assert(std::is_base_of<Container, record_t>::value,
+                  "member_record must use Container records.");
+
+    struct deserializer: public deserializer_base
+    {
+        typedef dest_t& arg_t;
+
+        deserializer(arg_t dest):
+            _dest(dest),
+            _cont(NodeHandleFactory<Container>::create(selector_t::first)),
+            _sink(new ToTree(_cont))
+        {
+            _dest.*_value_ptr = _cont;
+        };
+
+    private:
+        dest_t &_dest;
+        ContainerHandle _cont;
+        StreamSink _sink;
+
+    public:
+        bool start_container(const ContainerHandle &cont) override
+        {
+            ContainerMeta meta;
+            return _sink->start_container(cont, &meta);
+        }
+
+        bool node(const NodeHandle &node) override
+        {
+            return _sink->push_node(node);
+        }
+
+        bool end_container() override
+        {
+            ContainerFooter foot;
+            return _sink->end_container(&foot);
+        }
+
+    };
+
+    struct serializer
+    {
+        typedef const dest_t& arg_t;
+
+        static inline void to_sink(arg_t src, const StreamSink sink)
+        {
+            const std::shared_ptr<record_t> &node = src.*_value_ptr;
+            if (!node) {
+                return;
+            }
+            FromTree(sink, {node}, false);
+        }
     };
 };
 
