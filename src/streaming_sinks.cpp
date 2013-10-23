@@ -25,6 +25,8 @@ authors named in the AUTHORS file.
 **********************************************************************/
 #include "structstream/streaming_sinks.hpp"
 
+#include <stdexcept>
+
 #include <cassert>
 
 #include "structstream/node_container.hpp"

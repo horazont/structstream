@@ -25,6 +25,8 @@ authors named in the AUTHORS file.
 **********************************************************************/
 #include "structstream/io_memory.hpp"
 
+#include <stdexcept>
+
 #include <cstdlib>
 #include <cstring>
 #include <cassert>
