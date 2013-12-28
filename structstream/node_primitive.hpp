@@ -267,6 +267,7 @@ public:
     };
 
     friend struct NodeHandleFactory< EnumRecordTpl<enum_t, rt, underlying_record_type> >;
+
 };
 
 typedef PrimitiveDataRecord<int32_t, RT_INT32> Int32Record;
