@@ -301,7 +301,10 @@ inline void serialize_to_sink(
     typename serializer_t::serializer::arg_t src,
     const StreamSink &sink)
 {
-    use_serializer<serializer_t>::serialize_to_sink(sink, src);
+    // be explicit about the passed type here, to actually enforce the
+    // arg_t provided by the serializer. This saves us trouble with
+    // array types
+    serializer_t::serializer::to_sink(src, sink);
 }
 
 template <typename serializer_t>

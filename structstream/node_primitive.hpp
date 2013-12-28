@@ -278,9 +278,14 @@ typedef PrimitiveDataRecord<float, RT_FLOAT32> Float32Record;
 typedef PrimitiveDataRecord<double, RT_FLOAT64> Float64Record;
 typedef PrimitiveDataRecord<bool, RT_BOOL_FALSE> BoolRecordBase;
 
-template <size_t len, RecordType rt, typename char_t = uint8_t>
+template <size_t _len, RecordType rt, typename _char_t = uint8_t>
 class StaticByteArrayRecord: public DataRecord
 {
+public:
+    typedef _char_t char_t;
+    static constexpr size_t len = _len;
+    typedef char_t array_t[len];
+
     static_assert(
         sizeof(char_t) == 1,
         "Character type for static byte array record must have size 1");

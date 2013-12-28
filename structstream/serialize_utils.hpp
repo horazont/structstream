@@ -143,6 +143,30 @@ struct value_helper<UTF8Record, std::string>
     };
 };
 
+template <size_t len, RecordType rt, typename char_t>
+struct value_helper<StaticByteArrayRecord<len, rt, char_t>,
+                    typename StaticByteArrayRecord<len, rt, char_t>::array_t>
+{
+    typedef StaticByteArrayRecord<len, rt, char_t> record_t;
+    typedef typename record_t::array_t array_t;
+
+    static inline void from_record(record_t *src, array_t &dest)
+    {
+        src->raw_get(dest);
+    };
+
+    static inline std::shared_ptr<record_t> to_record(
+        const array_t &src,
+        const ID record_id)
+    {
+        std::shared_ptr<record_t> result =
+            NodeHandleFactory<record_t>::create(record_id);
+        result->raw_set(src);
+        return result;
+    };
+
+};
+
 }
 
 #endif

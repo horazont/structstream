@@ -176,3 +176,28 @@ TEST_CASE ("serialize/array/int", "Serialize an array of integer")
         REQUIRE(rec->get() == *intit);
     }
 }
+
+TEST_CASE ("serialize/static_byte_array/raw128",
+           "Serialize a 128 bit static byte array")
+{
+    static const uint8_t payload[16] = {
+        0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
+        0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff
+    };
+
+    typedef only<value_decl<Raw128Record, id_selector<0x01>, uint8_t[16]>> serializer;
+
+    ContainerHandle root = NodeHandleFactory<Container>::create(0x00);
+
+    serialize_to_sink<serializer>(payload, StreamSink(new ToTree(root)));
+
+    NodeHandle result = *root->children_begin();
+    Raw128Record *rec = dynamic_cast<Raw128Record*>(result.get());
+
+    REQUIRE(result.get() != 0);
+    REQUIRE(rec != 0);
+
+    uint8_t result_payload[16];
+    rec->raw_get(result_payload);
+    CHECK(memcmp(&result_payload[0], &payload[0], sizeof(payload)) == 0);
+}
