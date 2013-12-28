@@ -85,6 +85,7 @@ void Registry::register_defaults() {
     _record_types[RT_CONTAINER] = NodeHandleFactory<Container>::create;
     _record_types[RT_VARINT] = NodeHandleFactory<VarIntRecord>::create;
     _record_types[RT_VARUINT] = NodeHandleFactory<VarUIntRecord>::create;
+    _record_types[RT_RAW128] = NodeHandleFactory<Raw128Record>::create;
 }
 
 NodeHandle Registry::node_from_record_type(RecordType rt, ID id) const
