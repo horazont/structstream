@@ -277,6 +277,67 @@ typedef PrimitiveDataRecord<float, RT_FLOAT32> Float32Record;
 typedef PrimitiveDataRecord<double, RT_FLOAT64> Float64Record;
 typedef PrimitiveDataRecord<bool, RT_BOOL_FALSE> BoolRecordBase;
 
+template <size_t len, RecordType rt, typename char_t = uint8_t>
+class StaticByteArrayRecord: public DataRecord
+{
+    static_assert(
+        sizeof(char_t) == 1,
+        "Character type for static byte array record must have size 1");
+
+protected:
+    explicit StaticByteArrayRecord(ID id):
+        DataRecord::DataRecord(id),
+        _data()
+    {
+
+    }
+
+    StaticByteArrayRecord(const StaticByteArrayRecord &ref):
+        DataRecord::DataRecord(ref),
+        _data()
+    {
+        memcpy(&_data[0], &ref._data[0], len);
+    }
+
+protected:
+    char_t _data[len];
+
+public:
+    NodeHandle copy() const override {
+        return NodeHandleFactory<StaticByteArrayRecord>::copy(*this);
+    };
+
+    void raw_get(void *to) const override {
+        memcpy(to, &_data[0], len);
+    };
+
+    intptr_t raw_size() const override {
+        return len;
+    };
+
+    void raw_set(const void *from) override {
+        memcpy(&_data[0], from, len);
+    };
+
+    void read(IOIntf *stream) override {
+        sread(stream, &_data[0], len);
+    };
+
+    void write(IOIntf *stream) const override {
+        write_header(stream);
+        swrite(stream, &_data[0], len);
+    };
+
+    RecordType record_type() const override {
+        return rt;
+    };
+
+    friend struct NodeHandleFactory<StaticByteArrayRecord>;
+
+};
+
+typedef StaticByteArrayRecord<16, RT_RAW128> Raw128Record;
+
 class BoolRecord: public BoolRecordBase
 {
 protected:

@@ -242,3 +242,30 @@ TEST_CASE ("encode/record/varuint", "Encode a varuint record")
 
     REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
 }
+
+TEST_CASE ("encode/record/raw128", "Encode a raw 128 bit record (UUID)")
+{
+    static const uint8_t payload[16] = {
+        0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
+        0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff
+    };
+
+    static const uint8_t expected[] = {
+        COMMON_HEADER
+        (uint8_t)(RT_RAW128) | 0x80, uint8_t(0x01) | 0x80,
+        0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
+        0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff,
+        COMMON_FOOTER
+    };
+
+    std::shared_ptr<Raw128Record> tree =
+        NodeHandleFactory<Raw128Record>::create(0x01);
+    tree->raw_set(payload);
+
+    uint8_t output[sizeof(expected)];
+
+    intptr_t size = tree_to_blob(output, sizeof(output), {tree});
+    REQUIRE(size == sizeof(expected));
+
+    REQUIRE(memcmp(expected, output, sizeof(expected)) == 0);
+}

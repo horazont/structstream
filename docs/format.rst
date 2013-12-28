@@ -147,6 +147,8 @@ RecordType enum name value    content format
                               armored container.
 ``VARINT``           ``0x0D`` a signed variable-length integer
 ``VARUINT``          ``0x0E`` an unsigned variable-length integer
+``RAW128``           ``0x0F`` a static array of 16 bytes (128 bits).
+                              This is useful for UUIDs.
 ==================== ======== =======================================
 
 Furthermore, the following ranges of RecordTypes are reserved and have

@@ -60,6 +60,7 @@ const RecordType RT_BLOB = 0x0B;
 const RecordType RT_END_OF_CHILDREN = 0x0C;
 const RecordType RT_VARUINT = 0x0D;
 const RecordType RT_VARINT = 0x0E;
+const RecordType RT_RAW128 = 0x0F;
 
 const RecordType RT_APPBLOB_MIN = 0x40;
 const RecordType RT_APPBLOB_MAX = 0x5f;
