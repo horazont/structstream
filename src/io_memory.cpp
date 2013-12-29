@@ -180,4 +180,16 @@ intptr_t WritableMemory::write(const void *buf, const intptr_t len)
     return to_write;
 }
 
+uint8_t *WritableMemory::release_buffer(intptr_t &len)
+{
+    len = _outward_size;
+    uint8_t *result = _buf;
+    _buf = nullptr;
+    _buf_size = 0;
+    _outward_size = 0;
+    _offs = 0;
+
+    return result;
+}
+
 }
