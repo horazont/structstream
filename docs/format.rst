@@ -10,7 +10,7 @@ strong simplifications. As an EBML relative, it also uses varints as
 described in the EBML RFC to store (expectedly) small integer
 numbers in the format metadata.
 
-In the following, we use some extensions of the ABML form to simplify
+In the following, we use some extensions of the ABNF to simplify
 writing the specification of the format a bit. First, the symbol
 ``varint`` shall refer to a serialized varint. If the symbol is
 immediately (without space) followed by a pair of braces (``()``),
@@ -18,7 +18,7 @@ whatever these braces enclose shall be encoded as varint.
 
 If a symbol is immediately followed by a pair of sharp braces
 (``<>``), this defines a reference to the symbol. We make use of
-references in the text below the ABML forms.
+references in the text below the ABNF.
 
 Node tree
 =========
@@ -43,7 +43,7 @@ following rough ABML for the format::
 
     end_of_children := varint(RT_END_OF_CHILDREN)
 
-Note that this ABML matches more documents than which are in fact
+Note that this ABNF matches more documents than which are in fact
 allowed, as we did not distinguish based on the record-type here. The
 *id* is encoded for semantic purposes and the application is free to
 choose any valid varuint as an id.
