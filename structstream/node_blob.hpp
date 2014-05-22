@@ -84,7 +84,12 @@ protected:
     inline void allocate_length(VarInt length) {
 	if (length != _len) {
 	    _len = length;
-	    _buf = realloc(_buf, size());
+            void *newbuf = realloc(_buf, size());
+            if (!newbuf) {
+                free(_buf);
+                throw std::runtime_error("out of memory");
+            }
+            _buf = newbuf;
 	}
     };
 public:
@@ -110,10 +115,7 @@ public:
     };
 
     void set(const _IntfT *from, const intptr_t len) {
-        if (len != _len) {
-            _len = len;
-            _buf = realloc(_buf, size());
-        }
+        allocate_length(len);
         memcpy(_buf, from, size());
     };
 

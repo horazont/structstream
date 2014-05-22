@@ -141,14 +141,19 @@ void WritableMemory::grow()
     const intptr_t new_size = _buf_size + 1024*sizeof(_blank_pattern);
     uint8_t *new_buf = (uint8_t*)realloc(_buf, new_size);
     if (!new_buf) {
+        free(_buf);
+        _buf = nullptr;
+        _buf_size = 0;
         throw std::runtime_error("Out of memory during grow().");
     }
 
-    uint32_t *fillat = (uint32_t*)(&((uint8_t*)_buf)[_buf_size]);
-    const uint32_t *end = (uint32_t*)(&((uint8_t*)_buf)[new_size]);
-    while (fillat < end) {
-        *fillat = _blank_pattern;
-    }
+    _buf = new_buf;
+
+    // uint32_t *fillat = (uint32_t*)(&((uint8_t*)_buf)[_buf_size]);
+    // const uint32_t *end = (uint32_t*)(&((uint8_t*)_buf)[new_size]);
+    // while (fillat < end) {
+    //     *fillat++ = _blank_pattern;
+    // }
 
     _buf_size = new_size;
 }
