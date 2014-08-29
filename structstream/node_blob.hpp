@@ -144,6 +144,10 @@ public:
     virtual void read(IOIntf *stream);
     virtual void write(IOIntf *stream) const;
 
+    std::string get() const {
+        return datastr();
+    };
+
     virtual std::string datastr() const {
         return std::string((const char*)_buf);
     };
